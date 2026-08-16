@@ -77,8 +77,8 @@ body {
   animation-duration: .55s;
 }
 @keyframes rainmove { to { background-position: 130px 620px; } }
-.phase-top .rain, .phase-edge .rain, .phase-fall .rain, .phase-whirl .rain { animation-duration: .3s; }
-.phase-top .rain.fine, .phase-edge .rain.fine, .phase-fall .rain.fine, .phase-whirl .rain.fine { animation-duration: .2s; }
+.phase-top .rain, .phase-lean .rain, .phase-fall .rain, .phase-whirl .rain { animation-duration: .3s; }
+.phase-top .rain.fine, .phase-lean .rain.fine, .phase-fall .rain.fine, .phase-whirl .rain.fine { animation-duration: .2s; }
 
 #flash {
   position: absolute; inset: 0;
@@ -104,93 +104,105 @@ body {
 @keyframes boltflick { 0% { opacity: 1; } 50% { opacity: .35; } 100% { opacity: 0; } }
 
 /* ---------- phases ---------- */
-.gate, .cine, .topview, .fallview, .home, .mute, .skip { display: none; }
-.phase-gate .gate { display: flex; }
-.phase-top .cine, .phase-edge .cine, .phase-fall .cine, .phase-whirl .cine { display: block; }
-.phase-top .topview, .phase-edge .topview { display: block; }
-.phase-edge .fallview, .phase-fall .fallview, .phase-whirl .fallview { display: block; }
+.cine, .topview, .lookdown, .home, .mute, .skip { display: none; }
+.phase-top .cine, .phase-lean .cine, .phase-fall .cine, .phase-whirl .cine { display: block; }
+.phase-top .topview, .phase-lean .topview { display: block; }
+.phase-lean .lookdown, .phase-fall .lookdown, .phase-whirl .lookdown { display: block; }
 .phase-home .home { display: flex; }
-.phase-top .mute, .phase-edge .mute, .phase-fall .mute, .phase-whirl .mute, .phase-home .mute { display: grid; }
-.phase-top .skip, .phase-edge .skip, .phase-fall .skip, .phase-whirl .skip { display: block; }
-
-/* ---------- gate (title card / audio unlock) ---------- */
-.gate {
-  position: absolute; inset: 0;
-  flex-direction: column;
-  align-items: center;
-  justify-content: center;
-  gap: 1.1rem;
-  text-align: center;
-  z-index: 10;
-  padding: 1.5rem;
-}
-.gate .sil {
-  position: absolute;
-  bottom: 0; left: 50%;
-  transform: translateX(-50%);
-  height: 62vh; width: auto;
-  opacity: .32;
-  pointer-events: none;
-}
-.gate .presents {
-  font-size: clamp(.85rem, 2.4vw, 1.05rem);
-  letter-spacing: .3em;
-  color: var(--ink-dim);
-}
-.gate h1 {
-  font-size: clamp(2.4rem, 9vw, 4.6rem);
-  line-height: .95;
-  color: var(--gold);
-  text-shadow: 0 0 22px rgba(255,197,49,.35), 0 4px 0 var(--gold-dark);
-  animation: gatehum 3.4s ease-in-out infinite;
-}
-.gate h1 .tw { color: var(--ink-pale); text-shadow: 0 0 20px rgba(157,184,255,.5), 0 4px 0 #2a3350; }
-@keyframes gatehum { 50% { filter: brightness(1.15); } }
-.enter {
-  font-family: inherit;
-  font-size: clamp(1.05rem, 3vw, 1.35rem);
-  letter-spacing: .08em;
-  color: var(--ink-pale);
-  background: var(--iron);
-  border: 2px solid var(--steel);
-  border-radius: 14px;
-  padding: .95rem 2.2rem .75rem;
-  cursor: pointer;
-  margin-top: .8rem;
-  animation: enterpulse 2s ease-in-out infinite;
-  transition: transform .15s ease, background .15s ease;
-}
-.enter:hover, .enter:focus-visible { transform: scale(1.06); background: #263052; }
-.enter:focus-visible { outline: 2px solid var(--electric); outline-offset: 4px; }
-@keyframes enterpulse { 50% { box-shadow: 0 0 26px rgba(157,184,255,.45); } }
-.gate .note { font-size: .95rem; letter-spacing: .12em; color: var(--ink-dim); }
-.gate .gate-skip {
-  font-family: inherit; font-size: .9rem; letter-spacing: .12em;
-  color: var(--ink-dim);
-  background: none; border: none; cursor: pointer;
-  text-decoration: underline dotted;
-  padding: .4rem;
-}
-.gate .gate-skip:hover, .gate .gate-skip:focus-visible { color: var(--ink-pale); }
+.phase-top .mute, .phase-lean .mute, .phase-fall .mute, .phase-whirl .mute, .phase-home .mute { display: grid; }
+.phase-top .skip, .phase-lean .skip, .phase-fall .skip, .phase-whirl .skip { display: block; }
 
 /* ---------- cinematic ---------- */
 .cine { position: absolute; inset: 0; z-index: 5; transform-origin: 50% 50%; }
-.phase-whirl .cine { animation: whirlout .68s cubic-bezier(.6, 0, .9, .5) forwards; }
+.phase-whirl .cine { animation: whirlout .4s cubic-bezier(.55, 0, .9, .5) forwards; }
 @keyframes whirlout {
   0% { transform: none; filter: blur(0); opacity: 1; }
-  55% { filter: blur(9px); }
-  100% { transform: rotate(180deg) scale(1.35); filter: blur(14px); opacity: 0; }
+  55% { filter: blur(6px); }
+  100% { transform: rotate(180deg) scale(1.3); filter: blur(8px); opacity: 0; }
 }
 
-/* scene 1: at the parapet */
-.topview { position: absolute; inset: 0; z-index: 2; animation: topzoom 1.6s ease-in forwards; }
+/* scene 1: at the parapet, walking up to the edge */
+.topview { position: absolute; inset: 0; z-index: 2; animation: topzoom 1.5s ease-in forwards; }
 @keyframes topzoom { to { transform: scale(1.09) translateY(2.5%); } }
-/* scene 1b: over the edge — the parapet sweeps beneath you */
-.phase-edge .topview { animation: overedge 1.1s cubic-bezier(.55, .05, .85, .4) forwards; }
-@keyframes overedge {
+/* scene 2: you tilt forward to look over — the horizon sweeps up and out of view */
+.phase-lean .topview { animation: pitchup .9s cubic-bezier(.55, .05, .7, .35) forwards; }
+@keyframes pitchup {
   from { transform: scale(1.09) translateY(2.5%); filter: blur(0); }
-  to { transform: scale(2.7) translateY(145%); filter: blur(3px); }
+  to { transform: scale(1.35) translateY(-120%); filter: blur(2.5px); }
 }
+/* ...and you're staring straight down: the wall drops away beneath you, ground far below */
+.lookdown { position: absolute; inset: 0; z-index: 1; overflow: hidden; }
+.phase-lean .lookdown { animation: lookenter .9s cubic-bezier(.25, .6, .3, 1) forwards; }
+@keyframes lookenter { from { transform: translateY(103%); } to { transform: translateY(0); } }
+.ldshake { position: absolute; inset: 0; }
+.phase-fall .ldshake { animation: camshake .16s linear infinite alternate; }
+@keyframes camshake { from { transform: translate(0, 0) rotate(0); } to { transform: translate(2.5px, -2px) rotate(.25deg); } }
+.ldscene { position: absolute; inset: 0; transform-origin: 50% 45%; }
+.phase-lean .ldscene { animation: vertigo 2.4s ease-in-out infinite alternate; }
+@keyframes vertigo { from { transform: scale(1); } to { transform: scale(1.045); } }
+.voidsky {
+  position: absolute; inset: 0;
+  background:
+    radial-gradient(20% 14% at 50% 45%, rgba(96,116,158,.2), transparent 70%),
+    linear-gradient(180deg, #0a0e17 0%, #121a2c 55%, #1c2438 100%);
+}
+/* the wall face below you: wide at your feet, tapering to a point far down */
+.wallsvg { position: absolute; inset: 0; width: 100%; height: 100%; }
+.wallsvg .static-courses { transition: opacity .5s ease; }
+.phase-fall .wallsvg .static-courses { opacity: .4; }
+/* stone courses rushing outward from the vanishing point as you fall */
+.rushwrap {
+  position: absolute; inset: 0;
+  clip-path: polygon(50% 44%, -14% 103%, 114% 103%);
+}
+.courseo, .wino {
+  position: absolute; inset: 0;
+  transform-origin: 50% 45%;
+  opacity: 0;
+  pointer-events: none;
+}
+.courseo i {
+  position: absolute; left: -12%; right: -12%; bottom: 4%;
+  height: 12px;
+  background: rgba(8, 12, 21, .8);
+  border-top: 2px solid rgba(223, 232, 255, .07);
+  border-radius: 5px;
+  display: block;
+}
+.wino i {
+  position: absolute;
+  width: 52px; height: 70px;
+  background: #0e1320;
+  border: 2px solid #5a6684;
+  border-radius: 26px 26px 6px 6px;
+  display: block;
+}
+.wino.w1 i { left: 29%; bottom: 21%; }
+.wino.w2 i { right: 26%; bottom: 29%; }
+.phase-fall .courseo, .phase-fall .wino {
+  animation: rushout 1.15s linear var(--d, 0s) infinite;
+}
+@keyframes rushout {
+  0% { transform: scale(.02); opacity: 0; }
+  14% { opacity: 1; }
+  100% { transform: scale(1.55); opacity: 1; }
+}
+/* slow dolly toward the point while falling */
+.phase-fall .ldscene { animation: ldzoom 4.6s ease-in forwards; }
+@keyframes ldzoom { to { transform: scale(1.3); } }
+.speedlines { position: absolute; inset: 0; opacity: 0; transform-origin: 50% 45%; }
+.phase-fall .speedlines { opacity: 1; animation: lines .4s linear infinite; }
+@keyframes lines { from { transform: scale(.55); opacity: 0; } 30% { opacity: .75; } to { transform: scale(1.3); opacity: 0; } }
+/* the rim you leaned over, dropping away as you leave it behind */
+.lip {
+  position: absolute; left: -2%; right: -2%; bottom: -2px;
+  height: 9vh;
+  background: #10141f;
+  border-top: 4px solid rgba(67, 80, 112, .55);
+  box-shadow: 0 -14px 26px rgba(6, 9, 16, .55);
+}
+.phase-fall .lip { animation: lipaway .5s ease-in forwards; }
+@keyframes lipaway { to { transform: translateY(90%) scaleY(2.2); opacity: 0; } }
 .topview .parapet {
   position: absolute;
   bottom: -2px; left: -4%;
@@ -204,60 +216,6 @@ body {
   filter: blur(8px);
 }
 
-/* scene 2: the dive — the wall world rises to meet you, then rushes */
-.fallview { position: absolute; inset: 0; z-index: 1; }
-.phase-edge .fallview { animation: edgein 1.1s cubic-bezier(.45, 0, .75, .55) forwards; }
-@keyframes edgein { from { transform: translateY(82%); } to { transform: translateY(0); } }
-.phase-fall .fallview, .phase-whirl .fallview { animation: camshake .16s linear infinite alternate; }
-@keyframes camshake { from { transform: translate(0, 0) rotate(0); } to { transform: translate(2.5px, -2px) rotate(.25deg); } }
-.fcloud {
-  position: absolute;
-  width: 34vw; height: 13vh;
-  left: 4%;
-  border-radius: 50%;
-  background: #0b101c;
-  filter: blur(18px);
-  opacity: .8;
-  animation: frush 1.15s linear infinite;
-}
-.fcloud.f2 { left: 12%; width: 26vw; animation-duration: .9s; animation-delay: -.4s; }
-.fcloud.f3 { left: 1%; width: 30vw; animation-duration: 1.35s; animation-delay: -.8s; }
-@keyframes frush { from { top: 110%; } to { top: -30%; } }
-.wall {
-  position: absolute;
-  top: 0; right: 0; bottom: 0;
-  width: 58%;
-  overflow: hidden;
-  box-shadow: inset 18px 0 30px -12px rgba(0,0,0,.7);
-}
-.wall::before {
-  content: '';
-  position: absolute; top: 0; bottom: 0; left: 0;
-  width: 10px;
-  background: linear-gradient(90deg, rgba(157,184,255,.5), rgba(157,184,255,0));
-  z-index: 2;
-}
-.wall-tex {
-  position: absolute;
-  left: 0; right: 0; top: 0;
-  height: 520%;
-  background:
-    repeating-linear-gradient(180deg, transparent 0 118px, rgba(8,12,21,.6) 118px 127px),
-    repeating-linear-gradient(90deg, transparent 0 92px, rgba(8,12,21,.2) 92px 97px),
-    repeating-linear-gradient(90deg, transparent 0 141px, rgba(223,232,255,.045) 141px 145px),
-    linear-gradient(90deg, #414c66 0%, #303a52 45%, #232b3f 100%);
-  animation: falltex 5.7s cubic-bezier(.5, 0, .88, .45) forwards;
-}
-@keyframes falltex { to { transform: translateY(-80.7%); } }
-.wtx { position: absolute; }
-.streaks {
-  position: absolute; inset: 0;
-  background: repeating-linear-gradient(180deg,
-    rgba(223,232,255,.07) 0 3px, transparent 3px 160px);
-  animation: streakmove .22s linear infinite;
-  z-index: 1;
-}
-@keyframes streakmove { to { background-position: 0 163px; } }
 
 /* ---------- home screen ---------- */
 .home {
@@ -509,9 +467,9 @@ footer {
   .wall { width: 64%; }
 }
 @media (prefers-reduced-motion: reduce) {
-  .rain, .rain.fine, .scud, .fcloud, .streaks, .wall-tex, .topview, .fallview,
-  .gate h1, .enter, .hang, .bomb-o .flame, .burst-a svg, .page.kaboom,
-  .phase-whirl .cine { animation: none !important; }
+  .rain, .rain.fine, .scud, .topview, .lookdown, .ldshake, .ldscene,
+  .courseo, .wino, .speedlines, .lip, .hang, .bomb-o .flame, .burst-a svg,
+  .page.kaboom, .phase-whirl .cine { animation: none !important; }
 }
 </style>
 
@@ -533,19 +491,6 @@ footer {
   </svg>
   <div id="flash" aria-hidden="true"></div>
 
-  <!-- title card + audio unlock -->
-  <section class="gate">
-    <svg class="sil" viewBox="0 0 600 920" aria-hidden="true">
-      <path d="M200 108 L400 108 L390 152 L375 150 C395 400 430 660 470 905 L130 905 C170 660 205 400 225 150 L210 152 Z M210 72 L238 72 L238 108 L210 108 Z M247 72 L275 72 L275 108 L247 108 Z M285 72 L313 72 L313 108 L285 108 Z M322 72 L350 72 L350 108 L322 108 Z M360 72 L388 72 L388 108 L360 108 Z"
-            fill="#0a0e18"/>
-    </svg>
-    <div class="presents">JING &amp; ASH GAMES PRESENTS</div>
-    <h1>BOMB BLAST<br><span class="tw">TOWER</span></h1>
-    <button class="enter" id="enter">&#9889; ENTER THE STORM</button>
-    <div class="note">&#128266; SOUND ON &mdash; THUNDER AHEAD</div>
-    <button class="gate-skip" id="gate-skip">skip intro</button>
-  </section>
-
   <!-- the cinematic -->
   <div class="cine" aria-hidden="true">
     <div class="topview">
@@ -557,22 +502,82 @@ footer {
               fill="none" stroke="#435070" stroke-width="5" opacity=".5"/>
       </svg>
     </div>
-    <div class="fallview">
-      <div class="fcloud"></div><div class="fcloud f2"></div><div class="fcloud f3"></div>
-      <div class="wall">
-        <div class="wall-tex">
-          <svg class="wtx" style="left:18%; top:7%;  width:60px;" viewBox="0 0 40 62"><path d="M4 58 v-38 q0 -16 16 -16 q16 0 16 16 v38 Z" fill="#10141f" stroke="#5a6684" stroke-width="3"/></svg>
-          <svg class="wtx" style="left:58%; top:19%; width:52px;" viewBox="0 0 40 62"><path d="M4 58 v-38 q0 -16 16 -16 q16 0 16 16 v38 Z" fill="#10141f" stroke="#5a6684" stroke-width="3"/></svg>
-          <svg class="wtx" style="left:30%; top:33%; width:64px;" viewBox="0 0 40 62"><path d="M4 58 v-38 q0 -16 16 -16 q16 0 16 16 v38 Z" fill="#10141f" stroke="#5a6684" stroke-width="3"/></svg>
-          <svg class="wtx" style="left:66%; top:46%; width:56px;" viewBox="0 0 40 62"><path d="M4 58 v-38 q0 -16 16 -16 q16 0 16 16 v38 Z" fill="#10141f" stroke="#5a6684" stroke-width="3"/></svg>
-          <svg class="wtx" style="left:22%; top:58%; width:70px;" viewBox="0 0 44 50"><path d="M12 2 h16 v10 h10 v16 h-10 v10 h-16 v-10 h-10 v-16 h10 Z" fill="#39435c" stroke="#5a6684" stroke-width="3"/></svg>
-          <svg class="wtx" style="left:52%; top:70%; width:60px;" viewBox="0 0 40 62"><path d="M4 58 v-38 q0 -16 16 -16 q16 0 16 16 v38 Z" fill="#10141f" stroke="#5a6684" stroke-width="3"/></svg>
-          <svg class="wtx" style="left:34%; top:82%; width:74px;" viewBox="0 0 40 62"><path d="M4 58 v-38 q0 -16 16 -16 q16 0 16 16 v38 Z" fill="#10141f" stroke="#5a6684" stroke-width="3"/></svg>
-          <svg class="wtx" style="left:64%; top:92%; width:66px;" viewBox="0 0 40 62"><path d="M4 58 v-38 q0 -16 16 -16 q16 0 16 16 v38 Z" fill="#10141f" stroke="#5a6684" stroke-width="3"/></svg>
+    <div class="lookdown" aria-hidden="true">
+      <div class="ldshake">
+        <div class="ldscene">
+          <div class="voidsky"></div>
+          <svg class="wallsvg" viewBox="0 0 1000 1000" preserveAspectRatio="none" aria-hidden="true">
+            <defs>
+              <linearGradient id="wallg" x1="0" y1="1" x2="0" y2="0">
+                <stop offset="0%" stop-color="#414c66"/>
+                <stop offset="60%" stop-color="#2a3349"/>
+                <stop offset="100%" stop-color="#151b2b"/>
+              </linearGradient>
+              <radialGradient id="distmist" cx="50%" cy="50%" r="50%">
+                <stop offset="0%" stop-color="#0b0f1a"/>
+                <stop offset="55%" stop-color="#0b0f1a" stop-opacity=".85"/>
+                <stop offset="100%" stop-color="#0b0f1a" stop-opacity="0"/>
+              </radialGradient>
+            </defs>
+            <path d="M-120 1000 L500 450 L1120 1000 Z" fill="url(#wallg)"/>
+            <g stroke="#0e1320" stroke-width="4" opacity=".5">
+              <path d="M500 450 L-60 1000"/>
+              <path d="M500 450 L120 1000"/>
+              <path d="M500 450 L300 1000"/>
+              <path d="M500 450 L500 1000"/>
+              <path d="M500 450 L700 1000"/>
+              <path d="M500 450 L880 1000"/>
+              <path d="M500 450 L1060 1000"/>
+            </g>
+            <g class="static-courses" stroke="#10151f" fill="none">
+              <path d="M-64 950 L1064 950" stroke-width="5.5"/>
+              <path d="M10 885 L990 885" stroke-width="5"/>
+              <path d="M77 825 L923 825" stroke-width="4.6"/>
+              <path d="M139 770 L861 770" stroke-width="4.2"/>
+              <path d="M196 720 L804 720" stroke-width="3.8"/>
+              <path d="M246 675 L754 675" stroke-width="3.4"/>
+              <path d="M291 635 L709 635" stroke-width="3"/>
+              <path d="M331 600 L669 600" stroke-width="2.7"/>
+              <path d="M365 570 L635 570" stroke-width="2.4"/>
+              <path d="M393 545 L607 545" stroke-width="2.1"/>
+              <path d="M417 524 L583 524" stroke-width="1.9"/>
+              <path d="M436 507 L564 507" stroke-width="1.7"/>
+            </g>
+            <path d="M-120 1000 L500 450" stroke="#8fa3c8" stroke-width="5" opacity=".3" fill="none"/>
+            <path d="M1120 1000 L500 450" stroke="#0a0e18" stroke-width="6" opacity=".5" fill="none"/>
+            <ellipse cx="500" cy="465" rx="330" ry="150" fill="url(#distmist)"/>
+          </svg>
+          <div class="rushwrap" aria-hidden="true">
+            <span class="courseo" style="--d:0s"><i></i></span>
+            <span class="courseo" style="--d:-.144s"><i></i></span>
+            <span class="courseo" style="--d:-.288s"><i></i></span>
+            <span class="courseo" style="--d:-.431s"><i></i></span>
+            <span class="courseo" style="--d:-.575s"><i></i></span>
+            <span class="courseo" style="--d:-.719s"><i></i></span>
+            <span class="courseo" style="--d:-.863s"><i></i></span>
+            <span class="courseo" style="--d:-1.006s"><i></i></span>
+            <span class="wino w1" style="--d:-.4s"><i></i></span>
+            <span class="wino w2" style="--d:-.95s"><i></i></span>
+          </div>
+          <svg class="speedlines" viewBox="0 0 1000 1000" preserveAspectRatio="none" aria-hidden="true">
+            <g stroke="#dfe8ff" stroke-width="3" opacity=".14" stroke-linecap="round">
+              <path d="M660 295 L830 205"/>
+              <path d="M700 410 L900 410"/>
+              <path d="M660 530 L840 625"/>
+              <path d="M560 590 L610 780"/>
+              <path d="M440 590 L390 780"/>
+              <path d="M340 530 L160 625"/>
+              <path d="M300 410 L100 410"/>
+              <path d="M340 295 L170 205"/>
+              <path d="M500 620 L500 800"/>
+              <path d="M610 250 L700 120"/>
+            </g>
+          </svg>
+          <div class="lip"></div>
         </div>
-        <div class="streaks"></div>
       </div>
     </div>
+        </div>
   </div>
 
   <!-- the home screen -->
@@ -851,13 +856,13 @@ footer {
     setPhase('top');                 // visuals first — audio is best-effort
     audio.init();
     try { if (audio.ctx && audio.ctx.state === 'suspended') audio.ctx.resume(); } catch (e) {}
-    at(350, () => strike(1));                                    // opening crack at the parapet
-    at(1600, () => { setPhase('edge'); audio.wind(true); });     // you reach the edge — the parapet sweeps beneath you
-    at(2700, () => setPhase('fall'));                            // and the wall takes over, rushing past
-    at(3900, () => audio.rumble(.28));                           // distant roll mid-fall
-    at(6500, () => strike(.55));                                 // near the ground
-    at(7300, () => { setPhase('whirl'); audio.wind(false); audio.whoosh(); });  // wheel around
-    at(8000, () => arriveHome(true));                            // face the tower
+    at(350, () => strike(1));                                     // opening crack at the parapet
+    at(1500, () => { setPhase('lean'); audio.wind(true); });      // you tilt over the edge, staring straight down
+    at(3100, () => { setPhase('fall'); audio.whoosh(); });        // and drop — face first, the ground far below
+    at(4300, () => audio.rumble(.28));                            // distant roll mid-fall
+    at(6600, () => strike(.6));                                   // the ground is coming up fast
+    at(7700, () => { document.body.className = 'phase-fall phase-whirl'; audio.wind(false); audio.whoosh(); });  // wheel around
+    at(8130, () => arriveHome(true));                             // face the tower
   }
 
   function arriveHome(animate) {
@@ -885,7 +890,7 @@ footer {
     ambientOn = true;
     (function loop() {
       setTimeout(() => {
-        if (document.body.className === 'phase-home' && !document.hidden) {
+        if (document.body.classList.contains('phase-home') && !document.hidden) {
           flash.classList.remove('on'); void flash.offsetWidth; flash.classList.add('on');
           const b = bolts[Math.random() < .5 ? 0 : 1];
           b.classList.remove('on'); void b.offsetWidth; b.classList.add('on');
@@ -897,11 +902,6 @@ footer {
   }
 
   // ---------- controls ----------
-  $('#enter').addEventListener('click', () => {
-    if (canAnimate()) startIntro();
-    else { audio.init(); arriveHome(false); }
-  });
-  $('#gate-skip').addEventListener('click', () => arriveHome(canAnimate()));
   $('#skip').addEventListener('click', () => { audio.wind(false); arriveHome(canAnimate()); });
   $('#replay').addEventListener('click', () => { if (canAnimate()) startIntro(); });
   $('#mute').addEventListener('click', () => {
@@ -917,6 +917,10 @@ footer {
   let tHide;
   document.querySelectorAll('.hexbtn').forEach(btn => {
     btn.addEventListener('click', () => {
+      if (/market/i.test(btn.dataset.name) && !String(location.href).startsWith('about')) {
+        location.href = '../market.html';
+        return;
+      }
       toast.innerHTML = '<b>' + btn.dataset.name + '</b> &mdash; coming soon!';
       toast.classList.remove('show'); void toast.offsetWidth; toast.classList.add('show');
       clearTimeout(tHide);
@@ -929,8 +933,20 @@ footer {
   });
 
   // ---------- boot ----------
+  // The intro auto-plays. Browsers only allow sound after the first tap or
+  // keypress, so the first gesture unlocks the thunder mid-flight.
+  const unlock = () => {
+    audio.init();
+    try { if (audio.ctx && audio.ctx.state === 'suspended') audio.ctx.resume(); } catch (e) {}
+    const c = document.body.classList;
+    if (c.contains('phase-lean') || c.contains('phase-fall')) audio.wind(true);
+  };
+  addEventListener('pointerdown', unlock, { once: true, capture: true });
+  addEventListener('keydown', unlock, { once: true, capture: true });
   // no-JS default is the static home screen; with JS we route by hash
   if (location.hash === '#still') setPhase('home');
+  else if (location.hash === '#look') setPhase('lean');
   else if (location.hash === '#fall') setPhase('fall');
-  else setPhase('gate');
+  else if (canAnimate()) startIntro();
+  else { setPhase('home'); startAmbient(); }
 </script>

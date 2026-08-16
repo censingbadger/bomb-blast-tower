@@ -15,11 +15,14 @@ them directly:
 | 3 | **Cartoon Blast** | `homepage-options/option-3-cartoon-blast.html` | Sunny, chunky mobile-game style, with the grey stone tower |
 | 4 | **Storm Dive** | `homepage-options/option-4-storm-dive.html` | 🔊 Stormy night with a cinematic intro — dive down the tower through lightning and thunder |
 
-**About the Storm Dive intro:** click ⚡ *Enter the Storm* and you start at the top of
-the tower in a thunderstorm, plunge down the wall face for about five seconds, whip
-around — and land facing the tower as the home screen arrives. The thunder is
-synthesized live in the browser (no sound files). There's a skip button, a mute
-button, and a *replay intro* link in the footer.
+**About the Storm Dive intro:** it plays automatically when the page opens — you start
+at the top of the tower in a thunderstorm, lean out over the edge until you're staring
+straight down the wall, drop face-first, race down alongside the stone, whip around —
+and land facing the tower as the home screen arrives. The thunder is synthesized live
+in the browser (no sound files). Browsers only allow sound after your first tap or
+keypress, so the thunder joins in as soon as you touch anything — or hit *replay intro*
+in the footer to watch it again with full sound. There's a skip button and a mute
+button too.
 
 Every option has the same pieces from the drawing:
 
@@ -42,11 +45,19 @@ python3 -m http.server
 # then visit http://localhost:8000
 ```
 
+## Game screens
+
+- **Market** (`market.html`) — based on Asher's market drawing. Two shelves
+  (Artifacts and Weapons on hanging signs), a floor row, prices in gems, rarity
+  tags from Common to Legendary, and the Forge teaser. You start with **173 💎**
+  and can really buy things: gems go down, items get a SOLD tag, and your
+  purchases are remembered (there's a *restock shop* link in the footer to reset).
+  Reachable from the Market button on every homepage option.
+
 ## What's next
 
-Once a homepage is picked, it becomes the real `index.html`, and the three hexagon
-buttons will link to the actual game screens:
+Once a homepage is picked, it becomes the real `index.html`. Still to build:
 
 - **Tower** — the main game
-- **Market** — buy upgrades and gear
 - **Inventory & Stats** — what you own and how you're doing
+- **The Forge** — teased on the Market screen
