@@ -399,6 +399,10 @@ footer .credit { color: #8f9ac9; }
   let tHide;
   document.querySelectorAll('.hexbtn').forEach(btn => {
     btn.addEventListener('click', () => {
+      if (/market/i.test(btn.dataset.name) && !String(location.href).startsWith('about')) {
+        location.href = '../market.html';
+        return;
+      }
       toast.textContent = '> ' + btn.dataset.name + ': LEVEL LOADING... COMING SOON!';
       toast.classList.remove('show');
       void toast.offsetWidth;

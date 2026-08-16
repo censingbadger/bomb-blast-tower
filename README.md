@@ -45,11 +45,19 @@ python3 -m http.server
 # then visit http://localhost:8000
 ```
 
+## Game screens
+
+- **Market** (`market.html`) — based on Asher's market drawing. Two shelves
+  (Artifacts and Weapons on hanging signs), a floor row, prices in gems, rarity
+  tags from Common to Legendary, and the Forge teaser. You start with **173 💎**
+  and can really buy things: gems go down, items get a SOLD tag, and your
+  purchases are remembered (there's a *restock shop* link in the footer to reset).
+  Reachable from the Market button on every homepage option.
+
 ## What's next
 
-Once a homepage is picked, it becomes the real `index.html`, and the three hexagon
-buttons will link to the actual game screens:
+Once a homepage is picked, it becomes the real `index.html`. Still to build:
 
 - **Tower** — the main game
-- **Market** — buy upgrades and gear
 - **Inventory & Stats** — what you own and how you're doing
+- **The Forge** — teased on the Market screen

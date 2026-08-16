@@ -917,6 +917,10 @@ footer {
   let tHide;
   document.querySelectorAll('.hexbtn').forEach(btn => {
     btn.addEventListener('click', () => {
+      if (/market/i.test(btn.dataset.name) && !String(location.href).startsWith('about')) {
+        location.href = '../market.html';
+        return;
+      }
       toast.innerHTML = '<b>' + btn.dataset.name + '</b> &mdash; coming soon!';
       toast.classList.remove('show'); void toast.offsetWidth; toast.classList.add('show');
       clearTimeout(tHide);
