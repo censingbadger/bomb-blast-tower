@@ -77,8 +77,8 @@ body {
   animation-duration: .55s;
 }
 @keyframes rainmove { to { background-position: 130px 620px; } }
-.phase-top .rain, .phase-fall .rain, .phase-whirl .rain { animation-duration: .3s; }
-.phase-top .rain.fine, .phase-fall .rain.fine, .phase-whirl .rain.fine { animation-duration: .2s; }
+.phase-top .rain, .phase-edge .rain, .phase-fall .rain, .phase-whirl .rain { animation-duration: .3s; }
+.phase-top .rain.fine, .phase-edge .rain.fine, .phase-fall .rain.fine, .phase-whirl .rain.fine { animation-duration: .2s; }
 
 #flash {
   position: absolute; inset: 0;
@@ -106,12 +106,12 @@ body {
 /* ---------- phases ---------- */
 .gate, .cine, .topview, .fallview, .home, .mute, .skip { display: none; }
 .phase-gate .gate { display: flex; }
-.phase-top .cine, .phase-fall .cine, .phase-whirl .cine { display: block; }
-.phase-top .topview { display: block; }
-.phase-fall .fallview, .phase-whirl .fallview { display: block; }
+.phase-top .cine, .phase-edge .cine, .phase-fall .cine, .phase-whirl .cine { display: block; }
+.phase-top .topview, .phase-edge .topview { display: block; }
+.phase-edge .fallview, .phase-fall .fallview, .phase-whirl .fallview { display: block; }
 .phase-home .home { display: flex; }
-.phase-top .mute, .phase-fall .mute, .phase-whirl .mute, .phase-home .mute { display: grid; }
-.phase-top .skip, .phase-fall .skip, .phase-whirl .skip { display: block; }
+.phase-top .mute, .phase-edge .mute, .phase-fall .mute, .phase-whirl .mute, .phase-home .mute { display: grid; }
+.phase-top .skip, .phase-edge .skip, .phase-fall .skip, .phase-whirl .skip { display: block; }
 
 /* ---------- gate (title card / audio unlock) ---------- */
 .gate {
@@ -183,8 +183,14 @@ body {
 }
 
 /* scene 1: at the parapet */
-.topview { position: absolute; inset: 0; animation: topzoom 1.6s ease-in forwards; }
+.topview { position: absolute; inset: 0; z-index: 2; animation: topzoom 1.6s ease-in forwards; }
 @keyframes topzoom { to { transform: scale(1.09) translateY(2.5%); } }
+/* scene 1b: over the edge — the parapet sweeps beneath you */
+.phase-edge .topview { animation: overedge 1.1s cubic-bezier(.55, .05, .85, .4) forwards; }
+@keyframes overedge {
+  from { transform: scale(1.09) translateY(2.5%); filter: blur(0); }
+  to { transform: scale(2.7) translateY(145%); filter: blur(3px); }
+}
 .topview .parapet {
   position: absolute;
   bottom: -2px; left: -4%;
@@ -198,8 +204,11 @@ body {
   filter: blur(8px);
 }
 
-/* scene 2: the dive */
-.fallview { position: absolute; inset: 0; animation: camshake .16s linear infinite alternate; }
+/* scene 2: the dive — the wall world rises to meet you, then rushes */
+.fallview { position: absolute; inset: 0; z-index: 1; }
+.phase-edge .fallview { animation: edgein 1.1s cubic-bezier(.45, 0, .75, .55) forwards; }
+@keyframes edgein { from { transform: translateY(82%); } to { transform: translateY(0); } }
+.phase-fall .fallview, .phase-whirl .fallview { animation: camshake .16s linear infinite alternate; }
 @keyframes camshake { from { transform: translate(0, 0) rotate(0); } to { transform: translate(2.5px, -2px) rotate(.25deg); } }
 .fcloud {
   position: absolute;
@@ -237,7 +246,7 @@ body {
     repeating-linear-gradient(90deg, transparent 0 92px, rgba(8,12,21,.2) 92px 97px),
     repeating-linear-gradient(90deg, transparent 0 141px, rgba(223,232,255,.045) 141px 145px),
     linear-gradient(90deg, #414c66 0%, #303a52 45%, #232b3f 100%);
-  animation: falltex 4.6s cubic-bezier(.5, 0, .88, .45) forwards;
+  animation: falltex 5.7s cubic-bezier(.5, 0, .88, .45) forwards;
 }
 @keyframes falltex { to { transform: translateY(-80.7%); } }
 .wtx { position: absolute; }
@@ -739,12 +748,14 @@ footer {
     ctx: null, master: null, muted: false, windSrc: null, windGain: null,
     init() {
       if (this.ctx) return;
-      const C = window.AudioContext || window.webkitAudioContext;
-      if (!C) return;
-      this.ctx = new C();
-      this.master = this.ctx.createGain();
-      this.master.gain.value = this.muted ? 0 : 1;
-      this.master.connect(this.ctx.destination);
+      try {
+        const C = window.AudioContext || window.webkitAudioContext;
+        if (!C) return;
+        this.ctx = new C();
+        this.master = this.ctx.createGain();
+        this.master.gain.value = this.muted ? 0 : 1;
+        this.master.connect(this.ctx.destination);
+      } catch (e) { this.ctx = null; this.master = null; }
     },
     noiseBuf(dur, decay) {
       const n = Math.floor(this.ctx.sampleRate * dur);
@@ -754,14 +765,16 @@ footer {
       return buf;
     },
     play(buf, o) {
-      const t = this.ctx.currentTime + (o.when || 0);
-      const src = this.ctx.createBufferSource(); src.buffer = buf;
-      const f = this.ctx.createBiquadFilter(); f.type = o.type || 'lowpass';
-      f.frequency.setValueAtTime(o.f0, t);
-      f.frequency.exponentialRampToValueAtTime(Math.max(o.f1, 30), t + o.dur * .8);
-      const g = this.ctx.createGain(); g.gain.value = o.vol;
-      src.connect(f); f.connect(g); g.connect(this.master);
-      src.start(t);
+      try {
+        const t = this.ctx.currentTime + (o.when || 0);
+        const src = this.ctx.createBufferSource(); src.buffer = buf;
+        const f = this.ctx.createBiquadFilter(); f.type = o.type || 'lowpass';
+        f.frequency.setValueAtTime(o.f0, t);
+        f.frequency.exponentialRampToValueAtTime(Math.max(o.f1, 30), t + o.dur * .8);
+        const g = this.ctx.createGain(); g.gain.value = o.vol;
+        src.connect(f); f.connect(g); g.connect(this.master);
+        src.start(t);
+      } catch (e) {}
     },
     crack(v) {
       if (!this.ctx) return;
@@ -775,6 +788,9 @@ footer {
     },
     wind(on) {
       if (!this.ctx) return;
+      try { this.windImpl(on); } catch (e) {}
+    },
+    windImpl(on) {
       if (on && !this.windSrc) {
         const src = this.ctx.createBufferSource();
         src.buffer = this.noiseBuf(2.5, .001); src.loop = true;
@@ -793,15 +809,17 @@ footer {
     },
     whoosh() {
       if (!this.ctx) return;
-      const t = this.ctx.currentTime;
-      const src = this.ctx.createBufferSource(); src.buffer = this.noiseBuf(.7, .9);
-      const f = this.ctx.createBiquadFilter(); f.type = 'bandpass'; f.Q.value = 1.2;
-      f.frequency.setValueAtTime(220, t);
-      f.frequency.exponentialRampToValueAtTime(1500, t + .3);
-      f.frequency.exponentialRampToValueAtTime(240, t + .65);
-      const g = this.ctx.createGain(); g.gain.value = .5;
-      src.connect(f); f.connect(g); g.connect(this.master);
-      src.start(t);
+      try {
+        const t = this.ctx.currentTime;
+        const src = this.ctx.createBufferSource(); src.buffer = this.noiseBuf(.7, .9);
+        const f = this.ctx.createBiquadFilter(); f.type = 'bandpass'; f.Q.value = 1.2;
+        f.frequency.setValueAtTime(220, t);
+        f.frequency.exponentialRampToValueAtTime(1500, t + .3);
+        f.frequency.exponentialRampToValueAtTime(240, t + .65);
+        const g = this.ctx.createGain(); g.gain.value = .5;
+        src.connect(f); f.connect(g); g.connect(this.master);
+        src.start(t);
+      } catch (e) {}
     },
     toggle() {
       this.muted = !this.muted;
@@ -830,15 +848,16 @@ footer {
 
   function startIntro() {
     clearTimers();
+    setPhase('top');                 // visuals first — audio is best-effort
     audio.init();
-    if (audio.ctx && audio.ctx.state === 'suspended') audio.ctx.resume();
-    setPhase('top');
+    try { if (audio.ctx && audio.ctx.state === 'suspended') audio.ctx.resume(); } catch (e) {}
     at(350, () => strike(1));                                    // opening crack at the parapet
-    at(1600, () => { setPhase('fall'); audio.wind(true); });     // over the edge
-    at(2900, () => audio.rumble(.28));                           // distant roll mid-fall
-    at(5400, () => strike(.55));                                 // near the ground
-    at(6200, () => { setPhase('whirl'); audio.wind(false); audio.whoosh(); });  // wheel around
-    at(6900, () => arriveHome(true));                            // face the tower
+    at(1600, () => { setPhase('edge'); audio.wind(true); });     // you reach the edge — the parapet sweeps beneath you
+    at(2700, () => setPhase('fall'));                            // and the wall takes over, rushing past
+    at(3900, () => audio.rumble(.28));                           // distant roll mid-fall
+    at(6500, () => strike(.55));                                 // near the ground
+    at(7300, () => { setPhase('whirl'); audio.wind(false); audio.whoosh(); });  // wheel around
+    at(8000, () => arriveHome(true));                            // face the tower
   }
 
   function arriveHome(animate) {
