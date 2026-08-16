@@ -4,15 +4,22 @@ A game by **Jing & Ash Games** 💣
 
 ## Homepage designs
 
-Based on Asher's hand-drawn homepage design, there are **three homepage options** to
-choose from. Open `index.html` in any browser to see all three side by side, or open
+Based on Asher's hand-drawn homepage design, there are **four homepage options** to
+choose from. Open `index.html` in any browser to see them side by side, or open
 them directly:
 
 | # | Option | File | Vibe |
 |---|--------|------|------|
 | 1 | **Paper Sketch** | `homepage-options/option-1-paper-sketch.html` | The drawing itself, brought to life — pencil lines on paper |
 | 2 | **Neon Arcade** | `homepage-options/option-2-neon-arcade.html` | Glowing retro arcade cabinet with a pixel font |
-| 3 | **Cartoon Blast** | `homepage-options/option-3-cartoon-blast.html` | Sunny, chunky mobile-game style |
+| 3 | **Cartoon Blast** | `homepage-options/option-3-cartoon-blast.html` | Sunny, chunky mobile-game style, with the grey stone tower |
+| 4 | **Storm Dive** | `homepage-options/option-4-storm-dive.html` | 🔊 Stormy night with a cinematic intro — dive down the tower through lightning and thunder |
+
+**About the Storm Dive intro:** click ⚡ *Enter the Storm* and you start at the top of
+the tower in a thunderstorm, plunge down the wall face for about five seconds, whip
+around — and land facing the tower as the home screen arrives. The thunder is
+synthesized live in the browser (no sound files). There's a skip button, a mute
+button, and a *replay intro* link in the footer.
 
 Every option has the same pieces from the drawing:
 
