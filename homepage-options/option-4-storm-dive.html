@@ -739,12 +739,14 @@ footer {
     ctx: null, master: null, muted: false, windSrc: null, windGain: null,
     init() {
       if (this.ctx) return;
-      const C = window.AudioContext || window.webkitAudioContext;
-      if (!C) return;
-      this.ctx = new C();
-      this.master = this.ctx.createGain();
-      this.master.gain.value = this.muted ? 0 : 1;
-      this.master.connect(this.ctx.destination);
+      try {
+        const C = window.AudioContext || window.webkitAudioContext;
+        if (!C) return;
+        this.ctx = new C();
+        this.master = this.ctx.createGain();
+        this.master.gain.value = this.muted ? 0 : 1;
+        this.master.connect(this.ctx.destination);
+      } catch (e) { this.ctx = null; this.master = null; }
     },
     noiseBuf(dur, decay) {
       const n = Math.floor(this.ctx.sampleRate * dur);
@@ -754,14 +756,16 @@ footer {
       return buf;
     },
     play(buf, o) {
-      const t = this.ctx.currentTime + (o.when || 0);
-      const src = this.ctx.createBufferSource(); src.buffer = buf;
-      const f = this.ctx.createBiquadFilter(); f.type = o.type || 'lowpass';
-      f.frequency.setValueAtTime(o.f0, t);
-      f.frequency.exponentialRampToValueAtTime(Math.max(o.f1, 30), t + o.dur * .8);
-      const g = this.ctx.createGain(); g.gain.value = o.vol;
-      src.connect(f); f.connect(g); g.connect(this.master);
-      src.start(t);
+      try {
+        const t = this.ctx.currentTime + (o.when || 0);
+        const src = this.ctx.createBufferSource(); src.buffer = buf;
+        const f = this.ctx.createBiquadFilter(); f.type = o.type || 'lowpass';
+        f.frequency.setValueAtTime(o.f0, t);
+        f.frequency.exponentialRampToValueAtTime(Math.max(o.f1, 30), t + o.dur * .8);
+        const g = this.ctx.createGain(); g.gain.value = o.vol;
+        src.connect(f); f.connect(g); g.connect(this.master);
+        src.start(t);
+      } catch (e) {}
     },
     crack(v) {
       if (!this.ctx) return;
@@ -775,6 +779,9 @@ footer {
     },
     wind(on) {
       if (!this.ctx) return;
+      try { this.windImpl(on); } catch (e) {}
+    },
+    windImpl(on) {
       if (on && !this.windSrc) {
         const src = this.ctx.createBufferSource();
         src.buffer = this.noiseBuf(2.5, .001); src.loop = true;
@@ -793,15 +800,17 @@ footer {
     },
     whoosh() {
       if (!this.ctx) return;
-      const t = this.ctx.currentTime;
-      const src = this.ctx.createBufferSource(); src.buffer = this.noiseBuf(.7, .9);
-      const f = this.ctx.createBiquadFilter(); f.type = 'bandpass'; f.Q.value = 1.2;
-      f.frequency.setValueAtTime(220, t);
-      f.frequency.exponentialRampToValueAtTime(1500, t + .3);
-      f.frequency.exponentialRampToValueAtTime(240, t + .65);
-      const g = this.ctx.createGain(); g.gain.value = .5;
-      src.connect(f); f.connect(g); g.connect(this.master);
-      src.start(t);
+      try {
+        const t = this.ctx.currentTime;
+        const src = this.ctx.createBufferSource(); src.buffer = this.noiseBuf(.7, .9);
+        const f = this.ctx.createBiquadFilter(); f.type = 'bandpass'; f.Q.value = 1.2;
+        f.frequency.setValueAtTime(220, t);
+        f.frequency.exponentialRampToValueAtTime(1500, t + .3);
+        f.frequency.exponentialRampToValueAtTime(240, t + .65);
+        const g = this.ctx.createGain(); g.gain.value = .5;
+        src.connect(f); f.connect(g); g.connect(this.master);
+        src.start(t);
+      } catch (e) {}
     },
     toggle() {
       this.muted = !this.muted;
@@ -830,9 +839,9 @@ footer {
 
   function startIntro() {
     clearTimers();
+    setPhase('top');                 // visuals first — audio is best-effort
     audio.init();
-    if (audio.ctx && audio.ctx.state === 'suspended') audio.ctx.resume();
-    setPhase('top');
+    try { if (audio.ctx && audio.ctx.state === 'suspended') audio.ctx.resume(); } catch (e) {}
     at(350, () => strike(1));                                    // opening crack at the parapet
     at(1600, () => { setPhase('fall'); audio.wind(true); });     // over the edge
     at(2900, () => audio.rumble(.28));                           // distant roll mid-fall
