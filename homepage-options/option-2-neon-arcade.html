@@ -403,6 +403,10 @@ footer .credit { color: #8f9ac9; }
         location.href = '../market.html';
         return;
       }
+      if (/tower/i.test(btn.dataset.name) && !String(location.href).startsWith('about')) {
+        location.href = '../tower.html';
+        return;
+      }
       toast.textContent = '> ' + btn.dataset.name + ': LEVEL LOADING... COMING SOON!';
       toast.classList.remove('show');
       void toast.offsetWidth;

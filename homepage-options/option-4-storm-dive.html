@@ -921,6 +921,10 @@ footer {
         location.href = '../market.html';
         return;
       }
+      if (/tower/i.test(btn.dataset.name) && !String(location.href).startsWith('about')) {
+        location.href = '../tower.html';
+        return;
+      }
       toast.innerHTML = '<b>' + btn.dataset.name + '</b> &mdash; coming soon!';
       toast.classList.remove('show'); void toast.offsetWidth; toast.classList.add('show');
       clearTimeout(tHide);
