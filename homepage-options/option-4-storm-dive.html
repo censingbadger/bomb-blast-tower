@@ -114,11 +114,11 @@ body {
 
 /* ---------- cinematic ---------- */
 .cine { position: absolute; inset: 0; z-index: 5; transform-origin: 50% 50%; }
-.phase-whirl .cine { animation: whirlout .68s cubic-bezier(.6, 0, .9, .5) forwards; }
+.phase-whirl .cine { animation: whirlout .4s cubic-bezier(.55, 0, .9, .5) forwards; }
 @keyframes whirlout {
   0% { transform: none; filter: blur(0); opacity: 1; }
-  55% { filter: blur(9px); }
-  100% { transform: rotate(180deg) scale(1.35); filter: blur(14px); opacity: 0; }
+  55% { filter: blur(6px); }
+  100% { transform: rotate(180deg) scale(1.3); filter: blur(8px); opacity: 0; }
 }
 
 /* scene 1: at the parapet, walking up to the edge */
@@ -862,7 +862,7 @@ footer {
     at(4300, () => audio.rumble(.28));                            // distant roll mid-fall
     at(6600, () => strike(.6));                                   // the ground is coming up fast
     at(7700, () => { document.body.className = 'phase-fall phase-whirl'; audio.wind(false); audio.whoosh(); });  // wheel around
-    at(8400, () => arriveHome(true));                             // face the tower
+    at(8130, () => arriveHome(true));                             // face the tower
   }
 
   function arriveHome(animate) {
