@@ -56,7 +56,14 @@ python3 -m http.server
   staircase; die and the floor resets to the start. Beat the floor: VICTORY —
   +25 gems — and you're teleported home, where the Tower button leads to the
   next floor. Three floors so far; enemies drop gems you can spend in the
-  Market. New bomb types slot into `BOMB_TYPES` as the drawings arrive.
+  Market. **Six bomb types** from the drawings, swapped with V (or SWAP):
+  **Bomb** (boosts upwards) · **Dynamite** (destroys blocks, big blast, no
+  boost) · **Landmine** (explodes when touched — monsters trigger it too — and
+  boosts you sideways) · **Time Bomb** (you set the timer with T: 1/3/5s, and
+  the countdown shows on the bomb) · **Remote Bomb** (press R to push the
+  button) · **Stick Bomb** (sticks to walls and even rides monsters; boosts
+  you diagonally upwards). Floor 1 teaches the Bomb; Floors 2–3 unlock the
+  rest. Owning the Market's Box-o-Bombs grants +3 bombs every floor.
 
 - **Market** (`market.html`) — based on Asher's market drawing. Two shelves
   (Artifacts and Weapons on hanging signs), a floor row, prices in gems, rarity
@@ -69,6 +76,6 @@ python3 -m http.server
 
 Once a homepage is picked, it becomes the real `index.html`. Still to build:
 
-- **More tower floors** — and the new bomb types
+- **More tower floors**
 - **Inventory & Stats** — what you own and how you're doing
 - **The Forge** — teased on the Market screen

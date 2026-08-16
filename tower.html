@@ -59,6 +59,7 @@ body {
 .hud .hearts .half { color: #ff9d5e; }
 .hud .hearts .empty { color: #4a3a46; }
 .hud svg { width: 1.05em; height: auto; }
+#bombchip svg { width: 1.3em; }
 .floorname {
   margin: 0 auto;
   font-family: 'Luckiest Guy', cursive;
@@ -197,10 +198,7 @@ body {
 
 <div class="hud">
   <span class="chip hearts" id="hearts"></span>
-  <span class="chip" id="bombchip">
-    <svg viewBox="0 0 100 122"><circle cx="50" cy="80" r="35" fill="#26262f" stroke="#f0e8d8" stroke-width="7"/><path d="M50 36 C46 26 60 24 57 14" fill="none" stroke="#a9743c" stroke-width="9" stroke-linecap="round"/><path d="M57 14 l8 -6" stroke="#ff8c1a" stroke-width="8" stroke-linecap="round"/></svg>
-    <span id="bombs">3</span>
-  </span>
+  <span class="chip" id="bombchip"></span>
   <span class="chip">
     <svg viewBox="0 0 40 40"><path d="M8 14 L14 6 L26 6 L32 14 L20 34 Z" fill="#3ec6ff" stroke="#1e88c7" stroke-width="3" stroke-linejoin="round"/></svg>
     <span id="gems">0</span>
@@ -214,11 +212,13 @@ body {
 <div class="tbtns tc">
   <button class="tbtn big" id="t-attack">ATTACK</button>
   <button class="tbtn" id="t-bomb">BOMB</button>
+  <button class="tbtn" id="t-swap">SWAP</button>
+  <button class="tbtn" id="t-det" style="display:none; border-color:rgba(255,80,80,.6);">DET!</button>
   <button class="tbtn" id="t-jump">JUMP</button>
 </div>
 
 <div id="banner"></div>
-<div id="tip">WASD / arrows move &nbsp;&#183;&nbsp; K or click: sword &nbsp;&#183;&nbsp; B: bomb (breaks cracked walls &amp; boosts you onto platforms!) &nbsp;&#183;&nbsp; SPACE: hop</div>
+<div id="tip">WASD/arrows move &nbsp;&#183;&nbsp; K/click: sword &nbsp;&#183;&nbsp; B: drop bomb &nbsp;&#183;&nbsp; V: swap bomb &nbsp;&#183;&nbsp; R: detonate remote &nbsp;&#183;&nbsp; T: timer &nbsp;&#183;&nbsp; SPACE: hop</div>
 
 <div class="overlay" id="death">
   <div class="panel">
@@ -251,6 +251,7 @@ const FLOORS = [
   {
     name: 'FLOOR 1 — The Guardroom',
     tip: 'Bomb the cracked wall! (B)',
+    loadout: { bomb: 3 },
     grid: [
       '####################',
       '#S....#........#...#',
@@ -267,7 +268,8 @@ const FLOORS = [
   },
   {
     name: 'FLOOR 2 — The Spike Bridge',
-    tip: 'Boost onto the platforms with a bomb blast!',
+    tip: 'NEW: dynamite & landmines — press V to swap bombs!',
+    loadout: { bomb: 2, dynamite: 2, landmine: 2 },
     grid: [
       '######################',
       '#S...#....#..........#',
@@ -288,7 +290,8 @@ const FLOORS = [
   },
   {
     name: 'FLOOR 3 — The Chained Hall',
-    tip: 'Two boosts. Watch the spikes.',
+    tip: 'NEW: time bombs (T sets), remote bombs (R!) & stick bombs!',
+    loadout: { bomb: 2, dynamite: 2, landmine: 2, timebomb: 2, remote: 2, stick: 3 },
     grid: [
       '########################',
       '#S.....#....z...#......#',
@@ -311,18 +314,29 @@ const FLOORS = [
   },
 ];
 
-/* Bomb types — new kinds slot in here as the drawings arrive. */
+/* The six bombs, straight from the drawings. boost: 'up' | 'side' | 'diag' */
 const BOMB_TYPES = {
-  blast: {
-    name: 'Blast Bomb',
-    fuse: 1150,          // ms until boom
-    radius: 1.9,         // tiles
-    dmg: 3,
-    boost: true,         // launches the hero (never hurts them)
-    breaksWalls: true,   // opens cracked walls
-    color: '#26262f',
-    spark: '#ff8c1a',
-  },
+  bomb:     { name: 'Bomb',        fuse: 1150, radius: 1.9, dmg: 3, breaksWalls: true, boost: 'up',
+              desc: 'boosts upwards' },
+  dynamite: { name: 'Dynamite',    fuse: 1400, radius: 2.7, dmg: 5, breaksWalls: true, boost: null,
+              desc: 'DESTROYS blocks' },
+  landmine: { name: 'Landmine',    mine: true, arm: 800, radius: 1.6, dmg: 3, breaksWalls: true, boost: 'side',
+              desc: 'explodes when touched — boosts sideways' },
+  timebomb: { name: 'Time Bomb',   settable: true, radius: 2.0, dmg: 3, breaksWalls: true, boost: 'up',
+              desc: 'you set the timer (T)' },
+  remote:   { name: 'Remote Bomb', remote: true, radius: 2.0, dmg: 3, breaksWalls: true, boost: 'up',
+              desc: 'R presses the button' },
+  stick:    { name: 'Stick Bomb',  fuse: 1000, radius: 1.7, dmg: 3, breaksWalls: true, boost: 'diag', sticky: true,
+              desc: 'sticks to things — boosts diagonally' },
+};
+const BOMB_ORDER = ['bomb', 'dynamite', 'landmine', 'timebomb', 'remote', 'stick'];
+const BOMB_ICONS = {
+  bomb: '<svg viewBox="0 0 24 24"><circle cx="12" cy="15" r="7" fill="#26262f" stroke="#f0e8d8" stroke-width="1.6"/><path d="M12 8 C11 5.5 14 5 13.5 3" fill="none" stroke="#a9743c" stroke-width="1.8"/><path d="M13.5 3 l2 -1.4" stroke="#ff8c1a" stroke-width="1.8"/></svg>',
+  dynamite: '<svg viewBox="0 0 24 24"><rect x="5" y="8" width="4" height="13" rx="1.6" fill="#b3402a"/><rect x="10" y="6" width="4" height="15" rx="1.6" fill="#c9532f"/><rect x="15" y="8" width="4" height="13" rx="1.6" fill="#b3402a"/><path d="M12 6 C11.5 4 13.5 3.5 13 2" fill="none" stroke="#a9743c" stroke-width="1.6"/><rect x="4.5" y="13" width="15" height="2.4" fill="#6b3a1a"/></svg>',
+  landmine: '<svg viewBox="0 0 24 24"><ellipse cx="12" cy="16" rx="9" ry="4.5" fill="#6a7280" stroke="#3a4048" stroke-width="1.5"/><ellipse cx="12" cy="13.5" rx="4.5" ry="2.2" fill="#8d959d"/><circle cx="12" cy="13" r="1.6" fill="#e33"/></svg>',
+  timebomb: '<svg viewBox="0 0 24 24"><rect x="4" y="8" width="16" height="12" rx="2" fill="#33333e" stroke="#111" stroke-width="1.4"/><rect x="7" y="11" width="10" height="5" rx="1" fill="#dff3e0"/><path d="M9 13.5 h6" stroke="#1a7a2a" stroke-width="1.8"/><path d="M12 8 V5" stroke="#a9743c" stroke-width="1.6"/></svg>',
+  remote: '<svg viewBox="0 0 24 24"><circle cx="10" cy="16" r="6" fill="#26262f" stroke="#f0e8d8" stroke-width="1.5"/><path d="M13 11 L18 4" stroke="#8d959d" stroke-width="1.8"/><circle cx="18.5" cy="3.5" r="2" fill="#e33"/></svg>',
+  stick: '<svg viewBox="0 0 24 24"><circle cx="12" cy="14" r="7.5" fill="#3c6e33" stroke="#1e3a18" stroke-width="1.5"/><path d="M6 11 h12 M6 17 h12 M9 7.5 v13 M15 7.5 v13" stroke="#1e3a18" stroke-width="1.2" fill="none"/><circle cx="16" cy="5" r="2.4" fill="none" stroke="#c9ced6" stroke-width="1.6"/></svg>',
 };
 
 const ENEMY_KINDS = {
@@ -447,7 +461,8 @@ function startFloor() {
     hero: {
       fx: map.start.x, fy: map.start.y, elev: 0,
       hearts: 6, maxHearts: 6,            // half-hearts (3 full)
-      bombs: 3,
+      belt: Object.assign({}, def.loadout || { bomb: 3 }),
+      sel: 'bomb',
       facing: 1, faceAngle: 0,
       moving: false, step: 0,
       swingUntil: 0, attackReadyAt: 0,
@@ -465,10 +480,13 @@ function startFloor() {
     crates: map.crateSpawns.map(c => ({ ...c, taken: false })),
     bombs: [], booms: [], floats: [], rubble: [], sparkles: [],
     keys: {}, joy: { active: false, dx: 0, dy: 0 },
+    timerSetting: 3000,
     cam: { x: map.start.x, y: map.start.y },
     shakeUntil: 0, over: false, won: false,
     t0: performance.now(),
   };
+  // owning the Market's Box-o-Bombs adds +3 bombs every floor
+  try { if ((load('bbt-owned', []) || []).includes('bombs')) G.hero.belt.bomb = (G.hero.belt.bomb || 0) + 3; } catch (e) {}
   $('#floorname').textContent = def.name;
   updateHUD();
   banner(def.name.replace(' — ', ' — ').toUpperCase(), 1900);
@@ -484,8 +502,32 @@ function updateHUD() {
     s += v >= 2 ? '❤' : v >= 1 ? '<span class="half">❤</span>' : '<span class="empty">❤</span>';
   }
   $('#hearts').innerHTML = s;
-  $('#bombs').textContent = G.hero.bombs;
+  const T = BOMB_TYPES[h.sel];
+  let label = T.name + ' ×' + (h.belt[h.sel] || 0);
+  if (T.settable) label += ' (' + (G.timerSetting / 1000) + 's)';
+  $('#bombchip').innerHTML = BOMB_ICONS[h.sel] + '<span>' + label + '</span>';
   $('#gems').textContent = gems;
+}
+function unlockedTypes() { return BOMB_ORDER.filter(k => k in G.hero.belt); }
+function cycleBomb() {
+  const u = unlockedTypes();
+  if (u.length < 2) { banner('More bombs on later floors!', 1000); return; }
+  G.hero.sel = u[(u.indexOf(G.hero.sel) + 1) % u.length];
+  sfx.init(); sfx.pickup();
+  const T = BOMB_TYPES[G.hero.sel];
+  banner(T.name.toUpperCase() + ' — ' + T.desc, 1300);
+  updateHUD();
+}
+function cycleTimer() {
+  const s = [1000, 3000, 5000];
+  G.timerSetting = s[(s.indexOf(G.timerSetting) + 1) % 3];
+  banner('TIMER: ' + (G.timerSetting / 1000) + 's', 900);
+  updateHUD();
+}
+function detonateRemotes() {
+  let any = false;
+  G.bombs.forEach(b => { if (b.remote) { b.goBoom = true; any = true; } });
+  if (any) { sfx.init(); sfx.fuse(); }
 }
 function banner(txt, ms) {
   const b = $('#banner');
@@ -582,11 +624,27 @@ function heroJump() {
 function placeBomb() {
   const h = G.hero, now = performance.now();
   if (G.over || h.dead) return;
-  if (h.bombs <= 0) { banner('NO BOMBS! Find a crate.', 1200); return; }
+  const sel = h.sel, T = BOMB_TYPES[sel];
+  if ((h.belt[sel] || 0) <= 0) { banner('NO ' + T.name.toUpperCase() + 'S! Find a crate.', 1200); return; }
   sfx.init(); sfx.fuse();
-  h.bombs--;
+  h.belt[sel]--;
   updateHUD();
-  G.bombs.push({ fx: h.fx, fy: h.fy, at: now, type: 'blast' });
+  const b = { fx: h.fx, fy: h.fy, at: now, type: sel };
+  if (T.settable) b.fuse = G.timerSetting;
+  if (T.mine) b.armAt = now + T.arm;
+  if (T.remote) b.remote = true;
+  if (T.sticky) {
+    // stick to the nearest monster — or to the wall you're facing
+    let tgt = null, best = 1.15;
+    G.enemies.forEach(e => { if (!e.dead) { const d = dist(h.fx, h.fy, e.fx, e.fy); if (d < best) { best = d; tgt = e; } } });
+    if (tgt) { b.stuckTo = tgt; floatText(tgt.fx, tgt.fy, 'STUCK!', '#ffd23f'); }
+    else {
+      const wx = h.fx + Math.cos(h.faceAngle), wy = h.fy + Math.sin(h.faceAngle);
+      const wt = tileAt(wx, wy);
+      if (wt && isSolidKind(wt.kind)) { b.fx = h.fx + Math.cos(h.faceAngle) * 0.55; b.fy = h.fy + Math.sin(h.faceAngle) * 0.55; b.onWall = true; }
+    }
+  }
+  G.bombs.push(b);
 }
 function explode(b) {
   const now = performance.now(), T = BOMB_TYPES[b.type];
@@ -612,11 +670,20 @@ function explode(b) {
   // BOOST the hero (your own bombs never hurt you)
   const h = G.hero;
   if (T.boost && !h.dead && dist(h.fx, h.fy, b.fx, b.fy) <= T.radius) {
-    h.boosting = true;
-    h.boostUntil = now + 720;
-    h.boostFrom = now;
+    const a = h.faceAngle;
+    if (T.boost === 'up') {
+      h.boosting = true; h.boostUntil = now + 720; h.boostFrom = now;
+      h.boostVx = 0; h.boostVy = 0;
+    } else if (T.boost === 'diag') {
+      h.boosting = true; h.boostUntil = now + 780; h.boostFrom = now;
+      h.boostVx = Math.cos(a) * 3.0; h.boostVy = Math.sin(a) * 3.0;
+    } else if (T.boost === 'side') {
+      h.dashUntil = now + 430;
+      h.dashVx = Math.cos(a) * 6.5; h.dashVy = Math.sin(a) * 6.5;
+      h.jumpUntil = now + 430;   // skims over spikes
+    }
     sfx.boost();
-    floatText(h.fx, h.fy, 'BOOST!', '#ff8c1a');
+    floatText(h.fx, h.fy, T.boost === 'side' ? 'WHOOSH!' : 'BOOST!', '#ff8c1a');
   }
 }
 function hurtHero(amount) {
@@ -692,6 +759,10 @@ function update(dt, now) {
       h.step += dt * 9;
     }
 
+    // sideways dash (landmine) and diagonal carry (stick bomb)
+    if (now < (h.dashUntil || 0)) moveHero(h, h.dashVx * dt, h.dashVy * dt);
+    if (h.boosting && (h.boostVx || h.boostVy)) moveHero(h, h.boostVx * dt, h.boostVy * dt);
+
     // hop + boost arcs
     if (h.boosting) {
       const p = clamp((now - h.boostFrom) / (h.boostUntil - h.boostFrom), 0, 1);
@@ -726,8 +797,9 @@ function update(dt, now) {
     // bomb crates
     G.crates.forEach(c => {
       if (!c.taken && dist(c.x, c.y, h.fx, h.fy) < 0.75) {
-        c.taken = true; h.bombs += 3; sfx.pickup();
-        floatText(c.x, c.y, '+3 BOMBS', '#ff8c1a');
+        c.taken = true; sfx.pickup();
+        h.belt[h.sel] = (h.belt[h.sel] || 0) + 2;
+        floatText(c.x, c.y, '+2 ' + BOMB_TYPES[h.sel].name.toUpperCase() + 'S', '#ff8c1a');
         updateHUD();
       }
     });
@@ -736,11 +808,25 @@ function update(dt, now) {
     if (dist(G.stairs.x, G.stairs.y, h.fx, h.fy) < 0.85) reachStairs();
   }
 
-  // bombs fuse
+  // bombs: fuses, mines, remotes, sticky riders
   for (let i = G.bombs.length - 1; i >= 0; i--) {
-    const b = G.bombs[i];
-    if (now - b.at >= BOMB_TYPES[b.type].fuse) { G.bombs.splice(i, 1); explode(b); }
+    const b = G.bombs[i], T = BOMB_TYPES[b.type];
+    if (b.stuckTo && !b.stuckTo.dead) { b.fx = b.stuckTo.fx; b.fy = b.stuckTo.fy; }
+    if (T.mine && !b.goBoom) {
+      if (now < b.armAt) continue;
+      let touched = false;
+      if (!h.dead && h.elev === 0 && dist(h.fx, h.fy, b.fx, b.fy) < 0.5) touched = true;
+      if (!touched) touched = G.enemies.some(e => !e.dead && dist(e.fx, e.fy, b.fx, b.fy) < 0.55);
+      if (touched) { G.bombs.splice(i, 1); explode(b); }
+      continue;
+    }
+    if (b.remote && !b.goBoom) continue;
+    const fu = b.fuse || T.fuse || 0;
+    if (b.goBoom || now - b.at >= fu) { G.bombs.splice(i, 1); explode(b); }
   }
+  // show the DETONATE button only while remote bombs are waiting
+  const det = document.getElementById('t-det');
+  if (det) det.style.display = G.bombs.some(b => b.remote) ? 'grid' : 'none';
 
   // enemies
   G.enemies.forEach(e => {
@@ -1025,18 +1111,75 @@ function drawCrate(ox, oy, c) {
   ctx.beginPath(); ctx.moveTo(sx, sy - 36); ctx.quadraticCurveTo(sx + 4, sy - 40, sx + 2, sy - 43); ctx.stroke();
 }
 function drawBomb(ox, oy, b, now) {
-  const sx = ox + isoX(b.fx, b.fy), sy = oy + isoY(b.fx, b.fy);
+  const sx = ox + isoX(b.fx, b.fy);
+  let sy = oy + isoY(b.fx, b.fy);
+  if (b.stuckTo && !b.stuckTo.dead) sy -= 30;   // riding on a monster's head
   const T = BOMB_TYPES[b.type];
-  const p = (now - b.at) / T.fuse;
-  const flash = p > 0.6 && Math.floor(now / 90) % 2 === 0;
-  ctx.fillStyle = flash ? '#7a2a2a' : T.color;
-  ctx.strokeStyle = '#0a0a10'; ctx.lineWidth = 2.5;
-  ctx.beginPath(); ctx.arc(sx, sy - 9, 11, 0, 7); ctx.fill(); ctx.stroke();
-  ctx.strokeStyle = '#a9743c'; ctx.lineWidth = 3;
-  ctx.beginPath(); ctx.moveTo(sx + 3, sy - 19); ctx.quadraticCurveTo(sx + 8, sy - 26, sx + 5, sy - 30); ctx.stroke();
-  const f = Math.sin(now / 60) * 2;
-  ctx.fillStyle = '#ffd93b';
-  ctx.beginPath(); ctx.arc(sx + 5 + f * 0.4, sy - 31, 3.5, 0, 7); ctx.fill();
+  const fu = b.fuse || T.fuse || 0;
+  const p = fu ? (now - b.at) / fu : 0;
+  const flash = ((fu && p > 0.6) || b.goBoom) && Math.floor(now / 90) % 2 === 0;
+  const sparkFlame = () => {
+    const f = Math.sin(now / 60) * 2;
+    ctx.fillStyle = '#ffd93b';
+    ctx.beginPath(); ctx.arc(sx + 5 + f * 0.4, sy - 31, 3.5, 0, 7); ctx.fill();
+  };
+  if (b.type === 'dynamite') {
+    ctx.strokeStyle = '#0a0a10'; ctx.lineWidth = 1.6;
+    [-7, 0, 7].forEach((dx, i) => {
+      ctx.fillStyle = flash ? '#7a2a2a' : (i === 1 ? '#c9532f' : '#b3402a');
+      ctx.beginPath(); ctx.roundRect(sx + dx - 3.4, sy - (i === 1 ? 26 : 22), 6.8, i === 1 ? 26 : 22, 3); ctx.fill(); ctx.stroke();
+    });
+    ctx.fillStyle = '#6b3a1a'; ctx.fillRect(sx - 11, sy - 16, 22, 4);
+    ctx.strokeStyle = '#a9743c'; ctx.lineWidth = 2.5;
+    ctx.beginPath(); ctx.moveTo(sx, sy - 26); ctx.quadraticCurveTo(sx + 4, sy - 31, sx + 3, sy - 33); ctx.stroke();
+    ctx.fillStyle = '#ffd93b'; ctx.beginPath(); ctx.arc(sx + 3, sy - 34, 3, 0, 7); ctx.fill();
+  } else if (b.type === 'landmine') {
+    const armed = now >= (b.armAt || 0);
+    ctx.fillStyle = '#6a7280'; ctx.strokeStyle = '#2c323a'; ctx.lineWidth = 2.2;
+    ctx.beginPath(); ctx.ellipse(sx, sy - 3, 13, 6.5, 0, 0, 7); ctx.fill(); ctx.stroke();
+    ctx.fillStyle = '#8d959d';
+    ctx.beginPath(); ctx.ellipse(sx, sy - 7, 6.5, 3.2, 0, 0, 7); ctx.fill(); ctx.stroke();
+    if (armed && Math.floor(now / 300) % 2 === 0) {
+      ctx.fillStyle = '#ff3b3b';
+      ctx.beginPath(); ctx.arc(sx, sy - 8, 2.4, 0, 7); ctx.fill();
+    }
+  } else if (b.type === 'timebomb') {
+    ctx.fillStyle = flash ? '#7a2a2a' : '#33333e'; ctx.strokeStyle = '#0a0a10'; ctx.lineWidth = 2.2;
+    ctx.beginPath(); ctx.roundRect(sx - 13, sy - 22, 26, 18, 3); ctx.fill(); ctx.stroke();
+    ctx.fillStyle = '#dff3e0';
+    ctx.fillRect(sx - 9, sy - 18, 18, 8);
+    const remain = Math.max(0, Math.ceil((fu - (now - b.at)) / 1000));
+    ctx.fillStyle = '#1a7a2a';
+    ctx.font = 'bold 9px monospace'; ctx.textAlign = 'center';
+    ctx.fillText('0:0' + remain, sx, sy - 11);
+  } else if (b.type === 'remote') {
+    ctx.fillStyle = flash ? '#7a2a2a' : '#26262f';
+    ctx.strokeStyle = '#0a0a10'; ctx.lineWidth = 2.5;
+    ctx.beginPath(); ctx.arc(sx, sy - 9, 10, 0, 7); ctx.fill(); ctx.stroke();
+    ctx.strokeStyle = '#8d959d'; ctx.lineWidth = 2;
+    ctx.beginPath(); ctx.moveTo(sx + 4, sy - 17); ctx.lineTo(sx + 11, sy - 30); ctx.stroke();
+    ctx.fillStyle = Math.floor(now / 400) % 2 === 0 ? '#ff3b3b' : '#7a2222';
+    ctx.beginPath(); ctx.arc(sx + 11.5, sy - 31, 3, 0, 7); ctx.fill();
+  } else if (b.type === 'stick') {
+    ctx.fillStyle = flash ? '#7a2a2a' : '#3c6e33'; ctx.strokeStyle = '#1e3a18'; ctx.lineWidth = 2.4;
+    ctx.beginPath(); ctx.arc(sx, sy - 10, 10, 0, 7); ctx.fill(); ctx.stroke();
+    ctx.strokeStyle = '#1e3a18'; ctx.lineWidth = 1.4;
+    ctx.beginPath();
+    ctx.moveTo(sx - 9, sy - 13); ctx.lineTo(sx + 9, sy - 13);
+    ctx.moveTo(sx - 9, sy - 7); ctx.lineTo(sx + 9, sy - 7);
+    ctx.moveTo(sx - 4, sy - 19.5); ctx.lineTo(sx - 4, sy - 0.5);
+    ctx.moveTo(sx + 4, sy - 19.5); ctx.lineTo(sx + 4, sy - 0.5);
+    ctx.stroke();
+    ctx.strokeStyle = '#c9ced6'; ctx.lineWidth = 2;
+    ctx.beginPath(); ctx.arc(sx + 8, sy - 21, 3.5, 0, 7); ctx.stroke();
+  } else {
+    ctx.fillStyle = flash ? '#7a2a2a' : '#26262f';
+    ctx.strokeStyle = '#0a0a10'; ctx.lineWidth = 2.5;
+    ctx.beginPath(); ctx.arc(sx, sy - 9, 11, 0, 7); ctx.fill(); ctx.stroke();
+    ctx.strokeStyle = '#a9743c'; ctx.lineWidth = 3;
+    ctx.beginPath(); ctx.moveTo(sx + 3, sy - 19); ctx.quadraticCurveTo(sx + 8, sy - 26, sx + 5, sy - 30); ctx.stroke();
+    sparkFlame();
+  }
 }
 function drawBoom(ox, oy, b, now) {
   const sx = ox + isoX(b.fx, b.fy), sy = oy + isoY(b.fx, b.fy);
@@ -1186,6 +1329,14 @@ addEventListener('keydown', e => {
   if (k === ' ') heroJump();
   if (k === 'k' || k === 'j') heroAttack();
   if (k === 'b') placeBomb();
+  if (k === 'v' || k === 'tab') { e.preventDefault(); cycleBomb(); }
+  if (k === 'r') detonateRemotes();
+  if (k === 't') cycleTimer();
+  const n = parseInt(k, 10);
+  if (n >= 1 && n <= BOMB_ORDER.length) {
+    const t = BOMB_ORDER[n - 1];
+    if (t in G.hero.belt) { G.hero.sel = t; updateHUD(); }
+  }
 });
 addEventListener('keyup', e => { G.keys[e.key.toLowerCase()] = false; });
 canvas.addEventListener('mousedown', () => heroAttack());
@@ -1225,6 +1376,8 @@ const hold = (id, fn) => {
 };
 hold('#t-attack', heroAttack);
 hold('#t-bomb', placeBomb);
+hold('#t-swap', cycleBomb);
+hold('#t-det', detonateRemotes);
 hold('#t-jump', heroJump);
 
 /* ---------- main loop ---------- */
