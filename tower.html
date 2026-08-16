@@ -55,6 +55,9 @@ body {
   font-size: 1.05rem;
   letter-spacing: .04em;
 }
+.hud { flex-wrap: wrap; row-gap: .45rem; }
+.hud .mats { gap: .5rem; font-size: .95rem; color: #cfc6ba; }
+.hud .mats span { min-width: 1em; }
 .hud .hearts { font-size: 1.2rem; letter-spacing: .06em; color: #ff4d5e; }
 .hud .hearts .half { color: #ff9d5e; }
 .hud .hearts .empty { color: #4a3a46; }
@@ -203,6 +206,11 @@ body {
     <svg viewBox="0 0 40 40"><path d="M8 14 L14 6 L26 6 L32 14 L20 34 Z" fill="#3ec6ff" stroke="#1e88c7" stroke-width="3" stroke-linejoin="round"/></svg>
     <span id="gems">0</span>
   </span>
+  <span class="chip mats" title="Crafting materials &mdash; spend them at the Forge (through the Market)!">
+    <svg viewBox="0 0 24 24"><path d="M4 16.5 L7.5 9.5 L16.5 9.5 L20 16.5 Z" fill="#aeb6c2" stroke="#5f6874" stroke-width="1.6" stroke-linejoin="round"/><path d="M8 11.5 L14 11.5" stroke="#e8ecf2" stroke-width="1.4"/></svg><span id="m-metal">0</span>
+    <svg viewBox="0 0 24 24"><path d="M5 17.5 L4 12 L8.5 7.5 L15.5 7 L20 12.5 L17.5 17.5 Z" fill="#a89a82" stroke="#5d5342" stroke-width="1.6" stroke-linejoin="round"/><path d="M8.5 7.5 L11 12 L9 17.5 M11 12 L15.5 7" fill="none" stroke="#5d5342" stroke-width="1.1"/></svg><span id="m-stone">0</span>
+    <svg viewBox="0 0 24 24"><rect x="6" y="8.5" width="15" height="7.5" rx="2.6" fill="#b06f34" stroke="#6b3a1a" stroke-width="1.6"/><ellipse cx="6.6" cy="12.25" rx="2.9" ry="3.75" fill="#e0a35c" stroke="#6b3a1a" stroke-width="1.6"/><ellipse cx="6.6" cy="12.25" rx="1.2" ry="1.7" fill="none" stroke="#6b3a1a" stroke-width="1"/></svg><span id="m-wood">0</span>
+  </span>
   <span class="floorname" id="floorname">FLOOR 1</span>
   <a class="quit" id="quit" href="index.html">&#8592; Leave</a>
 </div>
@@ -243,7 +251,7 @@ body {
    #  wall          %  cracked wall (bombable)
    .  stone floor   c  red carpet
    P  raised platform (bomb-boost to get up; walk off to drop)
-   ^  spike trap    b  bomb crate (+3 bombs)
+   ^  spike trap    b  bomb crate (+2 bombs, +wood)
    S  hero start    X  the staircase up (goal)
    z  zombie        k  skeleton (faster)
    ============================================================ */
@@ -409,6 +417,33 @@ const savedFloor = load('bbt-floor', 1);
 const floorNum = clamp(parseInt(floorParam || savedFloor, 10) || 1, 1, FLOORS.length);
 let gems = load('bbt-gems', 173);
 
+/* ---------- crafting materials (spend them at the Forge!) ----------
+   metal: dropped by beaten monsters
+   stone: burst out of walls you bomb open
+   wood:  from bomb crates (bombing them splinters out extra) */
+let mats = Object.assign({ metal: 0, stone: 0, wood: 0 }, load('bbt-mats', {}));
+const MAT_INFO = {
+  metal: { label: 'METAL', color: '#cdd3dc' },
+  stone: { label: 'STONE', color: '#c0b295' },
+  wood:  { label: 'WOOD',  color: '#e59a4f' },
+};
+function gainMat(kind, n, fx, fy) {
+  mats[kind] = (mats[kind] || 0) + n;
+  save('bbt-mats', mats);
+  floatText(fx, fy, '+' + n + ' ' + MAT_INFO[kind].label, MAT_INFO[kind].color);
+  updateHUD();
+}
+
+/* ---------- Forge perks carried into this run ---------- */
+// Workbench repair: patched-up armor gives +1 heart for this whole visit
+const _buffs = load('bbt-buffs', {});
+const repairBonus = !!_buffs.repair;
+if (repairBonus) { _buffs.repair = false; save('bbt-buffs', _buffs); }
+// Anvil upgrades: your best-starred gear makes the sword hit harder
+let _bestStars = 0;
+try { Object.values(load('bbt-upgrades', {})).forEach(s => { if (+s > _bestStars) _bestStars = +s; }); } catch (e) {}
+const swordDmg = 1 + Math.min(3, _bestStars);
+
 function parseFloor(def) {
   const rows = def.grid;
   const W = rows[0].length, H = rows.length;
@@ -487,6 +522,11 @@ function startFloor() {
   };
   // owning the Market's Box-o-Bombs adds +3 bombs every floor
   try { if ((load('bbt-owned', []) || []).includes('bombs')) G.hero.belt.bomb = (G.hero.belt.bomb || 0) + 3; } catch (e) {}
+  // the Workbench repaired your armor: +1 heart for this whole visit
+  if (repairBonus) {
+    G.hero.maxHearts = 8; G.hero.hearts = 8;
+    setTimeout(() => { try { if (G && !G.over) floatText(G.hero.fx, G.hero.fy, 'ARMOR REPAIRED! +1 ❤', '#7dffa5'); } catch (e) {} }, 800);
+  }
   $('#floorname').textContent = def.name;
   updateHUD();
   banner(def.name.replace(' — ', ' — ').toUpperCase(), 1900);
@@ -507,6 +547,9 @@ function updateHUD() {
   if (T.settable) label += ' (' + (G.timerSetting / 1000) + 's)';
   $('#bombchip').innerHTML = BOMB_ICONS[h.sel] + '<span>' + label + '</span>';
   $('#gems').textContent = gems;
+  $('#m-metal').textContent = mats.metal || 0;
+  $('#m-stone').textContent = mats.stone || 0;
+  $('#m-wood').textContent = mats.wood || 0;
 }
 function unlockedTypes() { return BOMB_ORDER.filter(k => k in G.hero.belt); }
 function cycleBomb() {
@@ -608,7 +651,7 @@ function heroAttack() {
     const a = Math.atan2(e.fy - h.fy, e.fx - h.fx);
     let da = Math.abs(a - h.faceAngle); if (da > Math.PI) da = Math.PI * 2 - da;
     if (dist(h.fx, h.fy, e.fx, e.fy) <= reach && da <= arc / 2) {
-      hurtEnemy(e, 1, h);
+      hurtEnemy(e, swordDmg, h);   // the Anvil's upgrades sharpen your swing
     }
   });
 }
@@ -626,6 +669,10 @@ function hurtEnemy(e, dmg, from) {
     gems += reward; save('bbt-gems', gems);
     floatText(e.fx, e.fy, '+' + reward + ' ◆', '#3ec6ff');
     sfx.gem();
+    // beaten monsters drop scrap metal for the Forge
+    const scrap = 1 + (Math.random() < 0.4 ? 1 : 0);
+    const mx = e.fx, my = e.fy;
+    setTimeout(() => { try { gainMat('metal', scrap, mx, my); } catch (err) {} }, 320);
     updateHUD();
   }
 }
@@ -672,6 +719,9 @@ function explode(b) {
           t.kind = 'floor';
           G.rubble.push({ fx: x + 0.5, fy: y + 0.5, seed: x + y * 7 });
           floatText(x + 0.5, y + 0.5, 'CRUNCH!', '#d9b25a');
+          // busted walls burst into stone for the Forge
+          const chunks = 1 + (Math.random() < 0.3 ? 1 : 0);
+          setTimeout(() => { try { gainMat('stone', chunks, x + 0.5, y + 0.5); } catch (err) {} }, 280);
         }
       }
     }
@@ -679,6 +729,16 @@ function explode(b) {
   // hurt enemies
   G.enemies.forEach(e => {
     if (!e.dead && dist(e.fx, e.fy, b.fx, b.fy) <= T.radius + 0.3) hurtEnemy(e, T.dmg, b);
+  });
+  // crates in the blast burst open — you keep the bombs AND the splinters
+  G.crates.forEach(c => {
+    if (!c.taken && dist(c.x, c.y, b.fx, b.fy) <= T.radius + 0.2) {
+      c.taken = true;
+      G.hero.belt[G.hero.sel] = (G.hero.belt[G.hero.sel] || 0) + 2;
+      floatText(c.x, c.y, '+2 ' + BOMB_TYPES[G.hero.sel].name.toUpperCase() + 'S', '#ff8c1a');
+      setTimeout(() => { try { gainMat('wood', 2, c.x, c.y); } catch (err) {} }, 280);
+      updateHUD();
+    }
   });
   // BOOST the hero (your own bombs never hurt you)
   const h = G.hero;
@@ -827,6 +887,7 @@ function update(dt, now) {
         c.taken = true; sfx.pickup();
         h.belt[h.sel] = (h.belt[h.sel] || 0) + 2;
         floatText(c.x, c.y, '+2 ' + BOMB_TYPES[h.sel].name.toUpperCase() + 'S', '#ff8c1a');
+        setTimeout(() => { try { gainMat('wood', 1, c.x, c.y); } catch (err) {} }, 280);
         updateHUD();
       }
     });
@@ -1422,6 +1483,8 @@ requestAnimationFrame(frame);
 /* debug hooks (also fun for the developers to poke in the console!) */
 window.__tower = {
   get G() { return G; },
+  get mats() { return mats; },
+  swordDmg,
   goto(x, y) { G.hero.fx = x; G.hero.fy = y; },
   win() { G.hero.fx = G.stairs.x; G.hero.fy = G.stairs.y; },
   hurt(n) { hurtHero(n); },

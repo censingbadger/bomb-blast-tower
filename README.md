@@ -67,13 +67,34 @@ python3 -m http.server
   button) · **Stick Bomb** (sticks to walls and even rides monsters; boosts
   you diagonally upwards). Floor 1 teaches the Bomb; Floors 2–3 unlock the
   rest. Owning the Market's Box-o-Bombs grants +3 bombs every floor.
+  Smashing things also earns **crafting materials** for the Forge: monsters
+  drop **metal**, bombed-open walls burst into **stone**, and bomb crates
+  hold **wood** (walk over one for +2 bombs and a plank; blow one up and it
+  splinters into extra wood). Your metal/stone/wood counts live right in the
+  HUD next to your gems.
 
 - **Market** (`market.html`) — based on Asher's market drawing. Two shelves
   (Artifacts and Weapons on hanging signs), a floor row, prices in gems, rarity
   tags from Common to Legendary, and the Forge teaser. You start with **173 💎**
   and can really buy things: gems go down, items get a SOLD tag, and your
   purchases are remembered (there's a *restock shop* link in the footer to reset).
-  Reachable from the Market button on every homepage option.
+  Reachable from the Market button on every homepage option. The Forge
+  signpost at the end of the floor row now really walks you to the Forge.
+
+- **The Forge** (`forge.html`) — from the Forge drawing: a dark smithy with
+  drifting embers and four stations. **Workbench** — *"Repair & craft your own
+  items!"*: repairing (20 💎) patches your armor for **+1 ❤ on your next Tower
+  run**, and crafting (130 💎 + materials) builds your own gear — pick a base
+  (Sword, Shield, Hammer, Charm) and a material (metal, stone or wood) and get
+  a rare item like the *Stone Hammer*. **Anvil** — *"Upgrade items!"*: each ★
+  (60 💎 + 6 metal, up to ★★★) makes your sword hit harder in the Tower.
+  **Combinatron** — *"A machine from a different time, hmmm…"*: feed it two
+  items and 300 💎 and it fuses them into one shinier thing with a
+  future-machine name (Steel Shield + Butcher's Knife = **Steel Knife 3000**,
+  one rarity higher, stars carried over). **Lava** — *"Burn things you don't
+  want."* Gone forever — though sometimes the lava burps up a few gems.
+  Everything is shared with the rest of the game through your gems, materials
+  and gear.
 
 ## What's next
 
@@ -81,4 +102,3 @@ Once a homepage is picked, it becomes the real `index.html`. Still to build:
 
 - **More tower floors**
 - **Inventory & Stats** — what you own and how you're doing
-- **The Forge** — teased on the Market screen
