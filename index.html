@@ -356,6 +356,7 @@ body {
   cursor: pointer;
   font-family: inherit;
   display: flex; flex-direction: column; align-items: center; gap: .5rem;
+  width: clamp(7rem, 26vw, 10.5rem);   /* equal widths keep Market dead-center */
   transition: transform .18s ease;
 }
 .hexbtn:hover, .hexbtn:focus-visible { transform: translateY(-6px); }
