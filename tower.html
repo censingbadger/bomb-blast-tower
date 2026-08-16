@@ -553,15 +553,28 @@ function tileAt(x, y) {
 }
 function moveHero(h, dx, dy) {
   // leading-edge collision: only the corners on the side you're moving toward
-  // block you, so an overlapping trailing corner can never wedge you in place
-  const R = 0.32;
+  // block you. If just ONE corner clips a wall, slide around it (corner assist)
+  // so movement feels smooth instead of snaggy.
+  const R = 0.28;
   if (dx) {
     const nx = h.fx + dx, lead = nx + Math.sign(dx) * R;
-    if (heroPassable(lead, h.fy - R, h) && heroPassable(lead, h.fy + R, h)) h.fx = nx;
+    const top = heroPassable(lead, h.fy - R, h), bot = heroPassable(lead, h.fy + R, h);
+    if (top && bot) h.fx = nx;
+    else if (top !== bot) {
+      const push = Math.abs(dx) * 0.85, dir = top ? -1 : 1;
+      const ny = h.fy + push * dir, ylead = ny + dir * R;
+      if (heroPassable(h.fx - R, ylead, h) && heroPassable(h.fx + R, ylead, h)) h.fy = ny;
+    }
   }
   if (dy) {
     const ny = h.fy + dy, lead = ny + Math.sign(dy) * R;
-    if (heroPassable(h.fx - R, lead, h) && heroPassable(h.fx + R, lead, h)) h.fy = ny;
+    const lft = heroPassable(h.fx - R, lead, h), rgt = heroPassable(h.fx + R, lead, h);
+    if (lft && rgt) h.fy = ny;
+    else if (lft !== rgt) {
+      const push = Math.abs(dy) * 0.85, dir = lft ? -1 : 1;
+      const nx = h.fx + push * dir, xlead = nx + dir * R;
+      if (heroPassable(xlead, h.fy - R, h) && heroPassable(xlead, h.fy + R, h)) h.fx = nx;
+    }
   }
 }
 function enemyPassable(x, y) {
@@ -672,11 +685,11 @@ function explode(b) {
   if (T.boost && !h.dead && dist(h.fx, h.fy, b.fx, b.fy) <= T.radius) {
     const a = h.faceAngle;
     if (T.boost === 'up') {
-      h.boosting = true; h.boostUntil = now + 720; h.boostFrom = now;
+      h.boosting = true; h.boostUntil = now + 900; h.boostFrom = now;
       h.boostVx = 0; h.boostVy = 0;
     } else if (T.boost === 'diag') {
-      h.boosting = true; h.boostUntil = now + 780; h.boostFrom = now;
-      h.boostVx = Math.cos(a) * 3.0; h.boostVy = Math.sin(a) * 3.0;
+      h.boosting = true; h.boostUntil = now + 900; h.boostFrom = now;
+      h.boostVx = Math.cos(a) * 2.8; h.boostVy = Math.sin(a) * 2.8;
     } else if (T.boost === 'side') {
       h.dashUntil = now + 430;
       h.dashVx = Math.cos(a) * 6.5; h.dashVy = Math.sin(a) * 6.5;
@@ -751,7 +764,7 @@ function update(dt, now) {
     const m = Math.hypot(ix, iy);
     h.moving = m > 0.01;
     if (h.moving) {
-      const SPD = 3.4 * (h.boosting ? 1.35 : 1);
+      const SPD = 3.9 * (h.boosting ? 1.8 : 1);
       const vx = ix / m * SPD * dt, vy = iy / m * SPD * dt;
       moveHero(h, vx, vy);
       h.faceAngle = Math.atan2(iy, ix);
@@ -766,10 +779,24 @@ function update(dt, now) {
     // hop + boost arcs
     if (h.boosting) {
       const p = clamp((now - h.boostFrom) / (h.boostUntil - h.boostFrom), 0, 1);
-      h.jumpZ = Math.sin(p * Math.PI) * 84;
+      h.jumpZ = Math.sin(p * Math.PI) * 92;
       if (p >= 1) {
         h.boosting = false;
-        const t = tileAt(h.fx, h.fy);
+        let t = tileAt(h.fx, h.fy);
+        if (!(t && t.kind === 'plat')) {
+          // forgiving landing: glide onto a platform edge if one is close
+          let best = 0.95, bx = 0, by = 0, found = false;
+          for (let ty = Math.floor(h.fy) - 1; ty <= Math.floor(h.fy) + 1; ty++) {
+            for (let tx = Math.floor(h.fx) - 1; tx <= Math.floor(h.fx) + 1; tx++) {
+              const tt = (G.tiles[ty] || [])[tx];
+              if (tt && tt.kind === 'plat') {
+                const d = dist(h.fx, h.fy, tx + 0.5, ty + 0.5);
+                if (d < best) { best = d; bx = tx + 0.5; by = ty + 0.5; found = true; }
+              }
+            }
+          }
+          if (found) { h.fx = bx; h.fy = by; t = tileAt(bx, by); }
+        }
         h.elev = (t && t.kind === 'plat') ? 1 : 0;
         if (h.elev === 1) floatText(h.fx, h.fy, 'UP TOP!', '#ffd23f');
       }
