@@ -2,11 +2,14 @@
 
 A game by **Jing & Ash Games** 💣
 
-## Homepage designs
+## The homepage
 
-Based on Asher's hand-drawn homepage design, there are **four homepage options** to
-choose from. Open `index.html` in any browser to see them side by side, or open
-them directly:
+**Storm Dive won!** `index.html` is the official homepage: the cinematic intro
+plays on its own (parapet in the storm, look over the edge, the ground rushes
+up, the 180 whip-around), and its Tower and Market buttons enter the game.
+
+The other three designs live on in `homepage-options/` (side-by-side archive
+at `homepage-options/chooser.html`):
 
 | # | Option | File | Vibe |
 |---|--------|------|------|

@@ -1,0 +1,122 @@
+<!doctype html>
+<!-- Bomb Blast Tower — homepage option chooser.
+     Open this file to preview all three homepage designs side by side.
+     Once a winner is picked, it will replace this page as the real homepage. -->
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Bomb Blast Tower — Homepage Archive</title>
+<style>
+* { box-sizing: border-box; margin: 0; padding: 0; }
+body {
+  font-family: system-ui, -apple-system, 'Segoe UI', sans-serif;
+  background: #191d2b;
+  color: #e9ecf5;
+  min-height: 100dvh;
+  padding: clamp(1.2rem, 4vw, 3rem);
+}
+header { text-align: center; margin-bottom: clamp(1.5rem, 4vw, 2.8rem); }
+h1 { font-size: clamp(1.5rem, 4.5vw, 2.3rem); letter-spacing: .02em; }
+h1 span { color: #ffb400; }
+.sub { color: #9aa3c0; margin-top: .5rem; font-size: 1.05rem; }
+.grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+  gap: clamp(1rem, 3vw, 2rem);
+  max-width: 1400px;
+  margin: 0 auto;
+}
+.card {
+  display: block;
+  background: #232839;
+  border: 1px solid #343b55;
+  border-radius: 14px;
+  overflow: hidden;
+  text-decoration: none;
+  color: inherit;
+  transition: transform .18s ease, border-color .18s ease, box-shadow .18s ease;
+}
+.card:hover { transform: translateY(-5px); border-color: #5b6489; box-shadow: 0 14px 30px rgba(0,0,0,.35); }
+.preview {
+  width: 100%;
+  aspect-ratio: 16 / 10;
+  overflow: hidden;
+  position: relative;
+  background: #10131f;
+}
+.preview iframe {
+  width: 1280px;
+  height: 800px;
+  border: 0;
+  transform-origin: 0 0;
+  position: absolute;
+  pointer-events: none;
+}
+.meta { padding: 1rem 1.2rem 1.2rem; }
+.meta h2 { font-size: 1.15rem; margin-bottom: .35rem; }
+.meta h2 .n { color: #ffb400; margin-right: .45rem; }
+.meta p { color: #9aa3c0; font-size: .95rem; line-height: 1.5; }
+.open { display: inline-block; margin-top: .7rem; color: #6fc0ff; font-weight: 600; font-size: .95rem; }
+footer { text-align: center; color: #6b7390; margin-top: clamp(1.8rem, 5vw, 3rem); font-size: .95rem; }
+</style>
+
+<header>
+  <h1>&#128163; <span>Bomb Blast Tower</span> &mdash; the homepage archive</h1>
+  <p class="sub">The four original homepage designs. Storm Dive won and now lives at the front door!</p>
+</header>
+
+<p style="text-align:center; margin:-.6rem auto 1.4rem; font-size:1.02rem; color:#c9d2ea;">
+  &#128293; New: <a href="../tower.html" style="color:#ffb400; font-weight:700;">THE TOWER</a> &mdash; the game! Climb floor by floor.
+  &nbsp;&#183;&nbsp; &#128722; <a href="../market.html" style="color:#6fc0ff; font-weight:600;">the Market</a> is open too.
+</p>
+
+<div class="grid">
+  <a class="card" href="option-1-paper-sketch.html">
+    <div class="preview"><iframe src="option-1-paper-sketch.html" scrolling="no" tabindex="-1" title="Paper Sketch preview"></iframe></div>
+    <div class="meta">
+      <h2><span class="n">1</span>Paper Sketch</h2>
+      <p>The drawing itself, brought to life: pencil lines on paper, wobbly hand-drawn borders, and one spark of orange on the fuse.</p>
+      <span class="open">Open full page &rarr;</span>
+    </div>
+  </a>
+
+  <a class="card" href="option-2-neon-arcade.html">
+    <div class="preview"><iframe src="option-2-neon-arcade.html" scrolling="no" tabindex="-1" title="Neon Arcade preview"></iframe></div>
+    <div class="meta">
+      <h2><span class="n">2</span>Neon Arcade</h2>
+      <p>A glowing retro arcade cabinet: pixel font, neon hexagons, starfield, scanlines, rising embers &mdash; and a flickering letter in the TOWER sign.</p>
+      <span class="open">Open full page &rarr;</span>
+    </div>
+  </a>
+
+  <a class="card" href="option-3-cartoon-blast.html">
+    <div class="preview"><iframe src="option-3-cartoon-blast.html" scrolling="no" tabindex="-1" title="Cartoon Blast preview"></iframe></div>
+    <div class="meta">
+      <h2><span class="n">3</span>Cartoon Blast</h2>
+      <p>Sunny mobile-game style: chunky sticker letters that bounce in, a glossy bomb, drifting clouds, a swinging wooden sign &mdash; and the grey stone tower rising up the left.</p>
+      <span class="open">Open full page &rarr;</span>
+    </div>
+  </a>
+
+  <a class="card" href="option-4-storm-dive.html">
+    <div class="preview"><iframe src="option-4-storm-dive.html#still" scrolling="no" tabindex="-1" title="Storm Dive preview"></iframe></div>
+    <div class="meta">
+      <h2><span class="n">4</span>Storm Dive</h2>
+      <p>&#128266; A stormy night at the tower, with a cinematic intro: start at the parapet in the lightning, dive down the wall for five seconds, whip around &mdash; and the homepage lands. Real thunder sounds, synthesized live.</p>
+      <span class="open">Open full page &rarr;</span>
+    </div>
+  </a>
+</div>
+
+<footer>Jing &amp; Ash Games &mdash; more of the game coming soon.</footer>
+
+<script>
+  // scale the live previews to fit their cards
+  function fit() {
+    document.querySelectorAll('.preview').forEach(p => {
+      const f = p.querySelector('iframe');
+      f.style.transform = 'scale(' + (p.clientWidth / 1280) + ')';
+    });
+  }
+  addEventListener('resize', fit);
+  fit();
+</script>
