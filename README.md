@@ -47,6 +47,17 @@ python3 -m http.server
 
 ## Game screens
 
+- **The Tower** (`tower.html`) — the game! An isometric action crawler in the
+  spirit of Back Stab's dungeon mode: WASD/arrows or a touch joystick to move,
+  K/click to swing your sword, SPACE to hop, **B to drop a bomb**. Dark, dank
+  floors with torches, red carpets and hanging chains. Bombs blow open cracked
+  walls and **boost you onto platforms** (your own bombs never hurt you).
+  Zombies, skeletons and spike traps stand between you and the glowing
+  staircase; die and the floor resets to the start. Beat the floor: VICTORY —
+  +25 gems — and you're teleported home, where the Tower button leads to the
+  next floor. Three floors so far; enemies drop gems you can spend in the
+  Market. New bomb types slot into `BOMB_TYPES` as the drawings arrive.
+
 - **Market** (`market.html`) — based on Asher's market drawing. Two shelves
   (Artifacts and Weapons on hanging signs), a floor row, prices in gems, rarity
   tags from Common to Legendary, and the Forge teaser. You start with **173 💎**
@@ -58,6 +69,6 @@ python3 -m http.server
 
 Once a homepage is picked, it becomes the real `index.html`. Still to build:
 
-- **Tower** — the main game
+- **More tower floors** — and the new bomb types
 - **Inventory & Stats** — what you own and how you're doing
 - **The Forge** — teased on the Market screen
