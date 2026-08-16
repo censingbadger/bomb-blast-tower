@@ -15,11 +15,14 @@ them directly:
 | 3 | **Cartoon Blast** | `homepage-options/option-3-cartoon-blast.html` | Sunny, chunky mobile-game style, with the grey stone tower |
 | 4 | **Storm Dive** | `homepage-options/option-4-storm-dive.html` | 🔊 Stormy night with a cinematic intro — dive down the tower through lightning and thunder |
 
-**About the Storm Dive intro:** click ⚡ *Enter the Storm* and you start at the top of
-the tower in a thunderstorm, plunge down the wall face for about five seconds, whip
-around — and land facing the tower as the home screen arrives. The thunder is
-synthesized live in the browser (no sound files). There's a skip button, a mute
-button, and a *replay intro* link in the footer.
+**About the Storm Dive intro:** it plays automatically when the page opens — you start
+at the top of the tower in a thunderstorm, lean out over the edge until you're staring
+straight down the wall, drop face-first, race down alongside the stone, whip around —
+and land facing the tower as the home screen arrives. The thunder is synthesized live
+in the browser (no sound files). Browsers only allow sound after your first tap or
+keypress, so the thunder joins in as soon as you touch anything — or hit *replay intro*
+in the footer to watch it again with full sound. There's a skip button and a mute
+button too.
 
 Every option has the same pieces from the drawing:
 
