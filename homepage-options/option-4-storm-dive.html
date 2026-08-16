@@ -146,40 +146,50 @@ body {
     radial-gradient(20% 14% at 50% 45%, rgba(96,116,158,.2), transparent 70%),
     linear-gradient(180deg, #0a0e17 0%, #121a2c 55%, #1c2438 100%);
 }
-/* the wall face below you, streaming past as you fall */
-.wallplane {
-  position: absolute; left: -30%; right: -30%; bottom: -4%; height: 150%;
-  transform-origin: 50% 100%;
-  transform: perspective(800px) rotateX(42deg);
-  background:
-    repeating-linear-gradient(180deg, transparent 0 128px, rgba(8,12,21,.8) 128px 140px),
-    repeating-linear-gradient(90deg, transparent 0 110px, rgba(8,12,21,.42) 110px 118px),
-    linear-gradient(180deg, #2b3450 0%, #414c66 100%);
-}
-.wallplane::after {
-  content: '';
+/* the wall face below you: wide at your feet, tapering to a point far down */
+.wallsvg { position: absolute; inset: 0; width: 100%; height: 100%; }
+.wallsvg .static-courses { transition: opacity .5s ease; }
+.phase-fall .wallsvg .static-courses { opacity: .4; }
+/* stone courses rushing outward from the vanishing point as you fall */
+.rushwrap {
   position: absolute; inset: 0;
-  background: linear-gradient(180deg, #0a0e17 0%, #0a0e17 22%, rgba(10,14,23,.9) 38%, rgba(10,14,23,.4) 56%, transparent 80%);
+  clip-path: polygon(50% 44%, -14% 103%, 114% 103%);
 }
-.phase-fall .wallplane { animation: stream 4.6s cubic-bezier(.55, .05, .85, .4) forwards; }
-@keyframes stream { to { background-position: 0 6200px, 0 0, 0 0; } }
-/* the courtyard far below, rushing up at you */
-.ground {
-  position: absolute; left: 50%; top: 45%;
-  width: 400px; height: 400px;
-  margin: -200px 0 0 -200px;
-  transform: scale(.12);
+.courseo, .wino {
+  position: absolute; inset: 0;
+  transform-origin: 50% 45%;
+  opacity: 0;
+  pointer-events: none;
 }
-.ground svg { width: 100%; height: 100%; display: block; }
-.phase-fall .ground {
-  animation: groundrush 4.6s forwards;
+.courseo i {
+  position: absolute; left: -12%; right: -12%; bottom: 4%;
+  height: 12px;
+  background: rgba(8, 12, 21, .8);
+  border-top: 2px solid rgba(223, 232, 255, .07);
+  border-radius: 5px;
+  display: block;
 }
-@keyframes groundrush {
-  0% { transform: scale(.12); animation-timing-function: cubic-bezier(.5, .1, .75, .45); }
-  62% { transform: scale(.6); animation-timing-function: cubic-bezier(.55, 0, .8, .35); }
-  90% { transform: scale(2.6); animation-timing-function: cubic-bezier(.45, 0, .85, .5); }
-  100% { transform: scale(8.5); }
+.wino i {
+  position: absolute;
+  width: 52px; height: 70px;
+  background: #0e1320;
+  border: 2px solid #5a6684;
+  border-radius: 26px 26px 6px 6px;
+  display: block;
 }
+.wino.w1 i { left: 29%; bottom: 21%; }
+.wino.w2 i { right: 26%; bottom: 29%; }
+.phase-fall .courseo, .phase-fall .wino {
+  animation: rushout 1.15s linear var(--d, 0s) infinite;
+}
+@keyframes rushout {
+  0% { transform: scale(.02); opacity: 0; }
+  14% { opacity: 1; }
+  100% { transform: scale(1.55); opacity: 1; }
+}
+/* slow dolly toward the point while falling */
+.phase-fall .ldscene { animation: ldzoom 4.6s ease-in forwards; }
+@keyframes ldzoom { to { transform: scale(1.3); } }
 .speedlines { position: absolute; inset: 0; opacity: 0; transform-origin: 50% 45%; }
 .phase-fall .speedlines { opacity: 1; animation: lines .4s linear infinite; }
 @keyframes lines { from { transform: scale(.55); opacity: 0; } 30% { opacity: .75; } to { transform: scale(1.3); opacity: 0; } }
@@ -458,7 +468,7 @@ footer {
 }
 @media (prefers-reduced-motion: reduce) {
   .rain, .rain.fine, .scud, .topview, .lookdown, .ldshake, .ldscene,
-  .wallplane, .ground, .speedlines, .lip, .hang, .bomb-o .flame, .burst-a svg,
+  .courseo, .wino, .speedlines, .lip, .hang, .bomb-o .flame, .burst-a svg,
   .page.kaboom, .phase-whirl .cine { animation: none !important; }
 }
 </style>
@@ -496,35 +506,58 @@ footer {
       <div class="ldshake">
         <div class="ldscene">
           <div class="voidsky"></div>
-          <div class="wallplane"></div>
-          <div class="ground">
-            <svg viewBox="0 0 400 400">
-              <defs>
-                <radialGradient id="gnd" cx="50%" cy="50%" r="50%">
-                  <stop offset="0%" stop-color="#2c3752"/>
-                  <stop offset="70%" stop-color="#232c44"/>
-                  <stop offset="100%" stop-color="#1a2134"/>
-                </radialGradient>
-              </defs>
-              <circle cx="200" cy="200" r="197" fill="url(#gnd)" stroke="#0e1220" stroke-width="5"/>
-              <g fill="#303b59" stroke="#1a2032" stroke-width="3">
-                <rect x="150" y="58" width="46" height="34" rx="6" transform="rotate(8 173 75)"/>
-                <rect x="216" y="90" width="40" height="30" rx="6" transform="rotate(-12 236 105)"/>
-                <rect x="118" y="128" width="42" height="32" rx="6" transform="rotate(-5 139 144)"/>
-                <rect x="240" y="158" width="48" height="34" rx="6" transform="rotate(14 264 175)"/>
-                <rect x="168" y="208" width="44" height="32" rx="6" transform="rotate(-9 190 224)"/>
-                <rect x="108" y="248" width="40" height="30" rx="6" transform="rotate(11 128 263)"/>
-                <rect x="228" y="258" width="42" height="32" rx="6" transform="rotate(-7 249 274)"/>
-                <rect x="163" y="308" width="46" height="32" rx="6" transform="rotate(6 186 324)"/>
-              </g>
-              <g fill="#1f2c3f" stroke="#0e1220" stroke-width="3">
-                <circle cx="88" cy="108" r="22"/><circle cx="111" cy="96" r="16"/>
-                <circle cx="312" cy="238" r="20"/><circle cx="294" cy="255" r="14"/>
-                <circle cx="94" cy="315" r="17"/>
-              </g>
-              <circle cx="301" cy="118" r="26" fill="#ffb347" opacity=".18"/>
-              <circle cx="301" cy="118" r="7" fill="#ffc76a" stroke="#0e1220" stroke-width="3"/>
-            </svg>
+          <svg class="wallsvg" viewBox="0 0 1000 1000" preserveAspectRatio="none" aria-hidden="true">
+            <defs>
+              <linearGradient id="wallg" x1="0" y1="1" x2="0" y2="0">
+                <stop offset="0%" stop-color="#414c66"/>
+                <stop offset="60%" stop-color="#2a3349"/>
+                <stop offset="100%" stop-color="#151b2b"/>
+              </linearGradient>
+              <radialGradient id="distmist" cx="50%" cy="50%" r="50%">
+                <stop offset="0%" stop-color="#0b0f1a"/>
+                <stop offset="55%" stop-color="#0b0f1a" stop-opacity=".85"/>
+                <stop offset="100%" stop-color="#0b0f1a" stop-opacity="0"/>
+              </radialGradient>
+            </defs>
+            <path d="M-120 1000 L500 450 L1120 1000 Z" fill="url(#wallg)"/>
+            <g stroke="#0e1320" stroke-width="4" opacity=".5">
+              <path d="M500 450 L-60 1000"/>
+              <path d="M500 450 L120 1000"/>
+              <path d="M500 450 L300 1000"/>
+              <path d="M500 450 L500 1000"/>
+              <path d="M500 450 L700 1000"/>
+              <path d="M500 450 L880 1000"/>
+              <path d="M500 450 L1060 1000"/>
+            </g>
+            <g class="static-courses" stroke="#10151f" fill="none">
+              <path d="M-64 950 L1064 950" stroke-width="5.5"/>
+              <path d="M10 885 L990 885" stroke-width="5"/>
+              <path d="M77 825 L923 825" stroke-width="4.6"/>
+              <path d="M139 770 L861 770" stroke-width="4.2"/>
+              <path d="M196 720 L804 720" stroke-width="3.8"/>
+              <path d="M246 675 L754 675" stroke-width="3.4"/>
+              <path d="M291 635 L709 635" stroke-width="3"/>
+              <path d="M331 600 L669 600" stroke-width="2.7"/>
+              <path d="M365 570 L635 570" stroke-width="2.4"/>
+              <path d="M393 545 L607 545" stroke-width="2.1"/>
+              <path d="M417 524 L583 524" stroke-width="1.9"/>
+              <path d="M436 507 L564 507" stroke-width="1.7"/>
+            </g>
+            <path d="M-120 1000 L500 450" stroke="#8fa3c8" stroke-width="5" opacity=".3" fill="none"/>
+            <path d="M1120 1000 L500 450" stroke="#0a0e18" stroke-width="6" opacity=".5" fill="none"/>
+            <ellipse cx="500" cy="465" rx="330" ry="150" fill="url(#distmist)"/>
+          </svg>
+          <div class="rushwrap" aria-hidden="true">
+            <span class="courseo" style="--d:0s"><i></i></span>
+            <span class="courseo" style="--d:-.144s"><i></i></span>
+            <span class="courseo" style="--d:-.288s"><i></i></span>
+            <span class="courseo" style="--d:-.431s"><i></i></span>
+            <span class="courseo" style="--d:-.575s"><i></i></span>
+            <span class="courseo" style="--d:-.719s"><i></i></span>
+            <span class="courseo" style="--d:-.863s"><i></i></span>
+            <span class="courseo" style="--d:-1.006s"><i></i></span>
+            <span class="wino w1" style="--d:-.4s"><i></i></span>
+            <span class="wino w2" style="--d:-.95s"><i></i></span>
           </div>
           <svg class="speedlines" viewBox="0 0 1000 1000" preserveAspectRatio="none" aria-hidden="true">
             <g stroke="#dfe8ff" stroke-width="3" opacity=".14" stroke-linecap="round">
