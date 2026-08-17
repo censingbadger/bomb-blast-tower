@@ -96,9 +96,20 @@ python3 -m http.server
   Everything is shared with the rest of the game through your gems, materials
   and gear.
 
+- **Inventory & Stats** (`inventory.html`) — from the I&S drawing: your
+  character sheet. **Weapons**, **Armor** and **Bombs** slot grids (plus the
+  mysterious empty Bow slot — nobody has found one yet), your hero in the
+  middle as a proud stick figure with callouts for armor, main-hand weapon
+  and off-hand bomb — click anything you own to equip it and the **E** tag
+  follows. Your off-hand favorite bomb really starts selected in the Tower.
+  The **STATS** panel is all real numbers from your save: enemies defeated
+  (the Tower counts every one), money, a computed **Power** score with a
+  status from *Weak* up to *LEGENDARY*, upgrades, floors beaten, weapon
+  upgrades, and your material pockets. Bomb types you haven't unlocked yet
+  show as ? slots until you reach their floor.
+
 ## What's next
 
 Once a homepage is picked, it becomes the real `index.html`. Still to build:
 
 - **More tower floors**
-- **Inventory & Stats** — what you own and how you're doing
