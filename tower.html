@@ -415,7 +415,7 @@ let G = null;                 // current floor run
 const floorParam = new URLSearchParams(location.search).get('floor');
 const savedFloor = load('bbt-floor', 1);
 const floorNum = clamp(parseInt(floorParam || savedFloor, 10) || 1, 1, FLOORS.length);
-let gems = load('bbt-gems', 173);
+let gems = load('bbt-gems', 0);   // everyone starts broke — beat monsters and floors to earn
 
 /* ---------- crafting materials (spend them at the Forge!) ----------
    metal: dropped by beaten monsters
@@ -522,6 +522,8 @@ function startFloor() {
   };
   // owning the Market's Box-o-Bombs adds +3 bombs every floor
   try { if ((load('bbt-owned', []) || []).includes('bombs')) G.hero.belt.bomb = (G.hero.belt.bomb || 0) + 3; } catch (e) {}
+  // your Inventory's favorite off-hand bomb starts selected (when this floor has it)
+  try { const fav = (load('bbt-equip', {}) || {}).offhand; if (fav && fav in G.hero.belt) G.hero.sel = fav; } catch (e) {}
   // the Workbench repaired your armor: +1 heart for this whole visit
   if (repairBonus) {
     G.hero.maxHearts = 8; G.hero.hearts = 8;
@@ -665,6 +667,7 @@ function hurtEnemy(e, dmg, from) {
   floatText(e.fx, e.fy, '-' + dmg, '#ffd23f');
   if (e.hp <= 0 && !e.dead) {
     e.dead = true; e.deadAt = now;
+    try { save('bbt-kills', (load('bbt-kills', 0) || 0) + 1); } catch (err) {}   // Inventory & Stats keeps score
     const reward = e.gems + Math.floor(Math.random() * 3);
     gems += reward; save('bbt-gems', gems);
     floatText(e.fx, e.fy, '+' + reward + ' ◆', '#3ec6ff');

@@ -75,9 +75,12 @@ python3 -m http.server
 
 - **Market** (`market.html`) — based on Asher's market drawing. Two shelves
   (Artifacts and Weapons on hanging signs), a floor row, prices in gems, rarity
-  tags from Common to Legendary, and the Forge teaser. You start with **173 💎**
-  and can really buy things: gems go down, items get a SOLD tag, and your
-  purchases are remembered (there's a *restock shop* link in the footer to reset).
+  tags from Common to Legendary, and the Forge teaser. Everyone starts
+  **broke — 0 💎** — every gem is earned in the Tower. Buying really works:
+  gems go down, items get a SOLD tag, and your purchases are remembered.
+  The *restock shop* link now **costs 25 💎** (the shopkeeper doesn't work
+  for free): it puts everything you bought back on sale — stars and all —
+  and asks you to click twice so nobody restocks by accident.
   Reachable from the Market button on every homepage option. The Forge
   signpost at the end of the floor row now really walks you to the Forge.
 
@@ -96,9 +99,20 @@ python3 -m http.server
   Everything is shared with the rest of the game through your gems, materials
   and gear.
 
+- **Inventory & Stats** (`inventory.html`) — from the I&S drawing: your
+  character sheet. **Weapons**, **Armor** and **Bombs** slot grids (plus the
+  mysterious empty Bow slot — nobody has found one yet), your hero in the
+  middle as a proud stick figure with callouts for armor, main-hand weapon
+  and off-hand bomb — click anything you own to equip it and the **E** tag
+  follows. Your off-hand favorite bomb really starts selected in the Tower.
+  The **STATS** panel is all real numbers from your save: enemies defeated
+  (the Tower counts every one), money, a computed **Power** score with a
+  status from *Weak* up to *LEGENDARY*, upgrades, floors beaten, weapon
+  upgrades, and your material pockets. Bomb types you haven't unlocked yet
+  show as ? slots until you reach their floor.
+
 ## What's next
 
 Once a homepage is picked, it becomes the real `index.html`. Still to build:
 
 - **More tower floors**
-- **Inventory & Stats** — what you own and how you're doing
