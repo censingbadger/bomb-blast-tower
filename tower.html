@@ -792,11 +792,12 @@ function reachStairs() {
   save('bbt-floor', Math.min(next, FLOORS.length + 1));
   $('#victorymsg').innerHTML = 'You beat <b>Floor ' + floorNum + '</b>! &nbsp;+' + bonus + ' ◆';
   $('#victorysub').textContent = next <= FLOORS.length
-    ? 'Floor ' + next + ' awaits… Teleporting you home!'
-    : 'You’ve conquered every floor (for now)! Teleporting home…';
+    ? 'The WARLOCK is furious — his ambush is racing to your BASE!'
+    : 'Every floor beaten (for now)! But the WARLOCK’s ambush is racing to your BASE!';
+  $('#gohome').textContent = 'Defend the Base!';
   $('#victory').classList.add('show');
   updateHUD();
-  setTimeout(goHome, 4200);
+  setTimeout(goBase, 4200);
 }
 let wentHome = false;
 function goHome() {
@@ -804,7 +805,13 @@ function goHome() {
   if (String(location.href).startsWith('about')) { location.reload(); return; }
   location.href = 'index.html';
 }
-$('#gohome').addEventListener('click', goHome);
+// beating a floor makes the Warlock send an ambush at your base
+function goBase() {
+  if (wentHome) return; wentHome = true;
+  if (String(location.href).startsWith('about')) { location.reload(); return; }
+  location.href = 'base.html?ambush=' + floorNum;
+}
+$('#gohome').addEventListener('click', () => { (G && G.won) ? goBase() : goHome(); });
 $('#quit').addEventListener('click', e => {
   if (history.length > 1 && document.referrer) { e.preventDefault(); history.back(); }
 });

@@ -57,8 +57,9 @@ python3 -m http.server
   walls and **boost you onto platforms** (your own bombs never hurt you).
   Zombies, skeletons and spike traps stand between you and the glowing
   staircase; die and the floor resets to the start. Beat the floor: VICTORY —
-  +25 gems — and you're teleported home, where the Tower button leads to the
-  next floor. Three floors so far; enemies drop gems you can spend in the
+  +25 gems — but the Warlock who took the tower is FURIOUS, and his ambush
+  races straight to your Base (see below). Survive it and the Tower button
+  leads to the next floor. Three floors so far; enemies drop gems you can spend in the
   Market. **Six bomb types** from the drawings, swapped with V (or SWAP):
   **Bomb** (boosts upwards) · **Dynamite** (destroys blocks, big blast, no
   boost) · **Landmine** (explodes when touched — monsters trigger it too — and
@@ -110,6 +111,25 @@ python3 -m http.server
   status from *Weak* up to *LEGENDARY*, upgrades, floors beaten, weapon
   upgrades, and your material pockets. Bomb types you haven't unlocked yet
   show as ? slots until you reach their floor.
+
+- **The Base** (`base.html`) — from the BASE drawing: your own fort, a hut
+  with a thatched roof inside a ring of rocks, and a home to come back to
+  and **build**. Every price is straight off the drawing sheet. **Building**:
+  a six-wall ladder from *Picket Fence* (40 💎) up to *Chained Stone Wall*
+  (210 💎) — a broken wall replaces for about half (65 💎 fence → 35 to
+  replace, just like the drawing says); five gates (20–120 💎); three fort
+  roofs; add-ons (Chimney, Lookout Window, Side Tower, Battlements); and
+  guards — you start with 1, hire more for 50 💎. **Weapons & traps**: Bomb
+  Cannon 100, Wall-mounted Bomb Cannon 100, Spike Trap 120, Moat 130 (upgrade
+  it to a **Lava Moat** for 220), Throwing Spears for your guards 100, Bomb
+  Slingshot 140, Spikes on Wall 150, and the 600 💎 **Turret** ("how did that
+  get here?"). Every time you beat a Tower floor, the **Warlock sends an
+  ambush at your base** — a "WAVE N" flag goes up and monsters march on your
+  wall and gate, stronger with every floor you've beaten. Your defenses fight
+  on their own and **you can tap the field to throw bombs**. Hold them off:
+  gems and salvage. If they smash through: **the base falls** — you lose a
+  chunk of gems and materials and your wall breaks. There's a practice alarm
+  too, so you can test your fort any time without risking anything.
 
 ## What's next
 
