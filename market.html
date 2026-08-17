@@ -448,7 +448,7 @@ footer .reset:hover { color: var(--ink); }
         <path d="M8 14 L32 14 M14 6 L16 14 L20 34 M26 6 L24 14" fill="none" stroke="#1e88c7" stroke-width="2"/>
         <path d="M14 6 L16 14 L8 14 Z" fill="#9fe3ff"/>
       </svg>
-      <span id="gems">173</span>
+      <span id="gems">0</span>
     </div>
   </header>
 
@@ -693,7 +693,7 @@ footer .reset:hover { color: var(--ink); }
 
   <footer>
     A Jing &amp; Ash Games production
-    <button class="reset" id="reset">restock shop</button>
+    <button class="reset" id="reset">restock shop (25 &#9670;)</button>
   </footer>
 </div>
 
@@ -756,7 +756,8 @@ footer .reset:hover { color: var(--ink); }
   };
 
   // ---------- shop state ----------
-  const START_GEMS = 173;
+  const START_GEMS = 0;       // everyone starts broke — gems are earned in the Tower
+  const RESTOCK_COST = 25;    // the shopkeeper doesn't work for free
   const load = (k, d) => { try { const v = localStorage.getItem(k); return v === null ? d : JSON.parse(v); } catch (e) { return d; } };
   const save = (k, v) => { try { localStorage.setItem(k, JSON.stringify(v)); } catch (e) {} };
   let gems = load('bbt-gems', START_GEMS);
@@ -853,11 +854,33 @@ footer .reset:hover { color: var(--ink); }
   $('#back').addEventListener('click', e => {
     if (history.length > 1 && document.referrer) { e.preventDefault(); history.back(); }
   });
+  let restockArmedUntil = 0;
   $('#reset').addEventListener('click', () => {
-    gems = START_GEMS; owned = [];
+    sfx.init();
+    if (gems < RESTOCK_COST) {
+      sfx.nope();
+      say('The shopkeeper wants <b>' + RESTOCK_COST + '</b> gems to restock &mdash; you have ' + gems + '. Earn more in the Tower!', true);
+      return;
+    }
+    if (Date.now() > restockArmedUntil) {
+      restockArmedUntil = Date.now() + 4000;
+      say('Restock every shelf for <b>' + RESTOCK_COST + '</b> gems? Everything you bought goes back on sale &mdash; <b>click again</b> to do it!');
+      return;
+    }
+    restockArmedUntil = 0;
+    const before = gems;
+    gems -= RESTOCK_COST;
+    // bought things go back on the shelves — their anvil stars go with them
+    try {
+      const up = load('bbt-upgrades', {});
+      owned.forEach(id => delete up[id]);
+      save('bbt-upgrades', up);
+    } catch (e) {}
+    owned = [];
     save('bbt-gems', gems); save('bbt-owned', owned);
-    renderGems(); renderOwned();
-    say('Shop restocked &mdash; gems back to ' + START_GEMS + '!');
+    renderGems(before); renderOwned();
+    sfx.buy();
+    say('&#127881; The shopkeeper restocks every shelf! (&minus;' + RESTOCK_COST + ' gems)');
   });
 
   renderGems(); renderOwned();

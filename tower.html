@@ -415,7 +415,7 @@ let G = null;                 // current floor run
 const floorParam = new URLSearchParams(location.search).get('floor');
 const savedFloor = load('bbt-floor', 1);
 const floorNum = clamp(parseInt(floorParam || savedFloor, 10) || 1, 1, FLOORS.length);
-let gems = load('bbt-gems', 173);
+let gems = load('bbt-gems', 0);   // everyone starts broke — beat monsters and floors to earn
 
 /* ---------- crafting materials (spend them at the Forge!) ----------
    metal: dropped by beaten monsters

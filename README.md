@@ -75,9 +75,12 @@ python3 -m http.server
 
 - **Market** (`market.html`) — based on Asher's market drawing. Two shelves
   (Artifacts and Weapons on hanging signs), a floor row, prices in gems, rarity
-  tags from Common to Legendary, and the Forge teaser. You start with **173 💎**
-  and can really buy things: gems go down, items get a SOLD tag, and your
-  purchases are remembered (there's a *restock shop* link in the footer to reset).
+  tags from Common to Legendary, and the Forge teaser. Everyone starts
+  **broke — 0 💎** — every gem is earned in the Tower. Buying really works:
+  gems go down, items get a SOLD tag, and your purchases are remembered.
+  The *restock shop* link now **costs 25 💎** (the shopkeeper doesn't work
+  for free): it puts everything you bought back on sale — stars and all —
+  and asks you to click twice so nobody restocks by accident.
   Reachable from the Market button on every homepage option. The Forge
   signpost at the end of the floor row now really walks you to the Forge.
 

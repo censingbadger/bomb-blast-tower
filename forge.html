@@ -460,7 +460,7 @@ footer {
         <path d="M8 14 L32 14 M14 6 L16 14 L20 34 M26 6 L24 14" fill="none" stroke="#1e88c7" stroke-width="2"/>
         <path d="M14 6 L16 14 L8 14 Z" fill="#9fe3ff"/>
       </svg>
-      <span id="gems">173</span>
+      <span id="gems">0</span>
     </div>
   </header>
   <p class="tagline">Combine, upgrade, and craft!</p>
@@ -675,7 +675,7 @@ const load = (k, d) => { try { const v = localStorage.getItem(k); return v === n
 const save = (k, v) => { try { localStorage.setItem(k, JSON.stringify(v)); } catch (e) {} };
 const $ = s => document.querySelector(s);
 
-let gems = load('bbt-gems', 173);
+let gems = load('bbt-gems', 0);   // everyone starts broke — gems are earned in the Tower
 let mats = Object.assign({ metal: 0, stone: 0, wood: 0 }, load('bbt-mats', {}));
 let owned = load('bbt-owned', []);
 let custom = load('bbt-custom', []);       // things YOU made: [{id,name,base,mat,rarity,fused}]

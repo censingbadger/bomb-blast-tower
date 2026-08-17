@@ -434,7 +434,7 @@ footer {
         <path d="M8 14 L32 14 M14 6 L16 14 L20 34 M26 6 L24 14" fill="none" stroke="#1e88c7" stroke-width="2"/>
         <path d="M14 6 L16 14 L8 14 Z" fill="#9fe3ff"/>
       </svg>
-      <span id="gems">173</span>
+      <span id="gems">0</span>
     </div>
   </header>
 
@@ -456,23 +456,40 @@ footer {
       <h2 style="text-align:center">Your Hero</h2>
       <div class="dollwrap">
         <svg class="doll" viewBox="0 0 220 300" aria-hidden="true">
-          <!-- proud stick figure, straight from the drawing -->
-          <circle cx="110" cy="58" r="30" fill="var(--cream)" stroke="#4a3826" stroke-width="4.6"/>
-          <path d="M102 52 a3.4 3.4 0 1 0 .1 0 M120 52 a3.4 3.4 0 1 0 .1 0" fill="#4a3826"/>
-          <path d="M101 70 q9 7 19 0" fill="none" stroke="#4a3826" stroke-width="3.6" stroke-linecap="round"/>
-          <path id="doll-body" d="M110 88 L110 196" stroke="#4a3826" stroke-width="5" stroke-linecap="round"/>
-          <path d="M110 196 L76 268 M110 196 L144 268" stroke="#4a3826" stroke-width="5" stroke-linecap="round"/>
-          <path id="doll-arm-l" d="M110 118 L58 148" stroke="#4a3826" stroke-width="5" stroke-linecap="round"/>
-          <path id="doll-arm-r" d="M110 118 L162 142" stroke="#4a3826" stroke-width="5" stroke-linecap="round"/>
-          <!-- tunic overlay when armor is on -->
+          <!-- the same little knight who climbs the Tower -->
+          <!-- legs & boots -->
+          <path d="M97 206 L95 250 M123 206 L125 250" stroke="#2c3e55" stroke-width="14" stroke-linecap="round"/>
+          <rect x="81" y="246" width="27" height="15" rx="7" fill="#1d3a5a"/>
+          <rect x="112" y="246" width="27" height="15" rx="7" fill="#1d3a5a"/>
+          <!-- tunic -->
+          <rect x="78" y="118" width="64" height="92" rx="16" fill="#3b6ea5" stroke="#1d3a5a" stroke-width="5"/>
+          <rect x="78" y="118" width="64" height="26" rx="13" fill="#c9ced6" stroke="#1d3a5a" stroke-width="5"/>
+          <rect x="78" y="188" width="64" height="10" fill="#8a5a2b" stroke="#1d3a5a" stroke-width="3"/>
+          <rect x="103" y="185" width="14" height="16" rx="3" fill="#ffd23f" stroke="#8a5a08" stroke-width="2.6"/>
+          <!-- arms & hands -->
+          <path d="M136 140 Q156 146 163 139" fill="none" stroke="#8a5a3a" stroke-width="15" stroke-linecap="round"/>
+          <path d="M136 140 Q156 146 163 139" fill="none" stroke="#f0c8a0" stroke-width="9.5" stroke-linecap="round"/>
+          <path d="M84 140 Q68 148 58 155" fill="none" stroke="#8a5a3a" stroke-width="15" stroke-linecap="round"/>
+          <path d="M84 140 Q68 148 58 155" fill="none" stroke="#f0c8a0" stroke-width="9.5" stroke-linecap="round"/>
+          <!-- steel breastplate when armor is on -->
           <g id="doll-tunic" style="display:none">
-            <path d="M88 96 L132 96 L142 130 L128 128 L128 176 L92 176 L92 128 L78 130 Z"
-                  fill="#c07d3d" stroke="#7a4a1f" stroke-width="4" stroke-linejoin="round" opacity=".92"/>
-            <path d="M92 128 L92 176 M128 128 L128 176" stroke="#7a4a1f" stroke-width="2" opacity=".5"/>
+            <rect x="74" y="114" width="72" height="70" rx="15" fill="#c9ced6" stroke="#6a7280" stroke-width="5"/>
+            <circle cx="79" cy="127" r="12" fill="#aeb6c2" stroke="#6a7280" stroke-width="4"/>
+            <circle cx="141" cy="127" r="12" fill="#aeb6c2" stroke="#6a7280" stroke-width="4"/>
+            <path d="M110 122 V178 M86 136 q24 14 48 0" fill="none" stroke="#6a7280" stroke-width="3"/>
+            <path d="M84 124 l10 -5" stroke="#e8edf2" stroke-width="3.4" stroke-linecap="round"/>
           </g>
+          <!-- head, helm & face -->
+          <circle cx="110" cy="76" r="27" fill="#f0c8a0" stroke="#8a5a3a" stroke-width="5"/>
+          <path d="M83 74 a27 27 0 0 1 54 0 Z" fill="#c9ced6" stroke="#6a7280" stroke-width="5"/>
+          <rect x="76" y="67" width="68" height="10" rx="5" fill="#c9ced6" stroke="#6a7280" stroke-width="4"/>
+          <circle cx="110" cy="58" r="3" fill="#8d959d"/>
+          <circle cx="101" cy="86" r="3.6" fill="#222"/>
+          <circle cx="119" cy="86" r="3.6" fill="#222"/>
+          <path d="M101 95 q9 7 18 0" fill="none" stroke="#8a5a3a" stroke-width="3.6" stroke-linecap="round"/>
           <!-- main-hand sword -->
           <g id="doll-sword" transform="rotate(-38 168 138)" style="display:none">
-            <path d="M162 128 L214 128 L222 133 L214 138 L162 138 Z" fill="#c3cad4" stroke="#5f6874" stroke-width="3.4" stroke-linejoin="round"/>
+            <path d="M162 128 L214 128 L222 133 L214 138 L162 138 Z" fill="#e8edf2" stroke="#5f6874" stroke-width="3.4" stroke-linejoin="round"/>
             <rect x="154" y="123" width="8" height="20" rx="3" fill="#8a4a08" stroke="#4a2c10" stroke-width="2.6"/>
             <rect x="138" y="128" width="16" height="10" rx="4" fill="#b06f34" stroke="#4a2c10" stroke-width="2.6"/>
           </g>
@@ -482,6 +499,9 @@ footer {
             <path d="M56 144 C55 139 61 138 60 133" fill="none" stroke="#a9743c" stroke-width="3"/>
             <path d="M60 133 l5 -3.4" stroke="#ff8c1a" stroke-width="3" stroke-linecap="round"/>
           </g>
+          <!-- hands over everything so he's really holding things -->
+          <circle cx="163" cy="139" r="7.5" fill="#f0c8a0" stroke="#8a5a3a" stroke-width="3.4"/>
+          <circle cx="58" cy="155" r="7.5" fill="#f0c8a0" stroke="#8a5a3a" stroke-width="3.4"/>
         </svg>
         <div class="callout" id="c-armor"></div>
         <div class="callout" id="c-weapon"></div>
@@ -547,7 +567,7 @@ const load = (k, d) => { try { const v = localStorage.getItem(k); return v === n
 const save = (k, v) => { try { localStorage.setItem(k, JSON.stringify(v)); } catch (e) {} };
 const $ = s => document.querySelector(s);
 
-const gems = load('bbt-gems', 173);
+const gems = load('bbt-gems', 0);   // everyone starts broke — gems are earned in the Tower
 const mats = Object.assign({ metal: 0, stone: 0, wood: 0 }, load('bbt-mats', {}));
 const owned = load('bbt-owned', []);
 const custom = load('bbt-custom', []);
@@ -728,7 +748,8 @@ function computePower() {
   Object.keys(upgrades).forEach(k => { if (upgrades[k] > best) best = upgrades[k]; });
   const swordDmg = 1 + Math.min(3, best);
   const armorIt = gear.find(g => g.id === equip.armor && g.cat === 'armor');
-  return swordDmg * 2
+  // a brand-new hero has Power 0 — every point is earned
+  return (swordDmg - 1) * 2
     + gear.filter(g => g.cat === 'weapon').length
     + totalStars()
     + (armorIt ? 2 + stars(armorIt.id) : 0)
