@@ -405,61 +405,127 @@ const DEEP_TIPS = [
   'The staircase is always somewhere…',
 ];
 
-function makeFloor(n) {
-  // tiny seeded random — same floor number, same floor, every time
-  let seed = (n * 1103515 + 12345) >>> 0;
+
+/* one try at a floor — returns null if it doesn't keep the promises below */
+function buildFloor(n, attempt) {
+  let seed = (n * 1103515 + attempt * 7919 + 12345) >>> 0;
   const rnd = () => { seed = (seed * 1664525 + 1013904223) >>> 0; return seed / 4294967296; };
   const ri = (a, b) => a + Math.floor(rnd() * (b - a + 1));
 
   const deep = n - 3;                       // 1..47
   const milestone = n % 10 === 0 || n === 50;
-  const W = Math.min(32, 20 + Math.floor(deep / 4) + (milestone ? 2 : 0));
-  const H = Math.min(21, 11 + Math.floor(deep / 6) + (milestone ? 2 : 0));
+  const W = Math.min(36, 22 + Math.floor(deep / 3) + (milestone ? 2 : 0));
+  const H = Math.min(23, 12 + Math.floor(deep / 5) + (milestone ? 2 : 0));
+  // most floors make you boost a platform; two thirds make you blow a wall open
+  const wantPlat = n % 4 !== 0;
+  const wantCrack = deep >= 2 && n % 3 !== 0;
+  const platWanted = wantPlat ? (deep >= 18 ? 2 : 1) : 0;
+
   const g = [];
   for (let y = 0; y < H; y++) g.push(new Array(W).fill('#'));
   const at = (x, y) => (g[y] && g[y][x]) || '#';
-  // never write on the outer ring — the tower wall stays put
   const set = (x, y, ch) => { if (x > 0 && y > 0 && x < W - 1 && y < H - 1) g[y][x] = ch; };
 
-  /* --- rooms --- */
-  const roomCount = Math.min(9, 3 + Math.floor(deep / 5) + (milestone ? 1 : 0));
-  const rooms = [];
-  for (let tries = 0; tries < 120 && rooms.length < roomCount; tries++) {
-    const rw = ri(4, Math.min(9, 4 + Math.floor(W / 5)));
-    const rh = ri(3, Math.min(7, 3 + Math.floor(H / 5)));
-    const rx = ri(1, Math.max(1, W - rw - 2)), ry = ri(1, Math.max(1, H - rh - 2));
-    if (rooms.some(r => rx < r.x + r.w + 1 && rx + rw + 1 > r.x && ry < r.y + r.h + 1 && ry + rh + 1 > r.y)) continue;
-    const room = { x: rx, y: ry, w: rw, h: rh, cx: rx + (rw >> 1), cy: ry + (rh >> 1) };
-    rooms.push(room);
-    for (let y = ry; y < ry + rh; y++) for (let x = rx; x < rx + rw; x++) set(x, y, '.');
+  /* --- rooms, one per zone, spread over the WHOLE floor so the walk is long --- */
+  const cols = Math.min(5, 3 + Math.floor(deep / 18));
+  const rows = Math.min(3, 2 + Math.floor(deep / 24));
+  const cellW = Math.floor(W / cols), cellH = Math.floor(H / rows);
+  if (cellW < 6 || cellH < 5) return null;
+  const grid = [];
+  for (let r = 0; r < rows; r++) {
+    grid.push([]);
+    for (let c = 0; c < cols; c++) {
+      const rw = Math.min(cellW - 2, ri(4, 7)), rh = Math.min(cellH - 2, ri(3, 5));
+      const rx = c * cellW + 1 + ri(0, Math.max(0, cellW - rw - 2));
+      const ry = r * cellH + 1 + ri(0, Math.max(0, cellH - rh - 2));
+      grid[r].push({ x: rx, y: ry, w: rw, h: rh, cx: rx + (rw >> 1), cy: ry + (rh >> 1) });
+    }
   }
-  if (!rooms.length) rooms.push({ x: 1, y: 1, w: W - 2, h: H - 2, cx: 2, cy: 2 });
+  /* walk the zones like a snake: across, down, back across… the staircase
+     ends up in the last zone, as far from the start as the floor allows */
+  const chain = [];
+  for (let r = 0; r < rows; r++) {
+    const row = r % 2 === 0 ? grid[r] : grid[r].slice().reverse();
+    row.forEach(room => chain.push(room));
+  }
+  // a couple of zones stand empty on bigger floors, so no two floors feel alike
+  const drops = deep >= 10 ? ri(0, 2) : 0;
+  for (let d = 0; d < drops && chain.length > 4; d++) {
+    const idx = ri(1, chain.length - 2);
+    chain.splice(idx, 1);
+  }
+  if (rnd() < 0.5) chain.reverse();          // sometimes you climb the snake the other way
+  const rooms = chain.slice();
+  rooms.forEach(r => { for (let y = r.y; y < r.y + r.h; y++) for (let x = r.x; x < r.x + r.w; x++) set(x, y, '.'); });
+  const inRoom = (x, y) => rooms.some(r => x >= r.x && x < r.x + r.w && y >= r.y && y < r.y + r.h);
+  const start = chain[0], goal = chain[chain.length - 1];
 
-  /* --- corridors between the rooms --- */
-  const carveH = (x0, x1, y, wide) => {
-    for (let x = Math.min(x0, x1); x <= Math.max(x0, x1); x++) { set(x, y, '.'); if (wide) set(x, y + 1, '.'); }
+  /* --- corridors, one per link in the chain --- */
+  const corridorPath = (a, b, horizFirst) => {
+    const pts = []; let x = a.cx, y = a.cy;
+    if (horizFirst) {
+      while (x !== b.cx) { x += Math.sign(b.cx - x); pts.push([x, y]); }
+      while (y !== b.cy) { y += Math.sign(b.cy - y); pts.push([x, y]); }
+    } else {
+      while (y !== b.cy) { y += Math.sign(b.cy - y); pts.push([x, y]); }
+      while (x !== b.cx) { x += Math.sign(b.cx - x); pts.push([x, y]); }
+    }
+    return pts;
   };
-  const carveV = (y0, y1, x, wide) => {
-    for (let y = Math.min(y0, y1); y <= Math.max(y0, y1); y++) { set(x, y, '.'); if (wide) set(x + 1, y, '.'); }
-  };
-  for (let i = 1; i < rooms.length; i++) {
-    const a = rooms[i - 1], b = rooms[i], wide = rnd() < 0.3;
-    if (rnd() < 0.5) { carveH(a.cx, b.cx, a.cy, wide); carveV(a.cy, b.cy, b.cx, wide); }
-    else { carveV(a.cy, b.cy, a.cx, wide); carveH(a.cx, b.cx, b.cy, wide); }
-  }
-  // a loop back to the start so big floors feel like real floors
-  if (rooms.length > 3 && rnd() < 0.7) {
-    const a = rooms[rooms.length - 1], b = rooms[0];
-    carveV(a.cy, b.cy, a.cx, false); carveH(a.cx, b.cx, b.cy, false);
+  const links = [];
+  for (let i = 1; i < chain.length; i++) {
+    const pts = corridorPath(chain[i - 1], chain[i], rnd() < 0.5);
+    pts.forEach(([x, y]) => set(x, y, '.'));
+    links.push(pts);
   }
 
-  /* --- where you start, and where the stairs are (far apart) --- */
-  const start = rooms[0];
-  let goal = rooms[rooms.length - 1], far = -1;
-  rooms.forEach(r => {
-    const d = Math.abs(r.cx - start.cx) + Math.abs(r.cy - start.cy);
-    if (d > far) { far = d; goal = r; }
-  });
+  /* --- GATES: a platform you must boost over, a wall you must blow open.
+         They go in the rock between rooms, where the corridor is one tile
+         wide, so there is no way to walk around them. --- */
+  const taken = new Set();
+  const gateSpot = (pts, len) => {
+    const runs = []; let run = [];
+    for (let i = 1; i < pts.length; i++) {
+      const [px, py] = pts[i - 1], [x, y] = pts[i];
+      const dir = (x - px) + ',' + (y - py);
+      if (inRoom(x, y) || inRoom(px, py)) { if (run.length) runs.push(run); run = []; continue; }
+      if (!run.length) run = [{ x: px, y: py, dir }, { x, y, dir }];
+      else if (run[run.length - 1].dir === dir) run.push({ x, y, dir });
+      else { runs.push(run); run = [{ x: px, y: py, dir }, { x, y, dir }]; }
+    }
+    if (run.length) runs.push(run);
+    // leave a tile of corridor on each side to stand on and to land on
+    const good = runs.filter(r => r.length >= len + 2 && r.every(p => !taken.has(p.x + ',' + p.y)));
+    if (!good.length) return null;
+    const r = good[Math.floor(rnd() * good.length)];
+    const i0 = Math.floor((r.length - len) / 2);
+    const spot = r.slice(i0, i0 + len).map(p => [p.x, p.y]);
+    spot.forEach(([x, y]) => taken.add(x + ',' + y));
+    return spot;
+  };
+  const gates = [];
+  const lastLink = links.length - 1;
+  let platsPlaced = 0;
+  // the way into the staircase room is ALWAYS shut: bomb it open, or boost over it
+  if (lastLink >= 0) {
+    const type = wantCrack ? 'crack' : 'plat';
+    const spot = gateSpot(links[lastLink], type === 'crack' ? (rnd() < 0.4 ? 2 : 1) : 2);
+    if (!spot) return null;
+    spot.forEach(([x, y]) => set(x, y, type === 'crack' ? '%' : 'P'));
+    gates.push({ type, tiles: spot });
+    if (type === 'plat') platsPlaced++;
+  }
+  const order = [];
+  for (let i = 0; i < lastLink; i++) order.push(i);
+  for (let i = order.length - 1; i > 0; i--) { const j = Math.floor(rnd() * (i + 1)); const t = order[i]; order[i] = order[j]; order[j] = t; }
+  for (const li of order) {
+    if (platsPlaced >= platWanted) break;
+    const spot = gateSpot(links[li], 2);
+    if (spot) { spot.forEach(([x, y]) => set(x, y, 'P')); gates.push({ type: 'plat', tiles: spot }); platsPlaced++; }
+  }
+  if (wantPlat && !platsPlaced) return null;
+  if (wantCrack && !gates.some(x => x.type === 'crack')) return null;
+  if (!gates.length) return null;
 
   /* --- red carpets --- */
   rooms.forEach(r => {
@@ -471,101 +537,162 @@ function makeFloor(n) {
     }
   });
 
-  /* --- platforms to bomb-boost onto (never on the start or stairs room) --- */
-  const platRooms = rooms.filter(r => r !== start && r !== goal && r.w >= 5 && r.h >= 4);
-  const platCount = Math.min(platRooms.length, 1 + Math.floor(deep / 12));
-  for (let i = 0; i < platCount; i++) {
-    const r = platRooms[i];
-    const pw = 2, ph = 2;
-    const px = ri(r.x + 1, r.x + r.w - pw - 2), py = ri(r.y + 1, r.y + r.h - ph - 2);
-    for (let y = py; y < py + ph; y++) for (let x = px; x < px + pw; x++) set(x, y, 'P');
-  }
-
-  /* --- spike traps (never right where you land) --- */
+  /* --- spike traps --- */
   const spikeCount = Math.min(16, 1 + Math.floor(deep / 2));
-  for (let i = 0, tries = 0; i < spikeCount && tries < 300; tries++) {
+  for (let i = 0, tries = 0; i < spikeCount && tries < 400; tries++) {
     const x = ri(1, W - 2), y = ri(1, H - 2), c = at(x, y);
     if (c !== '.' && c !== 'c') continue;
     if (Math.abs(x - start.cx) + Math.abs(y - start.cy) < 4) continue;
     set(x, y, '^'); i++;
   }
 
-  /* --- cracked walls: bombable shortcuts --- */
-  const crackCount = Math.min(11, 2 + Math.floor(deep / 4));
-  for (let i = 0, tries = 0; i < crackCount && tries < 400; tries++) {
+  /* --- a few extra cracked walls: optional shortcuts --- */
+  const crackCount = Math.min(7, 1 + Math.floor(deep / 7));
+  for (let i = 0, tries = 0; i < crackCount && tries < 300; tries++) {
     const x = ri(1, W - 2), y = ri(1, H - 2);
     if (at(x, y) !== '#') continue;
     const open = c => c !== '#' && c !== '%';
     if ((open(at(x - 1, y)) && open(at(x + 1, y))) || (open(at(x, y - 1)) && open(at(x, y + 1)))) { set(x, y, '%'); i++; }
   }
 
-  /* --- bomb crates --- */
-  const crateCount = 1 + Math.floor(deep / 10) + (milestone ? 1 : 0);
-  for (let i = 0, tries = 0; i < crateCount && tries < 200; tries++) {
-    const r = rooms[ri(0, rooms.length - 1)];
-    const x = ri(r.x, r.x + r.w - 1), y = ri(r.y, r.y + r.h - 1), c = at(x, y);
-    if (c !== '.' && c !== 'c') continue;
-    set(x, y, 'b'); i++;
-  }
+  /* --- bomb crates: always one waiting in the room before each gate --- */
+  const dropCrate = room => {
+    for (let tries = 0; tries < 60; tries++) {
+      const x = ri(room.x, room.x + room.w - 1), y = ri(room.y, room.y + room.h - 1), c = at(x, y);
+      if (c === '.' || c === 'c') { set(x, y, 'b'); return true; }
+    }
+    return false;
+  };
+  gates.forEach(gt => {
+    const [gx, gy] = gt.tiles[0];
+    let best = chain[0], bd = Infinity;
+    chain.forEach((r, i) => {
+      const d = Math.abs(r.cx - gx) + Math.abs(r.cy - gy);
+      if (d < bd && i < chain.length - 1) { bd = d; best = r; }
+    });
+    dropCrate(best);
+  });
+  for (let i = 0; i < 1 + Math.floor(deep / 12); i++) dropCrate(chain[ri(0, chain.length - 1)]);
 
-  /* --- bad guys (more of them, and faster ones, the higher you climb) --- */
-  const enemyCount = Math.min(15, 2 + Math.round(deep * 0.3) + (milestone ? 2 : 0));
+  /* --- bad guys, with extra muscle guarding the staircase --- */
+  const enemyCount = Math.min(16, 3 + Math.round(deep * 0.32) + (milestone ? 2 : 0));
   const skelChance = Math.min(0.6, 0.15 + deep * 0.012);
-  for (let i = 0, tries = 0; i < enemyCount && tries < 500; tries++) {
-    const r = rooms[ri(0, rooms.length - 1)];
+  const lateRooms = chain.slice(Math.max(1, chain.length - 2));
+  for (let i = 0, tries = 0; i < enemyCount && tries < 700; tries++) {
+    const guard = i < Math.ceil(enemyCount * 0.4);
+    const r = guard ? lateRooms[ri(0, lateRooms.length - 1)] : chain[ri(0, chain.length - 1)];
     const x = ri(r.x, r.x + r.w - 1), y = ri(r.y, r.y + r.h - 1), c = at(x, y);
     if (c !== '.' && c !== 'c') continue;
     if (Math.abs(x - start.cx) + Math.abs(y - start.cy) < 5) continue;
     set(x, y, rnd() < skelChance ? 'k' : 'z'); i++;
   }
 
-  /* --- the start and the staircase go down last so nothing covers them --- */
-  const stamp = () => { set(start.cx, start.cy, 'S'); set(goal.cx, goal.cy, 'X'); };
-  for (let dy = -1; dy <= 1; dy++) for (let dx = -1; dx <= 1; dx++) {
-    if (at(start.cx + dx, start.cy + dy) === '^') set(start.cx + dx, start.cy + dy, '.');
-  }
-  stamp();
-
-  /* --- promise: you can WALK from S to X (no bombs needed) --- */
-  const blocked = c => c === '#' || c === '%' || c === 'P';
-  const walkable = () => {
-    const seen = g.map(row => row.map(() => false));
-    const q = [[start.cx, start.cy]];
-    seen[start.cy][start.cx] = true;
-    while (q.length) {
-      const [x, y] = q.pop();
-      if (x === goal.cx && y === goal.cy) return true;
-      [[1, 0], [-1, 0], [0, 1], [0, -1]].forEach(([dx, dy]) => {
-        const nx = x + dx, ny = y + dy;
-        if (nx < 0 || ny < 0 || nx >= W || ny >= H) return;
-        if (seen[ny][nx] || blocked(at(nx, ny))) return;
-        seen[ny][nx] = true; q.push([nx, ny]);
-      });
+  /* --- nothing sharp where you start, or where you land off a gate --- */
+  const clearSpikes = (cx, cy, rad) => {
+    for (let dy = -rad; dy <= rad; dy++) for (let dx = -rad; dx <= rad; dx++) {
+      if (at(cx + dx, cy + dy) === '^') set(cx + dx, cy + dy, '.');
     }
-    return false;
   };
-  if (!walkable()) {
-    // dig a plain corridor straight through to the stairs and try again
-    carveH(start.cx, goal.cx, start.cy, false);
-    carveV(start.cy, goal.cy, goal.cx, false);
-    stamp();
+  clearSpikes(start.cx, start.cy, 1);
+  gates.forEach(gt => gt.tiles.forEach(([x, y]) => clearSpikes(x, y, 1)));
+  set(start.cx, start.cy, 'S');
+  set(goal.cx, goal.cy, 'X');
+
+  /* --- check the promises --- */
+  const DIRS = [[1, 0], [-1, 0], [0, 1], [0, -1]];
+  const walkDist = blocked => {
+    const seen = g.map(row => row.map(() => -1));
+    const q = [[start.cx, start.cy]];
+    seen[start.cy][start.cx] = 0;
+    for (let qi = 0; qi < q.length; qi++) {
+      const [x, y] = q[qi];
+      for (const [dx, dy] of DIRS) {
+        const nx = x + dx, ny = y + dy;
+        if (nx < 0 || ny < 0 || nx >= W || ny >= H || seen[ny][nx] >= 0) continue;
+        if (at(nx, ny) === '#') continue;                       // rock is rock
+        if (blocked && blocked.has(nx + ',' + ny)) continue;     // pretend this gate is shut
+        seen[ny][nx] = seen[y][x] + 1;
+        q.push([nx, ny]);
+      }
+    }
+    return seen[goal.cy][goal.cx];
+  };
+  const dist = walkDist(null);
+  if (dist < 0) return null;                                     // you can always finish the floor
+  for (const gt of gates) {                                      // …but never around a gate
+    if (walkDist(new Set(gt.tiles.map(t => t[0] + ',' + t[1]))) >= 0) return null;
   }
 
+  const hasP = gates.some(x => x.type === 'plat'), hasC = gates.some(x => x.type === 'crack');
   const cap = v => Math.min(9, v);
   return {
-    name: 'FLOOR ' + n + ' — ' + DEEP_NAMES[n - 4].toUpperCase(),
-    tip: milestone ? 'The Warlock is watching this floor…' : DEEP_TIPS[(n * 5) % DEEP_TIPS.length],
-    hpBonus: Math.floor(deep / 8),
-    loadout: {
-      bomb: cap(3 + Math.floor(deep / 8)),
-      dynamite: cap(2 + Math.floor(deep / 10)),
-      landmine: cap(2 + Math.floor(deep / 12)),
-      timebomb: cap(2 + Math.floor(deep / 12)),
-      remote: cap(2 + Math.floor(deep / 12)),
-      stick: cap(3 + Math.floor(deep / 10)),
+    pathLen: dist,
+    def: {
+      name: 'FLOOR ' + n + ' — ' + DEEP_NAMES[n - 4].toUpperCase(),
+      tip: milestone ? 'The Warlock is watching this floor…'
+        : hasP && hasC ? 'Boost over the platform, then BOMB your way to the stairs!'
+        : hasC ? 'A cracked wall stands between you and the stairs — BOMB IT!'
+        : hasP ? 'No way around the platform — drop a bomb and BOOST up!'
+        : DEEP_TIPS[(n * 5) % DEEP_TIPS.length],
+      hpBonus: Math.floor(deep / 8),
+      gates,
+      loadout: {
+        bomb: cap(3 + Math.floor(deep / 8)),
+        dynamite: cap(2 + Math.floor(deep / 10)),
+        landmine: cap(2 + Math.floor(deep / 12)),
+        timebomb: cap(2 + Math.floor(deep / 12)),
+        remote: cap(2 + Math.floor(deep / 12)),
+        stick: cap(3 + Math.floor(deep / 10)),
+      },
+      grid: g.map(row => row.join('')),
     },
+  };
+}
+
+/* if the dice never cooperate, this snake of a floor always works:
+   one tunnel, a platform across it, a cracked wall after that, stairs at the end */
+function linearFloor(n) {
+  const deep = n - 3;
+  const W = Math.min(36, 22 + Math.floor(deep / 3)), H = Math.min(23, 12 + Math.floor(deep / 5));
+  const g = [];
+  for (let y = 0; y < H; y++) g.push(new Array(W).fill('#'));
+  const set = (x, y, ch) => { if (x > 0 && y > 0 && x < W - 1 && y < H - 1) g[y][x] = ch; };
+  const lanes = [2, H >> 1, H - 3];
+  lanes.forEach(y => { for (let x = 2; x < W - 2; x++) set(x, y, '.'); });
+  for (let y = lanes[0]; y <= lanes[1]; y++) set(W - 3, y, '.');
+  for (let y = lanes[1]; y <= lanes[2]; y++) set(2, y, '.');
+  // little side rooms hanging off the tunnel (dead ends can't become shortcuts)
+  [[6, lanes[0]], [W - 8, lanes[1]], [8, lanes[2]]].forEach(([bx, by], i) => {
+    for (let y = by - 1; y <= by + 1; y++) for (let x = bx - 1; x <= bx + 1; x++) set(x, y, i === 1 ? 'c' : '.');
+  });
+  const mid = W >> 1;
+  set(mid, lanes[1], 'P'); set(mid + 1, lanes[1], 'P');            // must boost
+  set(mid, lanes[2], '%');                                        // must bomb
+  set(5, lanes[0], 'b'); set(mid - 4, lanes[1], 'b'); set(6, lanes[2], 'b');
+  set(W - 8, lanes[0], 'z'); set(8, lanes[1], 'z'); set(mid + 4, lanes[2], 'k');
+  set(W - 5, lanes[2], 'z');
+  set(3, lanes[0], 'S'); set(W - 3, lanes[2], 'X');
+  return {
+    name: 'FLOOR ' + n + ' — ' + DEEP_NAMES[n - 4].toUpperCase(),
+    tip: 'Boost over the platform, then BOMB your way to the stairs!',
+    hpBonus: Math.floor(deep / 8),
+    gates: [{ type: 'plat', tiles: [[mid, lanes[1]], [mid + 1, lanes[1]]] }, { type: 'crack', tiles: [[mid, lanes[2]]] }],
+    loadout: { bomb: 4, dynamite: 3, landmine: 2, timebomb: 2, remote: 2, stick: 3 },
     grid: g.map(row => row.join('')),
   };
+}
+
+/* build a floor: try a few layouts and keep the longest good one */
+function makeFloor(n) {
+  let best = null;
+  for (let attempt = 0; attempt < 16; attempt++) {
+    const got = buildFloor(n, attempt);
+    if (!got) continue;
+    if (!best || got.pathLen > best.pathLen) best = got;
+    // a good long walk? take it
+    if (best.pathLen >= (best.def.grid[0].length + best.def.grid.length) * 1.25) break;
+  }
+  return best ? best.def : linearFloor(n);
 }
 for (let n = 4; n <= 50; n++) FLOORS.push(makeFloor(n));
 

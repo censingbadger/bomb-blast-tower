@@ -65,11 +65,20 @@ python3 -m http.server
   floor number, so Floor 17 is always the same Floor 17 for everybody. They get
   bigger, more crowded and tougher as you climb — more bad guys, faster
   skeletons, extra monster health past Floor 11, and a bigger victory prize
-  every floor (+25 on Floor 1, +172 on Floor 50). Every single floor is
-  checked so you can always *walk* from the start to the staircase — bombs are
-  for shortcuts, cracked walls, platforms and monsters, never a dead end.
-  Enemies drop gems you can spend in the
-  Market. **Six bomb types** from the drawings, swapped with V (or SWAP):
+  every floor (+25 on Floor 1, +172 on Floor 50).
+
+  Every floor is a proper trek (about 66 tiles of walking, over 100 near the
+  top): rooms are strung out across the whole floor and you snake through all
+  of them, with **the staircase waiting in the very last room**. On the way,
+  **gates** block the corridors — a **platform you have to bomb-boost onto**
+  (there is no walking around it) and, on most floors, a **cracked wall you
+  have to blow open**. The way into the staircase room is always shut behind
+  one of them, so you fight your way through the monsters and blast your way
+  in. A bomb crate waits in the room before every gate, so you never run dry.
+  Each gate is checked while the floor is built: if you could sneak around it,
+  that floor is thrown away and built again.
+
+  Enemies drop gems you can spend in the Market. **Six bomb types** from the drawings, swapped with V (or SWAP):
   **Bomb** (boosts upwards) · **Dynamite** (destroys blocks, big blast, no
   boost) · **Landmine** (explodes when touched — monsters trigger it too — and
   boosts you sideways) · **Time Bomb** (you set the timer with T: 1/3/5s, and
@@ -88,10 +97,18 @@ python3 -m http.server
   (Artifacts and Weapons on hanging signs), a floor row, prices in gems, rarity
   tags from Common to Legendary, and the Forge teaser. Everyone starts
   **broke — 0 💎** — every gem is earned in the Tower. Buying really works:
-  gems go down, items get a SOLD tag, and your purchases are remembered.
-  The *restock shop* link now **costs 25 💎** (the shopkeeper doesn't work
-  for free): it puts everything you bought back on sale — stars and all —
-  and asks you to click twice so nobody restocks by accident.
+  gems go down and your purchases are remembered.
+  **The shelves refill as you shop:** buy something and the shopkeeper digs
+  a different item out of the back room to fill the empty spot, with a green
+  NEW! tag — an Everburning Lantern, Iron Boots, a Thunder Rod, a Toy Sword
+  that squeaks, Zombie Repellent, a Golden Bomb, the Warlock's Old Hat, and a
+  dozen more. There are **28 things** he can put out and only 12 spots, so the
+  shop looks different every time you come back (and it remembers what was on
+  the shelves). The Inventory and the Forge recognise everything he invents.
+  The *restock shop* link **costs 25 💎** (the shopkeeper doesn't work for
+  free): it clears the shelves for a whole new mix, puts everything you bought
+  back on sale — stars and all — and asks you to click twice so nobody
+  restocks by accident.
   Reachable from the Market button on every homepage option. The Forge
   signpost at the end of the floor row now really walks you to the Forge.
 
