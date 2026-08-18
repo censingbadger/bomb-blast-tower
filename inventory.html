@@ -574,7 +574,7 @@ const custom = load('bbt-custom', []);
 const upgrades = load('bbt-upgrades', {});
 const kills = load('bbt-kills', 0) || 0;
 const floorNext = load('bbt-floor', 1);
-const TOTAL_FLOORS = 3;
+const TOTAL_FLOORS = 50;
 const floorsBeaten = Math.max(0, Math.min(TOTAL_FLOORS, (parseInt(floorNext, 10) || 1) - 1));
 let equip = Object.assign({ weapon: null, offhand: 'bomb', armor: null }, load('bbt-equip', {}));
 

@@ -59,7 +59,16 @@ python3 -m http.server
   staircase; die and the floor resets to the start. Beat the floor: VICTORY —
   +25 gems — but the Warlock who took the tower is FURIOUS, and his ambush
   races straight to your Base (see below). Survive it and the Tower button
-  leads to the next floor. Three floors so far; enemies drop gems you can spend in the
+  leads to the next floor. **The tower is 50 floors tall** — Floors 1–3 are
+  hand-drawn, and Floors 4–50 (*The Dusty Halls*, *The Bone Pit*, *The Skeleton
+  Choir*, all the way up to *The Warlock's Roost*) are built from their own
+  floor number, so Floor 17 is always the same Floor 17 for everybody. They get
+  bigger, more crowded and tougher as you climb — more bad guys, faster
+  skeletons, extra monster health past Floor 11, and a bigger victory prize
+  every floor (+25 on Floor 1, +172 on Floor 50). Every single floor is
+  checked so you can always *walk* from the start to the staircase — bombs are
+  for shortcuts, cracked walls, platforms and monsters, never a dead end.
+  Enemies drop gems you can spend in the
   Market. **Six bomb types** from the drawings, swapped with V (or SWAP):
   **Bomb** (boosts upwards) · **Dynamite** (destroys blocks, big blast, no
   boost) · **Landmine** (explodes when touched — monsters trigger it too — and
@@ -67,7 +76,8 @@ python3 -m http.server
   the countdown shows on the bomb) · **Remote Bomb** (press R to push the
   button) · **Stick Bomb** (sticks to walls and even rides monsters; boosts
   you diagonally upwards). Floor 1 teaches the Bomb; Floors 2–3 unlock the
-  rest. Owning the Market's Box-o-Bombs grants +3 bombs every floor.
+  rest, and every floor above that hands you all six (with a few more of each
+  the higher you go). Owning the Market's Box-o-Bombs grants +3 bombs every floor.
   Smashing things also earns **crafting materials** for the Forge: monsters
   drop **metal**, bombed-open walls burst into **stone**, and bomb crates
   hold **wood** (walk over one for +2 bombs and a plank; blow one up and it
