@@ -702,6 +702,14 @@ const MARKET_ITEMS = {
   'greatsword':     { name: 'Gradian Greatsword',       rarity: 'epic' },
   'bombs':          { name: 'Box-o-Bombs',              rarity: '' },
 };
+// the Market keeps inventing new goods — it leaves us a note about them
+try {
+  const shopCat = load('bbt-catalog', {}) || {};
+  Object.keys(shopCat).forEach(id => {
+    if (!MARKET_ITEMS[id]) MARKET_ITEMS[id] = { name: shopCat[id].name, rarity: shopCat[id].rarity || '' };
+  });
+} catch (e) {}
+
 const RANKS = ['common', 'uncommon', 'rare', 'epic', 'legendary'];
 
 const MAT_META = {

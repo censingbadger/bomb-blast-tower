@@ -596,6 +596,16 @@ const MARKET_ITEMS = {
   'ceramic':        { name: 'Mystery Ceramic',         rarity: '',          cat: 'other',  art: 'orb' },
   'bombs':          { name: 'Box-o-Bombs',             rarity: '',          cat: 'other',  art: 'box' },
 };
+// the Market keeps inventing new goods — it leaves us a note about them
+try {
+  const shopCat = load('bbt-catalog', {}) || {};
+  Object.keys(shopCat).forEach(id => {
+    if (MARKET_ITEMS[id]) return;
+    const it = shopCat[id];
+    MARKET_ITEMS[id] = { name: it.name, rarity: it.rarity || '', cat: it.cat || 'other', art: it.icon || 'orb' };
+  });
+} catch (e) {}
+
 const MAT_TINT = {
   metal: { F: '#c3cad4', L: '#5f6874' },
   stone: { F: '#a89a82', L: '#5d5342' },
