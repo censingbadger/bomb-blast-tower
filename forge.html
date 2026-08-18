@@ -88,6 +88,8 @@ header {
   white-space: nowrap;
 }
 .back:hover { background: var(--wood-light); }
+.back.tobase { background: #7aa14a; border-color: #40602a; }
+.back.tobase:hover { background: #8cb457; }
 .back:focus-visible { outline: 3px solid var(--gem); outline-offset: 3px; }
 .title {
   display: flex;
@@ -442,6 +444,7 @@ footer {
 <div class="page">
   <header>
     <a class="back" id="back" href="market.html">&#8592; Market</a>
+      <a class="back tobase" id="tobase" href="base.html"><svg viewBox="0 0 60 62" aria-hidden="true" style="width:1.15em;height:auto;vertical-align:-.18em;margin-right:.15em"><g fill="none" stroke="currentColor" stroke-width="4.4" stroke-linejoin="round" stroke-linecap="round"><path d="M18 30 L30 18 L42 30"/><rect x="21" y="30" width="18" height="15"/><path d="M8 45 v8 M15 45 v8 M8 49 h44 M45 45 v8 M52 45 v8"/></g></svg>Base</a>
     <div class="title">
       <svg viewBox="0 0 64 64" aria-hidden="true">
         <!-- anvil -->
@@ -1121,6 +1124,9 @@ cardEl.addEventListener('click', e => {
 });
 
 /* ---------- back button (behaves inside previews too) ---------- */
+$('#tobase').addEventListener('click', e => {
+  if (String(location.href).startsWith('about')) { e.preventDefault(); say('This is just the preview &mdash; open the real page to visit your Base!'); }
+});
 $('#back').addEventListener('click', e => {
   if (String(location.href).startsWith('about')) { e.preventDefault(); say('This is just the preview &mdash; open the real page to walk back to the Market!'); return; }
   if (history.length > 1 && document.referrer) { e.preventDefault(); history.back(); }

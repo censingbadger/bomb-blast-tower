@@ -163,6 +163,9 @@ python3 -m http.server
   gems and salvage. If they smash through: **the base falls** — you lose a
   chunk of gems and materials and your wall breaks. There's a practice alarm
   too, so you can test your fort any time without risking anything.
+  **Getting there:** the **Base** hex on the homepage, or the green *Base*
+  button in the header of the Market, the Forge and Inventory & Stats — so
+  your fort is one click away from wherever you are.
 
 ## What's next
 
