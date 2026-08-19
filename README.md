@@ -120,9 +120,15 @@ python3 -m http.server
   a rare item like the *Stone Hammer*. **Anvil** — *"Upgrade items!"*: each ★
   (60 💎 + 6 metal, up to ★★★) makes your sword hit harder in the Tower.
   **Combinatron** — *"A machine from a different time, hmmm…"*: feed it two
-  items and 300 💎 and it fuses them into one shinier thing with a
-  future-machine name (Steel Shield + Butcher's Knife = **Steel Knife 3000**,
-  one rarity higher, stars carried over). **Lava** — *"Burn things you don't
+  items and 300 💎 and it welds them into **one new weapon** with a
+  future-machine name, one rarity higher, stars carried over. The new weapon
+  really *looks* like both things you fed in: a sword and a scythe come out as
+  a scythe curve on one side and a sword blade on the other, mounted on a
+  sword handle with a gold guard — a Dagger of Ice + a Box-o-Bombs gives you
+  an ice dagger and a bomb on one hilt, a Thunder Rod + an Upgrade Orb gives
+  you a lightning bolt and a glowing orb. The Combinatron shows off what it
+  built, the weapon lands in your **Weapons** grid ready to equip, and your
+  knight holds it on the Inventory screen. **Lava** — *"Burn things you don't
   want."* Gone forever — though sometimes the lava burps up a few gems.
   Everything is shared with the rest of the game through your gems, materials
   and gear.
@@ -157,6 +163,9 @@ python3 -m http.server
   gems and salvage. If they smash through: **the base falls** — you lose a
   chunk of gems and materials and your wall breaks. There's a practice alarm
   too, so you can test your fort any time without risking anything.
+  **Getting there:** the **Base** hex on the homepage, or the green *Base*
+  button in the header of the Market, the Forge and Inventory & Stats — so
+  your fort is one click away from wherever you are.
 
 ## What's next
 
