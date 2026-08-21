@@ -197,6 +197,91 @@ body {
   white-space: nowrap;
 }
 @media (max-width: 700px) { #tip { display: none; } }
+
+/* ---------- the bomb ring: SWAP shows every bomb in a circle ---------- */
+#ringwrap {
+  position: fixed; inset: 0;
+  z-index: 14;
+  display: none;
+  background: rgba(8,5,16,.58);
+  backdrop-filter: blur(2px);
+}
+#ringwrap.show { display: block; animation: ringin .16s ease; }
+@keyframes ringin { from { opacity: 0; } }
+#ringlabel {
+  position: absolute; left: 50%; top: 11%;
+  transform: translateX(-50%);
+  font-family: 'Luckiest Guy', cursive;
+  font-size: clamp(1.4rem, 5vw, 2rem);
+  letter-spacing: .08em;
+  color: var(--ink);
+  text-shadow: 0 3px 0 rgba(0,0,0,.6);
+  white-space: nowrap;
+}
+#ringdesc {
+  position: absolute; left: 50%; bottom: 13%;
+  transform: translateX(-50%);
+  width: min(92vw, 34rem);
+  text-align: center;
+  font-size: 1.05rem;
+  color: var(--dim);
+  background: rgba(12,8,18,.7);
+  border-radius: 999px;
+  padding: .35rem 1.1rem .25rem;
+}
+#ring { position: absolute; left: 50%; top: 50%; }
+.rslot {
+  position: absolute; left: 0; top: 0;
+  width: 86px; height: 86px;
+  margin: -43px 0 0 -43px;
+  border-radius: 50%;
+  border: 3px solid rgba(240,232,216,.35);
+  background: radial-gradient(circle at 50% 36%, #2a2438, #171224);
+  color: var(--ink);
+  cursor: pointer;
+  display: grid;
+  place-items: center;
+  align-content: center;
+  gap: 1px;
+  box-shadow: 0 4px 0 rgba(0,0,0,.5), inset 0 0 18px rgba(0,0,0,.5);
+  touch-action: manipulation;
+}
+.rslot .ricon svg { width: 38px; height: 38px; display: block; }
+.rslot .rname {
+  font-family: 'Luckiest Guy', cursive;
+  font-size: .68rem;
+  letter-spacing: .04em;
+  line-height: 1;
+}
+.rslot .rcount {
+  position: absolute; top: -6px; right: -6px;
+  font-family: 'Luckiest Guy', cursive;
+  font-size: .72rem;
+  color: #241505;
+  background: #ff8c1a;
+  border: 2px solid #241505;
+  border-radius: 999px;
+  padding: .14rem .38rem .04rem;
+}
+.rslot.sel {
+  border-color: #ffd23f;
+  box-shadow: 0 0 20px rgba(255,210,63,.55), 0 4px 0 rgba(0,0,0,.5), inset 0 0 18px rgba(0,0,0,.5);
+}
+.rslot.dim { opacity: .38; filter: grayscale(.65); cursor: not-allowed; }
+.rslot.dim .rcount { background: #6a7280; }
+.rslot.deny { animation: rdeny .3s ease; }
+@keyframes rdeny { 30% { transform: var(--rt) translateX(-5px); } 70% { transform: var(--rt) translateX(5px); } }
+.rclose {
+  position: absolute; left: 50%; top: 50%;
+  width: 56px; height: 56px;
+  margin: -28px 0 0 -28px;
+  border-radius: 50%;
+  border: 3px solid rgba(240,232,216,.3);
+  background: rgba(20,14,30,.85);
+  color: var(--dim);
+  font-size: 1.3rem;
+  cursor: pointer;
+}
 </style>
 
 <canvas id="game"></canvas>
@@ -229,6 +314,13 @@ body {
 </div>
 
 <div id="banner"></div>
+
+<div id="ringwrap" role="menu" aria-label="Pick a bomb">
+  <div id="ringlabel">PICK A BOMB</div>
+  <div id="ring"></div>
+  <div id="ringdesc"></div>
+</div>
+
 <div id="tip">WASD/arrows move &nbsp;&#183;&nbsp; K/click: sword &nbsp;&#183;&nbsp; B: drop bomb &nbsp;&#183;&nbsp; V: swap bomb &nbsp;&#183;&nbsp; R: detonate remote &nbsp;&#183;&nbsp; T: timer &nbsp;&#183;&nbsp; SPACE: hop</div>
 
 <div class="overlay" id="death">
@@ -814,6 +906,7 @@ const sfx = {
   },
   tick() { this.mark('tick'); this.env('square', 1800, 1800, .03, .07); },
   armed() { this.mark('armed'); this.env('square', 1200, 1650, .05, .08); },
+  zap() { this.mark('zap'); this.env('square', 1900, 300, .12, .13); this.env('sawtooth', 700, 2400, .06, .07, .02); },
   detonator() { this.mark('detonator'); this.env('square', 500, 950, .05, .12); this.env('square', 950, 500, .04, .08, .05); },
 
   /* ---- everything else ---- */
@@ -979,6 +1072,17 @@ if (repairBonus) { _buffs.repair = false; save('bbt-buffs', _buffs); }
 let _bestStars = 0;
 try { Object.values(load('bbt-upgrades', {})).forEach(s => { if (+s > _bestStars) _bestStars = +s; }); } catch (e) {}
 const swordDmg = 1 + Math.min(3, _bestStars);
+/* Enchanting Table magic riding on the weapon you equipped (forge.html writes bbt-ench):
+   whack = +1 damage per level          fire   = monsters catch fire
+   yeet  = monsters fly backwards       sparky = lightning jumps to the next monster
+   freezy = monsters go slow + shivery  vamp   = beating one can heal half a heart
+   magnet = monsters drop extra gems    zoomies = YOU run faster */
+const _ench = (_eq.weapon && (load('bbt-ench', {}) || {})[_eq.weapon]) || {};
+const enchLv = k => _ench[k] || 0;
+const enchanted = Object.keys(_ench).some(k => _ench[k] > 0);
+const heroDmg = swordDmg + enchLv('whack');
+const ENCH_NAMES = { whack: 'Mega Whack', fire: 'Fire Fury', yeet: 'Yeet', sparky: 'Sparky', freezy: 'Freezy', vamp: 'Vampire Teeth', magnet: 'Money Magnet', zoomies: 'Zoomies' };
+const rom = n => ['', 'I', 'II', 'III', 'IV', 'V'][n] || n;
 
 function parseFloor(def) {
   const rows = def.grid;
@@ -1053,7 +1157,7 @@ function startFloor() {
       dead: false, deadAt: 0, seed: i * 3 + 1, wanderAt: 0, wx: e.x, wy: e.y,
     })),
     crates: map.crateSpawns.map(c => ({ ...c, taken: false })),
-    bombs: [], booms: [], floats: [], rubble: [], sparkles: [],
+    bombs: [], booms: [], floats: [], rubble: [], sparkles: [], zaps: [],
     keys: {}, joy: { active: false, dx: 0, dy: 0 },
     timerSetting: 3000,
     cam: { x: map.start.x, y: map.start.y },
@@ -1073,6 +1177,10 @@ function startFloor() {
   updateHUD();
   banner(def.name.replace(' — ', ' — ').toUpperCase(), 1900);
   setTimeout(() => { if (G && !G.over) banner(def.tip, 1700); }, 2100);
+  if (enchanted) {
+    const names = Object.keys(_ench).filter(k => _ench[k] > 0).map(k => (ENCH_NAMES[k] || k) + ' ' + rom(_ench[k]));
+    setTimeout(() => { if (G && !G.over) banner('✨ YOUR WEAPON SHIMMERS: ' + names.join(' · '), 2200); }, 4300);
+  }
 }
 
 /* ---------- HUD ---------- */
@@ -1094,22 +1202,82 @@ function updateHUD() {
   $('#m-wood').textContent = mats.wood || 0;
 }
 function unlockedTypes() { return BOMB_ORDER.filter(k => k in G.hero.belt); }
-function cycleBomb() {
-  const u = unlockedTypes();
-  if (u.length < 2) { banner('More bombs on later floors!', 1000); return; }
-  G.hero.sel = u[(u.indexOf(G.hero.sel) + 1) % u.length];
-  sfx.init(); sfx.pickup();
+
+/* ---------- the bomb ring ----------
+   SWAP (or V) opens a ring of every bomb around the middle of the screen —
+   tap the one you want instead of flipping through them all. The whole
+   game holds its breath while the ring is open (fuses too), so picking
+   is never a way to get chomped. */
+let ringOpen = false, ringOpenedAt = 0;
+function buildRing() {
+  const R = Math.max(96, Math.min(170, Math.min(innerWidth, innerHeight) / 2 - 80));
+  $('#ring').innerHTML = BOMB_ORDER.map((t, i) => {
+    const T = BOMB_TYPES[t];
+    const have = t in G.hero.belt;
+    const a = -Math.PI / 2 + i * (Math.PI * 2 / BOMB_ORDER.length);
+    const x = Math.round(Math.cos(a) * R), y = Math.round(Math.sin(a) * R);
+    const sel = t === G.hero.sel;
+    return '<button class="rslot' + (sel ? ' sel' : '') + (have ? '' : ' dim') + '" data-type="' + t + '"' +
+      ' style="--rt:translate(' + x + 'px,' + y + 'px)' + (sel ? ' scale(1.13)' : '') + ';transform:var(--rt)">' +
+      '<span class="ricon">' + BOMB_ICONS[t] + '</span>' +
+      '<span class="rname">' + T.name + '</span>' +
+      '<span class="rcount">' + (have ? '×' + (G.hero.belt[t] || 0) : '&#128274;') + '</span>' +
+    '</button>';
+  }).join('') + '<button class="rclose" aria-label="Close">&#10005;</button>';
   const T = BOMB_TYPES[G.hero.sel];
-  banner(T.name.toUpperCase() + ' — ' + T.desc, 1300);
-  updateHUD();
+  $('#ringdesc').textContent = T.name.toUpperCase() + ' — ' + T.desc;
 }
+function openRing() {
+  if (G.over || G.hero.dead || ringOpen) return;
+  ringOpen = true; ringOpenedAt = performance.now();
+  buildRing();
+  $('#ringwrap').classList.add('show');
+  sfx.init(); sfx.pickup();
+}
+function closeRing(pick) {
+  if (!ringOpen) return;
+  // un-pause fairly: every clock in the world skips the time the ring was open
+  const d = performance.now() - ringOpenedAt;
+  G.bombs.forEach(b => { b.at += d; if (b.armAt) b.armAt += d; });
+  const h = G.hero;
+  ['jumpUntil', 'boostUntil', 'boostFrom', 'dashUntil', 'hurtUntil', 'iframesUntil', 'attackReadyAt', 'swingUntil', 'spikeHurtAt'].forEach(k => { if (h[k]) h[k] += d; });
+  G.enemies.forEach(e => ['swipeReadyAt', 'swingUntil', 'hurtUntil', 'wanderAt', 'deadAt', 'slowUntil', 'burnNext'].forEach(k => { if (e[k]) e[k] += d; }));
+  if (G.shakeUntil) G.shakeUntil += d;
+  ringOpen = false;
+  $('#ringwrap').classList.remove('show');
+  if (pick && pick in G.hero.belt && pick !== G.hero.sel) {
+    G.hero.sel = pick;
+    sfx.pickup();
+    const T = BOMB_TYPES[pick];
+    banner(T.name.toUpperCase() + ' — ' + T.desc, 1300);
+    updateHUD();
+  }
+}
+function toggleRing() { if (ringOpen) closeRing(null); else openRing(); }
+$('#ringwrap').addEventListener('pointerdown', e => {
+  e.preventDefault();
+  const slot = e.target.closest('.rslot');
+  if (slot) {
+    const t = slot.dataset.type;
+    if (!(t in G.hero.belt)) {
+      slot.classList.remove('deny'); void slot.offsetWidth; slot.classList.add('deny');
+      banner('That bomb joins your belt on a later floor!', 1100);
+      sfx.init(); return;
+    }
+    closeRing(t);
+    return;
+  }
+  closeRing(null);   // tapped the backdrop or the ✕ — never mind
+});
 function cycleTimer() {
+  if (ringOpen) return;
   const s = [1000, 3000, 5000];
   G.timerSetting = s[(s.indexOf(G.timerSetting) + 1) % 3];
   banner('TIMER: ' + (G.timerSetting / 1000) + 's', 900);
   updateHUD();
 }
 function detonateRemotes() {
+  if (ringOpen) return;
   let any = false;
   G.bombs.forEach(b => { if (b.remote) { b.goBoom = true; any = true; } });
   if (any) { sfx.init(); sfx.detonator(); }
@@ -1181,7 +1349,7 @@ function moveEnemy(e, dx, dy) {
 /* ---------- actions ---------- */
 function heroAttack() {
   const h = G.hero, now = performance.now();
-  if (G.over || h.dead || now < h.attackReadyAt) return;
+  if (G.over || h.dead || ringOpen || now < h.attackReadyAt) return;
   sfx.init();
   h.attackReadyAt = now + 380;
   h.swingUntil = now + 180;
@@ -1193,9 +1361,41 @@ function heroAttack() {
     const a = Math.atan2(e.fy - h.fy, e.fx - h.fx);
     let da = Math.abs(a - h.faceAngle); if (da > Math.PI) da = Math.PI * 2 - da;
     if (dist(h.fx, h.fy, e.fx, e.fy) <= reach && da <= arc / 2) {
-      hurtEnemy(e, swordDmg, h);   // the Anvil's upgrades sharpen your swing
+      hurtEnemy(e, heroDmg, h);   // Anvil stars + Mega Whack levels sharpen your swing
+      applyWeaponMagic(e, now);
     }
   });
+}
+/* every enchantment on your weapon does its thing to whatever you hit */
+function applyWeaponMagic(e, now) {
+  if (!enchanted) return;
+  const h = G.hero;
+  const fireLv = enchLv('fire');
+  if (fireLv && !e.dead) { e.burnLeft = Math.max(e.burnLeft || 0, fireLv); e.burnNext = now + 520; }
+  const yeetLv = enchLv('yeet');
+  if (yeetLv && !e.dead) {
+    const m = dist(h.fx, h.fy, e.fx, e.fy) || 1;
+    moveEnemy(e, (e.fx - h.fx) / m * 0.6 * yeetLv, (e.fy - h.fy) / m * 0.6 * yeetLv);
+    floatText(e.fx, e.fy, 'YEET!', '#cfa9ff');
+  }
+  const frLv = enchLv('freezy');
+  if (frLv && !e.dead) {
+    e.slowUntil = now + 2000;
+    e.slowMult = Math.max(0.25, 1 - 0.3 * frLv);
+    floatText(e.fx, e.fy - 0.3, 'BRRR!', '#9fe3ff');
+  }
+  const spLv = enchLv('sparky');
+  if (spLv && Math.random() < 0.16 * spLv) zapNearest(e);
+}
+/* Sparky: lightning leaps from the monster you hit to its nearest buddy */
+function zapNearest(e0) {
+  let tgt = null, best = 4.5;
+  G.enemies.forEach(o => { if (o !== e0 && !o.dead) { const d = dist(e0.fx, e0.fy, o.fx, o.fy); if (d < best) { best = d; tgt = o; } } });
+  if (!tgt) return;
+  G.zaps.push({ ax: e0.fx, ay: e0.fy, bx: tgt.fx, by: tgt.fy, at: performance.now() });
+  sfx.zap();
+  floatText(tgt.fx, tgt.fy, '⚡ZAP!', '#ffd23f');
+  hurtEnemy(tgt, 2, { fx: e0.fx, fy: e0.fy });
 }
 function hurtEnemy(e, dmg, from) {
   const now = performance.now();
@@ -1208,8 +1408,14 @@ function hurtEnemy(e, dmg, from) {
   if (e.hp <= 0 && !e.dead) {
     e.dead = true; e.deadAt = now;
     try { save('bbt-kills', (load('bbt-kills', 0) || 0) + 1); } catch (err) {}   // Inventory & Stats keeps score
-    const reward = e.gems + Math.floor(Math.random() * 3);
+    // Money Magnet squeezes extra gems out of monsters your weapon beats
+    const reward = e.gems + Math.floor(Math.random() * 3) + (from === G.hero ? enchLv('magnet') : 0);
     gems += reward; save('bbt-gems', gems);
+    // Vampire Teeth: a weapon-beaten monster can give back half a heart
+    if (from === G.hero && enchLv('vamp') && G.hero.hearts < G.hero.maxHearts && Math.random() < 0.2 * enchLv('vamp')) {
+      G.hero.hearts++;
+      floatText(G.hero.fx, G.hero.fy, '+💜', '#cfa9ff');
+    }
     floatText(e.fx, e.fy, '+' + reward + ' ◆', '#3ec6ff');
     sfx.gem();
     // beaten monsters drop scrap metal for the Forge
@@ -1221,12 +1427,12 @@ function hurtEnemy(e, dmg, from) {
 }
 function heroJump() {
   const h = G.hero, now = performance.now();
-  if (G.over || h.dead || h.jumpZ > 0) return;
+  if (G.over || h.dead || ringOpen || h.jumpZ > 0) return;
   h.jumpUntil = now + 460;
 }
 function placeBomb() {
   const h = G.hero, now = performance.now();
-  if (G.over || h.dead) return;
+  if (G.over || h.dead || ringOpen) return;
   const sel = h.sel, T = BOMB_TYPES[sel];
   if ((h.belt[sel] || 0) <= 0) { banner('NO ' + T.name.toUpperCase() + 'S! Find a crate.', 1200); return; }
   sfx.init(); sfx.fuseFor(sel);
@@ -1380,7 +1586,7 @@ function update(dt, now) {
     const m = Math.hypot(ix, iy);
     h.moving = m > 0.01;
     if (h.moving) {
-      const SPD = 3.9 * (h.boosting ? 1.8 : 1);
+      const SPD = 3.9 * (1 + 0.08 * enchLv('zoomies')) * (h.boosting ? 1.8 : 1);   // Zoomies!
       const vx = ix / m * SPD * dt, vy = iy / m * SPD * dt;
       moveHero(h, vx, vy);
       h.faceAngle = Math.atan2(iy, ix);
@@ -1481,11 +1687,19 @@ function update(dt, now) {
   // enemies
   G.enemies.forEach(e => {
     if (e.dead || G.over) return;
+    // Fire Fury: burning monsters take a fire tick a second until it burns out
+    if (e.burnLeft > 0 && now >= (e.burnNext || 0)) {
+      e.burnNext = now + 700; e.burnLeft--;
+      floatText(e.fx + 0.2, e.fy, '🔥', '#ff8c1a');
+      hurtEnemy(e, 1, { fx: e.fx - 0.04, fy: e.fy + 0.04 });
+      if (e.dead) return;
+    }
+    const sf = now < (e.slowUntil || 0) ? (e.slowMult || 1) : 1;   // Freezy makes them trudge
     const dh = dist(e.fx, e.fy, h.fx, h.fy);
     const heroReachable = h.elev === 0;   // can't reach you up on platforms
     if (dh < e.aggro && heroReachable && !h.dead) {
       const mx = (h.fx - e.fx) / (dh || 1), my = (h.fy - e.fy) / (dh || 1);
-      if (dh > 0.72) moveEnemy(e, mx * e.speed * dt, my * e.speed * dt);
+      if (dh > 0.72) moveEnemy(e, mx * e.speed * sf * dt, my * e.speed * sf * dt);
       e.facing = (isoX(h.fx, h.fy) - isoX(e.fx, e.fy)) >= 0 ? 1 : -1;
       e.step = (e.step || 0) + dt * 8;
       if (dh < 0.95 && now >= e.swipeReadyAt) {
@@ -1502,12 +1716,17 @@ function update(dt, now) {
       }
       const dw = dist(e.fx, e.fy, e.wx, e.wy);
       if (dw > 0.3) {
-        moveEnemy(e, (e.wx - e.fx) / dw * e.speed * 0.45 * dt, (e.wy - e.fy) / dw * e.speed * 0.45 * dt);
+        moveEnemy(e, (e.wx - e.fx) / dw * e.speed * sf * 0.45 * dt, (e.wy - e.fy) / dw * e.speed * sf * 0.45 * dt);
         e.facing = (isoX(e.wx, e.wy) - isoX(e.fx, e.fy)) >= 0 ? 1 : -1;
         e.step = (e.step || 0) + dt * 5;
       }
     }
   });
+
+  // an enchanted weapon sheds faint purple sparkles as you carry it
+  if (enchanted && !h.dead && Math.random() < dt * 3) {
+    G.sparkles.push({ fx: h.fx + (Math.random() - 0.5) * 0.8, fy: h.fy + (Math.random() - 0.5) * 0.8, at: now });
+  }
 
   // camera follows
   G.cam.x += (h.fx - G.cam.x) * Math.min(1, 5 * dt);
@@ -1582,6 +1801,34 @@ function render(now) {
     ctx.fillStyle = f.color;
     ctx.textAlign = 'center';
     ctx.fillText(f.txt, ox + isoX(f.fx, f.fy), oy + isoY(f.fx, f.fy) - 60 - p * 34);
+    ctx.globalAlpha = 1;
+  });
+  // Sparky lightning arcs between monsters
+  G.zaps = G.zaps.filter(z => now - z.at < 180);
+  G.zaps.forEach(z => {
+    const ax = ox + isoX(z.ax, z.ay), ay = oy + isoY(z.ax, z.ay) - 16;
+    const bx = ox + isoX(z.bx, z.by), by = oy + isoY(z.bx, z.by) - 16;
+    ctx.strokeStyle = 'rgba(255,220,80,.92)'; ctx.lineWidth = 2.6; ctx.lineJoin = 'round';
+    ctx.beginPath(); ctx.moveTo(ax, ay);
+    for (let i = 1; i <= 3; i++) {
+      const p = i / 4;
+      ctx.lineTo(ax + (bx - ax) * p + (Math.random() - 0.5) * 11, ay + (by - ay) * p + (Math.random() - 0.5) * 11);
+    }
+    ctx.lineTo(bx, by); ctx.stroke();
+  });
+  // purple enchant sparkles drifting off the hero's weapon
+  G.sparkles = G.sparkles.filter(s => now - s.at < 800);
+  G.sparkles.forEach(s => {
+    const p = (now - s.at) / 800;
+    const x = ox + isoX(s.fx, s.fy), y = oy + isoY(s.fx, s.fy) - 24 - p * 24;
+    const r = 2.4 * (1 - p) + 0.6;
+    ctx.globalAlpha = (1 - p) * 0.9;
+    ctx.fillStyle = '#cfa9ff';
+    ctx.beginPath();
+    ctx.moveTo(x, y - r * 2); ctx.lineTo(x + r * 0.7, y - r * 0.7); ctx.lineTo(x + r * 2, y);
+    ctx.lineTo(x + r * 0.7, y + r * 0.7); ctx.lineTo(x, y + r * 2); ctx.lineTo(x - r * 0.7, y + r * 0.7);
+    ctx.lineTo(x - r * 2, y); ctx.lineTo(x - r * 0.7, y - r * 0.7);
+    ctx.closePath(); ctx.fill();
     ctx.globalAlpha = 1;
   });
 
@@ -1906,14 +2153,19 @@ function drawHero(ox, oy, h, now) {
   ctx.rotate(ang * F);
   ctx.strokeStyle = '#f0c8a0'; ctx.lineWidth = 4;
   ctx.beginPath(); ctx.moveTo(0, 0); ctx.lineTo(7 * F, 2); ctx.stroke();
-  // sword
-  ctx.strokeStyle = '#e8edf2'; ctx.lineWidth = 3.5;
+  // sword — an enchanted one shimmers purple and glows faintly
+  if (enchanted) {
+    ctx.shadowColor = 'rgba(176,109,255,' + (0.6 + Math.sin(now / 260) * 0.3).toFixed(2) + ')';
+    ctx.shadowBlur = 8;
+  }
+  ctx.strokeStyle = enchanted ? '#dcbcff' : '#e8edf2'; ctx.lineWidth = 3.5;
   ctx.beginPath(); ctx.moveTo(7 * F, 2); ctx.lineTo(21 * F, -4); ctx.stroke();
+  ctx.shadowBlur = 0;
   ctx.strokeStyle = '#8a5a2b'; ctx.lineWidth = 3;
   ctx.beginPath(); ctx.moveTo(9.5 * F, 3.5); ctx.lineTo(12 * F, -2.5); ctx.stroke();
   ctx.restore();
   if (swinging) {
-    ctx.strokeStyle = 'rgba(255,255,255,0.5)'; ctx.lineWidth = 3;
+    ctx.strokeStyle = enchanted ? 'rgba(198,140,255,0.75)' : 'rgba(255,255,255,0.5)'; ctx.lineWidth = 3;
     ctx.beginPath(); ctx.arc(0, -4, 24, h.faceAngle - 1 + (F < 0 ? Math.PI : 0), h.faceAngle + 1 + (F < 0 ? Math.PI : 0)); ctx.stroke();
   }
   ctx.restore();
@@ -1968,18 +2220,31 @@ function drawEnemy(ox, oy, e, now) {
     ctx.fillStyle = '#ff4d5e';
     for (let i = 0; i < e.hp; i++) { ctx.beginPath(); ctx.arc(-8 + i * 6, -30, 2.4, 0, 7); ctx.fill(); }
   }
+  // Freezy's shiver and Fire Fury's flame show over their heads
+  ctx.textAlign = 'center'; ctx.font = '11px sans-serif';
+  if (now < (e.slowUntil || 0)) ctx.fillText('❄', 12, -26);
+  if ((e.burnLeft || 0) > 0) ctx.fillText('🔥', -12, -26);
   ctx.restore();
 }
 
 /* ---------- input ---------- */
 addEventListener('keydown', e => {
   const k = e.key.toLowerCase();
+  if (ringOpen) {   // the ring has the keyboard: pick a number, or wave it away
+    if (k === 'v' || k === 'tab' || k === 'escape') { e.preventDefault(); closeRing(null); }
+    const rn = parseInt(k, 10);
+    if (rn >= 1 && rn <= BOMB_ORDER.length) {
+      const rt = BOMB_ORDER[rn - 1];
+      if (rt in G.hero.belt) closeRing(rt);
+    }
+    return;
+  }
   G.keys[k] = true;
   if ([' ', 'arrowup', 'arrowdown', 'arrowleft', 'arrowright'].includes(k)) e.preventDefault();
   if (k === ' ') heroJump();
   if (k === 'k' || k === 'j') heroAttack();
   if (k === 'b') placeBomb();
-  if (k === 'v' || k === 'tab') { e.preventDefault(); cycleBomb(); }
+  if (k === 'v' || k === 'tab') { e.preventDefault(); toggleRing(); }
   if (k === 'r') detonateRemotes();
   if (k === 't') cycleTimer();
   const n = parseInt(k, 10);
@@ -2026,7 +2291,7 @@ const hold = (id, fn) => {
 };
 hold('#t-attack', heroAttack);
 hold('#t-bomb', placeBomb);
-hold('#t-swap', cycleBomb);
+hold('#t-swap', toggleRing);
 hold('#t-det', detonateRemotes);
 hold('#t-jump', heroJump);
 
@@ -2036,7 +2301,7 @@ let last = performance.now();
 function frame(now) {
   const dt = Math.min(0.05, (now - last) / 1000);
   last = now;
-  update(dt, now);
+  if (!ringOpen) update(dt, now);   // the world freezes while you pick a bomb
   render(now);
   requestAnimationFrame(frame);
 }
@@ -2102,7 +2367,11 @@ window.__tower = {
   get silent() { return silentKick; },
   get floors() { return FLOORS; },
   get mats() { return mats; },
+  get ench() { return _ench; },
+  get ringOpen() { return ringOpen; },
+  toggleRing,
   swordDmg,
+  heroDmg,
   goto(x, y) { G.hero.fx = x; G.hero.fy = y; },
   win() { G.hero.fx = G.stairs.x; G.hero.fy = G.stairs.y; },
   hurt(n) { hurtHero(n); },

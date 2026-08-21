@@ -6,10 +6,11 @@
 <title>The Forge — Bomb Blast Tower</title>
 <!-- ============================================================
      THE FORGE — from Asher & JH's drawing.
-     Four stations:
-       Workbench   — "Repair & craft your own items!"  (repair 20◈ · craft 130◈ + materials)
+     Five stations:
+       Workbench   — "Repair & craft your own items!"  (repair 20◈ · blueprint book from 60◈ + materials)
        Anvil       — "Upgrade items!"
        Combinatron — "A machine from a different time, hmmm…"  (300◈)
+       Enchanting  — "Give weapons special powers!"  (per-level gems + stone; enchanted weapons shimmer purple)
        Lava        — "Burn things you don't want."
      Crafting materials — METAL, STONE and WOOD — are earned in the
      Tower: monsters drop metal, bombed walls burst into stone, and
@@ -244,6 +245,40 @@ header {
   color: #2a0a02;
 }
 .costtag { font-size: .92em; opacity: .85; }
+
+/* ---------- enchanted things shimmer purple and glow faintly ---------- */
+.ench { animation: enchglow 2.1s ease-in-out infinite; }
+@keyframes enchglow {
+  0%, 100% { filter: drop-shadow(0 0 2px rgba(190,120,255,.65)) drop-shadow(0 0 7px rgba(150,80,255,.3)); }
+  50%      { filter: drop-shadow(0 0 5px rgba(216,160,255,.95)) drop-shadow(0 0 13px rgba(160,90,255,.55)); }
+}
+.abtn.magic {
+  background: linear-gradient(180deg, #dcbcff, #a06dff);
+  border-color: #5b2fa8;
+  color: #24084a;
+}
+.enchpips { font-size: .82em; color: #cfa9ff; letter-spacing: .12em; }
+.choice.nofit { opacity: .45; border-style: dashed; }
+.enchshow { position: relative; display: inline-block; }
+.twinkle {
+  position: absolute;
+  color: #dcbcff;
+  pointer-events: none;
+  text-shadow: 0 0 8px rgba(176,109,255,.85);
+  animation: twk 1.6s ease-in-out infinite;
+}
+.twinkle.t1 { left: 4%; top: 8%; }
+.twinkle.t2 { right: 2%; top: 34%; animation-delay: .55s; }
+.twinkle.t3 { left: 12%; bottom: 4%; animation-delay: 1.05s; }
+@keyframes twk {
+  0%, 100% { opacity: .15; transform: scale(.7) rotate(0deg); }
+  50%      { opacity: 1; transform: scale(1.2) rotate(22deg); }
+}
+/* runes drift over the enchanting table */
+.rune { animation: runefloat 2.8s ease-in-out infinite; }
+.rune.r2 { animation-delay: .8s; }
+.rune.r3 { animation-delay: 1.7s; }
+@keyframes runefloat { 50% { transform: translateY(-7px); opacity: .55; } }
 
 /* combinatron lights blink */
 .combi-light { animation: blink 1.4s steps(2, start) infinite; }
@@ -593,6 +628,40 @@ footer {
       </div>
     </section>
 
+    <!-- ============ ENCHANTING TABLE ============ -->
+    <section class="station" aria-label="Enchanting Table">
+      <span class="art" aria-hidden="true">
+        <svg viewBox="0 0 300 150">
+          <!-- purple haze -->
+          <ellipse cx="150" cy="66" rx="86" ry="40" fill="#7c5cff" opacity=".16"/>
+          <ellipse cx="150" cy="66" rx="52" ry="26" fill="#b06dff" opacity=".14"/>
+          <!-- stone pedestal -->
+          <path d="M96 96 L204 96 L214 140 L86 140 Z" fill="#4a5568" stroke="#232b36" stroke-width="5" stroke-linejoin="round"/>
+          <path d="M96 96 L204 96 L206 106 L94 106 Z" fill="#6a7280"/>
+          <path d="M108 118 h20 M170 124 h24 M128 132 h14" stroke="#232b36" stroke-width="2.4" stroke-linecap="round"/>
+          <!-- the open spell book -->
+          <path d="M150 62 C136 52 114 52 102 58 L102 88 C114 82 136 82 150 92 Z" fill="#f3e9ff" stroke="#5b2fa8" stroke-width="4" stroke-linejoin="round"/>
+          <path d="M150 62 C164 52 186 52 198 58 L198 88 C186 82 164 82 150 92 Z" fill="#e9dbff" stroke="#5b2fa8" stroke-width="4" stroke-linejoin="round"/>
+          <path d="M150 62 L150 92" stroke="#5b2fa8" stroke-width="3"/>
+          <!-- glowing writing -->
+          <path d="M112 64 q8 -3 16 0 M110 72 q10 -3 20 0 M112 80 q8 -3 16 0" fill="none" stroke="#a06dff" stroke-width="2.6" stroke-linecap="round"/>
+          <path d="M162 64 q8 -3 16 0 M160 72 q10 -3 20 0 M164 80 q8 -3 12 0" fill="none" stroke="#a06dff" stroke-width="2.6" stroke-linecap="round"/>
+          <!-- floating runes -->
+          <path class="rune" d="M108 30 l3 6.6 l6.6 3 l-6.6 3 l-3 6.6 l-3 -6.6 l-6.6 -3 l6.6 -3 Z" fill="#dcbcff"/>
+          <circle class="rune r2" cx="150" cy="20" r="5" fill="none" stroke="#b06dff" stroke-width="2.6"/>
+          <path class="rune r3" d="M192 26 l2.4 5.2 l5.2 2.4 l-5.2 2.4 l-2.4 5.2 l-2.4 -5.2 l-5.2 -2.4 l5.2 -2.4 Z" fill="#b06dff"/>
+          <!-- potion bottle on the corner -->
+          <path d="M226 106 L234 106 L234 114 L240 128 Q241 134 235 134 L225 134 Q219 134 220 128 L226 114 Z" fill="#c9a9ff" stroke="#5b2fa8" stroke-width="3.4" stroke-linejoin="round"/>
+          <rect x="227" y="100" width="6" height="7" rx="2" fill="#6b3a1a"/>
+        </svg>
+      </span>
+      <span class="plaque">Enchanting</span>
+      <p class="quote">&ldquo;Give weapons special powers!&rdquo;</p>
+      <div class="btns">
+        <button class="abtn magic" id="enchbtn">Enchant a weapon <span class="costtag">gems + stone</span></button>
+      </div>
+    </section>
+
     <!-- ============ LAVA ============ -->
     <section class="station lavacard" aria-label="Lava">
       <span class="art" aria-hidden="true">
@@ -674,6 +743,7 @@ const sfx = {
   burn() { this.noise(.5, .3, 900); this.env('sawtooth', 300, 60, .5, .12); },
   nope() { this.env('square', 140, 90, .25, .12); },
   coin() { this.env('sine', 990, 1320, .12, .14); },
+  sparkle() { [880, 1109, 1319, 1760, 2217].forEach((f, i) => this.env('sine', f, f * 1.01, .28, .12, i * .07)); this.noise(.3, .06, 6000); },
 };
 addEventListener('pointerdown', () => sfx.init(), { once: true });
 
@@ -688,10 +758,12 @@ let owned = load('bbt-owned', []);
 let custom = load('bbt-custom', []);       // things YOU made: [{id,name,base,mat,rarity,fused}]
 let upgrades = load('bbt-upgrades', {});   // itemId -> stars (1..3)
 let buffs = load('bbt-buffs', {});         // {repair:true} = +1 heart next Tower visit
+let enchants = load('bbt-ench', {});       // itemId -> { enchantKey: level } — the Tower reads this
 
 function saveAll() {
   save('bbt-gems', gems); save('bbt-mats', mats); save('bbt-owned', owned);
   save('bbt-custom', custom); save('bbt-upgrades', upgrades); save('bbt-buffs', buffs);
+  save('bbt-ench', enchants);
 }
 
 /* names for the Market's items (so the Forge can talk about them) */
@@ -809,15 +881,26 @@ function allGear() {
   custom.forEach(c => g.push(Object.assign({ src: 'custom' }, c)));
   return g;
 }
+/* an item with any enchantment on it shimmers purple, everywhere it appears */
+const enchTotal = id => { const e = enchants[id] || {}; let n = 0; for (const k in e) n += e[k]; return n; };
+function enchify(svg, id) {
+  if (!enchTotal(id)) return svg;
+  return svg.indexOf('class="') !== -1
+    ? svg.replace('class="', 'class="ench ')
+    : svg.replace('<svg ', '<svg class="ench" ');
+}
 function gearArt(it) {
-  if (it.parts) return fusedArt(it.parts);
-  if (it.src === 'custom') return baseArt(it.base || 'charm', it.mat || 'metal');
-  return '<svg viewBox="0 0 40 40"><rect x="7" y="7" width="26" height="26" rx="6" fill="#8a6a4f" stroke="#4a2c10" stroke-width="2.6"/><path d="M13 20 h14 M20 13 v14" stroke="#ffe9c9" stroke-width="2.6" stroke-linecap="round"/></svg>';
+  let art;
+  if (it.parts) art = fusedArt(it.parts);
+  else if (it.src === 'custom') art = baseArt(it.base || 'charm', it.mat || 'metal');
+  else art = '<svg viewBox="0 0 40 40"><rect x="7" y="7" width="26" height="26" rx="6" fill="#8a6a4f" stroke="#4a2c10" stroke-width="2.6"/><path d="M13 20 h14 M20 13 v14" stroke="#ffe9c9" stroke-width="2.6" stroke-linecap="round"/></svg>';
+  return enchify(art, it.id);
 }
 function removeItem(id) {
   owned = owned.filter(x => x !== id);
   custom = custom.filter(x => x.id !== id);
   delete upgrades[id];
+  delete enchants[id];
 }
 let uidN = 0;
 function uid() { return 'c' + Date.now().toString(36) + (uidN++); }
@@ -1072,9 +1155,13 @@ function doCombi() {
     mat: (a.src === 'custom' && a.mat) || (b.src === 'custom' && b.mat) || 'metal',
   };
   gems -= 300;
+  // enchantments survive the fusing — the new weapon keeps the best of both
+  const carriedEnch = {};
+  [a.id, b.id].forEach(id => { const E = enchants[id] || {}; for (const k in E) carriedEnch[k] = Math.max(carriedEnch[k] || 0, E[k]); });
   removeItem(a.id); removeItem(b.id);
   custom.push(it);
   if (carriedStars) upgrades[it.id] = carriedStars;
+  if (Object.keys(carriedEnch).length) enchants[it.id] = carriedEnch;
   saveAll();
   sfx.machine();
   const art = $('#combiart');
@@ -1125,6 +1212,146 @@ function doBurn(id) {
   say('&#128293; FWOOSH! The <b>' + it.name + '</b> is gone forever.' + extra);
 }
 
+/* ============================================================
+   ENCHANTING TABLE — give weapons special powers
+   The book follows the enchantment-sheet format: the NAME, how many
+   LEVELS it has, WHAT IT DOES, and WHICH WEAPONS it can be put on.
+   An enchanted weapon shimmers purple and glows faintly everywhere —
+   here, in the Inventory, and in your hand up the Tower.
+   ============================================================ */
+const ENCHANTS = [
+  { key: 'whack',   name: 'Mega Whack',    max: 3, gems: 50,
+    does: 'every whack whacks harder: +1 damage per level',
+    fits: 'any',                                              goes: 'any weapon' },
+  { key: 'fire',    name: 'Fire Fury',     max: 3, gems: 60,
+    does: 'monsters you hit catch FIRE and keep sizzling — higher levels burn longer',
+    fits: ['blade', 'greatblade', 'dagger', 'cleaver', 'scythe', 'spear'],
+    goes: 'swords, daggers, cleavers, scythes & spears' },
+  { key: 'yeet',    name: 'Yeet',          max: 2, gems: 40,
+    does: 'monsters get whacked WAY backwards — great for making room',
+    fits: ['hammer', 'cleaver', 'greatblade'],                goes: 'hammers, cleavers & greatswords' },
+  { key: 'sparky',  name: 'Sparky',        max: 3, gems: 70,
+    does: 'hits can shoot LIGHTNING that zaps the nearest other monster',
+    fits: ['bolt', 'star', 'key', 'orb'],                     goes: 'zappy things — Thunder Rods, charms, keys & orbs' },
+  { key: 'freezy',  name: 'Freezy',        max: 2, gems: 45,
+    does: 'monsters go slow and shivery for a bit — brrr',
+    fits: ['dagger', 'scythe', 'spear'],                      goes: 'daggers, scythes & spears' },
+  { key: 'vamp',    name: 'Vampire Teeth', max: 3, gems: 65,
+    does: 'beating a monster can give you half a heart back',
+    fits: ['fang', 'dagger', 'scythe', 'cleaver'],            goes: 'fangs, daggers, scythes & cleavers' },
+  { key: 'magnet',  name: 'Money Magnet',  max: 3, gems: 55,
+    does: 'monsters you beat drop EXTRA gems',
+    fits: 'any',                                              goes: 'any weapon' },
+  { key: 'zoomies', name: 'Zoomies',       max: 2, gems: 40,
+    does: 'you RUN faster while you hold it',
+    fits: 'any',                                              goes: 'any weapon' },
+];
+const ENCH_STONE = 2;   // stone dust per level — the sparkly kind
+const romanN = n => ['', 'I', 'II', 'III', 'IV', 'V'][n] || n;
+
+/* only weapons go on the table (fused weapons take ANY enchantment) */
+const WEAPON_IDS = { 'sword-familiar': 1, 'spear': 1, 'scyth': 1, 'dagger-ice': 1, 'cleaver': 1, 'greatsword': 1 };
+function isWeapon(it) {
+  if (it.parts || it.cat === 'weapon') return true;
+  if (it.src === 'custom') return it.base === 'sword' || it.base === 'hammer';
+  if (WEAPON_IDS[it.id]) return true;
+  try { const c = (load('bbt-catalog', {}) || {})[it.id]; if (c && c.cat === 'weapon') return true; } catch (e) {}
+  return false;
+}
+function enchFits(en, it) {
+  if (it.parts) return true;
+  if (en.fits === 'any') return true;
+  return en.fits.indexOf(shapeOf(it)) !== -1;
+}
+function enchLevel(id, key) { return (enchants[id] || {})[key] || 0; }
+function enchListStr(id) {
+  const e = enchants[id] || {};
+  return ENCHANTS.filter(en => e[en.key]).map(en => en.name + ' ' + romanN(e[en.key])).join(' · ');
+}
+
+let enchWeapon = null, enchSel = null;
+$('#enchbtn').addEventListener('click', () => {
+  sfx.init();
+  const weapons = allGear().filter(isWeapon);
+  if (!weapons.length) { say('The table only enchants <b>weapons</b> &mdash; buy, craft or fuse one first!', true); sfx.nope(); return; }
+  enchWeapon = null; enchSel = null;
+  const html = renderPicker('The Enchanting Table', 'Pick a <b>weapon</b> to lay on the table. Enchanted weapons <b>shimmer purple</b> and carry their powers up the Tower.', 'enchpick', isWeapon);
+  openModal(html, '[data-act="enchpick"]');
+});
+function renderEnchModal() {
+  const it = allGear().find(x => x.id === enchWeapon); if (!it) return;
+  const grid = ENCHANTS.map(en => {
+    const lvl = enchLevel(it.id, en.key);
+    const fits = enchFits(en, it);
+    const pips = '&#9679;'.repeat(lvl) + '&#9675;'.repeat(en.max - lvl);
+    return '<button class="choice' + (enchSel === en.key ? ' on' : '') + (fits ? '' : ' nofit') + '" data-act="enchsel" data-v="' + en.key + '">' +
+      en.name + ' <span class="enchpips">' + pips + '</span></button>';
+  }).join('');
+  const en = ENCHANTS.find(x => x.key === enchSel);
+  let detail = '<div class="preview">&hellip;</div>';
+  let button = '';
+  if (en) {
+    const lvl = enchLevel(it.id, en.key);
+    const fits = enchFits(en, it);
+    const maxed = lvl >= en.max;
+    detail =
+      '<div class="preview">' + en.name + ' <span class="enchpips">' + (maxed ? 'MAX!' : romanN(lvl) + ' &rarr; ' + romanN(lvl + 1)) + '</span></div>' +
+      '<p class="sub" style="margin-bottom:.2rem">' + en.does + ' &middot; <b>' + en.max + ' level' + (en.max > 1 ? 's' : '') + '</b></p>' +
+      '<p class="sub" style="margin-bottom:.4rem">goes on: <b>' + en.goes + '</b>' + (it.parts ? ' (a fused weapon takes anything!)' : '') + '</p>';
+    if (!fits) detail += '<p class="warn">The ' + en.name + ' enchantment doesn&rsquo;t fit the ' + it.name + ' &mdash; it goes on ' + en.goes + '.</p>';
+    else if (maxed) detail += '<p class="warn">The ' + it.name + '&rsquo;s ' + en.name + ' is already ' + romanN(en.max) + ' &mdash; MAX!</p>';
+    else button = '<button class="abtn magic" data-act="doench">ENCHANT! <span class="costtag">' + (en.gems * (lvl + 1)) + ' ' + GEM_SVG + ' + ' + (ENCH_STONE * (lvl + 1)) + ' stone</span></button>';
+  }
+  openModal(
+    '<h2>The Enchanting Table</h2>' +
+    '<p class="sub">The <b>' + it.name + '</b> lies on the table' + (enchListStr(it.id) ? ' &mdash; it already knows <b>' + enchListStr(it.id) + '</b>' : '') + '. Pick an enchantment:</p>' +
+    '<div class="enchshow">' + gearArt(it) + '</div>' +
+    '<div class="pickgrid">' + grid + '</div>' +
+    detail +
+    '<p class="warn" id="enchwarn"></p>' +
+    '<div class="cardbtns">' + button +
+      '<button class="abtn cool" data-act="close">Not now</button>' +
+    '</div>',
+    en ? '[data-act="doench"], [data-act="close"]' : '[data-act="enchsel"]'
+  );
+}
+function doEnch() {
+  const it = allGear().find(x => x.id === enchWeapon);
+  const en = ENCHANTS.find(x => x.key === enchSel);
+  if (!it || !en) return;
+  if (!enchFits(en, it)) return;
+  const lvl = enchLevel(it.id, en.key);
+  if (lvl >= en.max) return;
+  const needGems = en.gems * (lvl + 1), needStone = ENCH_STONE * (lvl + 1);
+  const warn = msg => { shakeCard(); sfx.nope(); const w = $('#enchwarn'); if (w) w.innerHTML = msg; };
+  if (gems < needGems) { warn('Level ' + romanN(lvl + 1) + ' costs ' + needGems + ' gems &mdash; you have ' + gems + '.'); return; }
+  if ((mats.stone || 0) < needStone) { warn('You need ' + needStone + ' stone for the sparkly dust &mdash; bomb open cracked walls in the Tower!'); return; }
+  gems -= needGems; mats.stone -= needStone;
+  if (!enchants[it.id]) enchants[it.id] = {};
+  enchants[it.id][en.key] = lvl + 1;
+  saveAll();
+  renderAll('gems');
+  sfx.sparkle();
+  openModal(
+    '<h2>&#10024; SHIMMER!</h2>' +
+    '<p class="sub">The book hums, the runes swirl&hellip;</p>' +
+    '<div class="fusedshow enchshow">' +
+      '<span class="twinkle t1">&#10022;</span><span class="twinkle t2">&#10022;</span><span class="twinkle t3">&#10022;</span>' +
+      enchify(bpLikeArt(it), it.id) +
+    '</div>' +
+    '<div class="preview">' + it.name + '</div>' +
+    '<p class="sub"><b>' + en.name + ' ' + romanN(lvl + 1) + '</b> &mdash; ' + en.does + '.<br>It shimmers purple now! All its powers: <b>' + enchListStr(it.id) + '</b></p>' +
+    '<div class="cardbtns"><button class="abtn" data-act="close">Magical!</button></div>',
+    '[data-act="close"]'
+  );
+}
+/* the big showcase art for any gear item (fused or not) — un-shimmered, callers enchify */
+function bpLikeArt(it) {
+  if (it.parts) return fusedArt(it.parts, 'fusedbig');
+  if (it.src === 'custom') return baseArt(it.base || 'charm', it.mat || 'metal').replace('<svg ', '<svg class="fusedbig" ');
+  return '<svg class="fusedbig" viewBox="0 0 40 40"><rect x="7" y="7" width="26" height="26" rx="6" fill="#8a6a4f" stroke="#4a2c10" stroke-width="2.6"/><path d="M13 20 h14 M20 13 v14" stroke="#ffe9c9" stroke-width="2.6" stroke-linecap="round"/></svg>';
+}
+
 /* ---------- one click handler for everything inside the modal ---------- */
 cardEl.addEventListener('click', e => {
   const btn = e.target.closest('[data-act]');
@@ -1142,6 +1369,9 @@ cardEl.addEventListener('click', e => {
   else if (act === 'docombi') doCombi();
   else if (act === 'lavapick') renderBurnConfirm(v);
   else if (act === 'doburn') doBurn(v);
+  else if (act === 'enchpick') { enchWeapon = v; enchSel = null; renderEnchModal(); }
+  else if (act === 'enchsel') { enchSel = v; renderEnchModal(); }
+  else if (act === 'doench') doEnch();
 });
 
 /* ---------- back button (behaves inside previews too) ---------- */
@@ -1163,6 +1393,8 @@ window.__forge = {
   get custom() { return custom; },
   get upgrades() { return upgrades; },
   get buffs() { return buffs; },
+  get enchants() { return enchants; },
+  get enchantBook() { return ENCHANTS; },
 };
 </script>
 </body>
