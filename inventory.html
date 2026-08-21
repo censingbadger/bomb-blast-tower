@@ -744,9 +744,22 @@ function customArt(c) {
   if (c.base === 'shield') return 'shieldC';
   return 'charm';
 }
-/* enchanted things shimmer purple wherever they show up */
-const ENCH_NAMES = { whack: 'Mega Whack', fire: 'Fire Fury', yeet: 'Yeet', sparky: 'Sparky', freezy: 'Freezy', vamp: 'Vampire Teeth', magnet: 'Money Magnet', zoomies: 'Zoomies' };
-const romanN = n => ['', 'I', 'II', 'III', 'IV', 'V'][n] || n;
+/* enchanted things shimmer purple wherever they show up — the book is the drawn sheet */
+const ENCH_NAMES = {
+  flourish: 'Ending Flourish', crit: 'Critical Strike', fortune: 'Fortune', icy: 'Icy Blade',
+  shocking: 'Shocking Blast', laser: 'Laser Cutter', killius: 'Killius Maximus', deadly: 'Deadly Point',
+  trail: 'Trail Blazer', deafening: 'Deafening Blast', bone: 'Bone Crusher', smash: 'Exploding Smash',
+  edge: 'Edge of Doom', bigboom: 'The Bigg Boom', yeet: 'Yeet', vamp: 'Vampire Teeth', zoomies: 'Zoomies',
+};
+const romanN = n => ['', 'I', 'II', 'III', 'IV', 'V', 'VI', 'VII'][n] || n;
+/* purchases from the starter book roll over to their sheet equivalents */
+const ENCH_MIGRATE = { whack: 'deadly', magnet: 'fortune', freezy: 'icy', sparky: 'shocking', fire: 'trail' };
+Object.keys(enchants).forEach(id => {
+  const e = enchants[id] || {};
+  Object.keys(e).forEach(k => {
+    if (ENCH_MIGRATE[k]) { const nk = ENCH_MIGRATE[k]; e[nk] = Math.max(e[nk] || 0, e[k]); delete e[k]; }
+  });
+});
 const enchTotal = id => { const e = enchants[id] || {}; let n = 0; for (const k in e) n += e[k]; return n; };
 function enchListStr(id) {
   const e = enchants[id] || {};

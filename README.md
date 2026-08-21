@@ -153,21 +153,30 @@ python3 -m http.server
   you a lightning bolt and a glowing orb. The Combinatron shows off what it
   built, the weapon lands in your **Weapons** grid ready to equip, and your
   knight holds it on the Inventory screen. **Enchanting Table** — *"Give
-  weapons special powers!"*: a glowing spell book of **eight enchantments**,
-  each written the way the enchantment sheet works — its **name**, how many
-  **levels** it has, **what it does**, and **which weapons it can be put
-  on**: *Mega Whack* (3 levels, +1 damage each, any weapon), *Fire Fury*
-  (monsters catch fire — swords, daggers, cleavers, scythes & spears),
-  *Yeet* (monsters fly WAY backwards — hammers & cleavers), *Sparky*
-  (lightning leaps to the next monster — zappy things), *Freezy* (slow,
-  shivery monsters — daggers, scythes & spears), *Vampire Teeth* (beating a
-  monster can heal half a heart), *Money Magnet* (extra gems) and *Zoomies*
-  (you run faster). Each level costs gems plus sparkly stone dust, a
-  **fused weapon takes any enchantment**, and fusing two enchanted things
-  keeps the best of both. An enchanted weapon **shimmers purple and glows
-  faintly** — on the shelf, in the Inventory, in your knight's hand, and up
-  the Tower, where every power really works (the burning, the zapping, the
-  yeeting — all of it). **Lava** — *"Burn things you don't
+  weapons special powers!"*: the glowing spell book **is the drawn
+  enchantment sheet**, entry for entry, in the sheet's own format — each
+  enchantment's **name**, how many **levels** it has, **what it does**,
+  and **which weapons it can be put on**. All fourteen from the sheet:
+  *Ending Flourish* (every 4th swing is a downward SMASH with splash
+  damage), *Critical Strike* I–V (chance of TRIPLE damage), *Fortune*
+  (enemies drop more loot), *Icy Blade* (enemies freeze inside an actual
+  ice cube for 5 seconds — and it **cannot pair with Trail Blazer**,
+  the book says so), *Shocking Blast* (your bomb blasts stun for 1–3
+  seconds), *Laser Cutter* (a lucky swing chops a monster STRAIGHT IN
+  HALF), **Killius Maximus** (the 1000 💎 legend: every 5th beaten enemy
+  fires a BEAM that destroys everything in its path, cracked walls
+  included), *Deadly Point* I–VII (+1 damage a level), *Trail Blazer*
+  (your swings leave fire burning on the ground), *Deafening Blast*
+  (bombs explode wider), *Bone Crusher* (+2 damage per level to
+  skeletons), *Exploding Smash* (hammer and spear strikes can explode),
+  *Edge of Doom* I–VI (your weapon reaches further) and *The Bigg Boom*
+  (bombs hit harder) — plus the three house extras that don't overlap the
+  sheet: *Yeet*, *Vampire Teeth* and *Zoomies*. Each level costs gems
+  plus sparkly stone dust, a **fused weapon takes any enchantment**, and
+  fusing two enchanted things keeps the best of both. An enchanted weapon
+  **shimmers purple and glows faintly** — on the shelf, in the Inventory,
+  in your knight's hand, and up the Tower, where every power really works
+  (the smashing, the freezing, the beam — all of it). **Lava** — *"Burn things you don't
   want."* Gone forever — though sometimes the lava burps up a few gems.
   Everything is shared with the rest of the game through your gems, materials
   and gear.
@@ -215,6 +224,6 @@ python3 -m http.server
 Once a homepage is picked, it becomes the real `index.html`. Still to build:
 
 - **More tower floors**
-- **The enchantment sheet** — when the drawn sheet of enchantments arrives,
-  each one goes straight into the Enchanting Table's book in the same
-  format: name, number of levels, what it does, which weapons it fits
+- **The Build list** (spotted in the corner of the enchantment sheet):
+  a Cursed Axe, Heavy Metal Armor, a Goblin Bow (the empty Bow slot
+  waits!), an Iron Amulet, a Gong, and a Mushroom

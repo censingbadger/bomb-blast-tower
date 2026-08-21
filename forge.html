@@ -1214,40 +1214,81 @@ function doBurn(id) {
 
 /* ============================================================
    ENCHANTING TABLE — give weapons special powers
-   The book follows the enchantment-sheet format: the NAME, how many
-   LEVELS it has, WHAT IT DOES, and WHICH WEAPONS it can be put on.
-   An enchanted weapon shimmers purple and glows faintly everywhere —
-   here, in the Inventory, and in your hand up the Tower.
+   The book IS the drawn enchantment sheet, entry for entry, in the
+   sheet's own format: the NAME, how many LEVELS it has, WHAT IT DOES,
+   and WHICH WEAPONS it can be put on. Fourteen from the sheet plus
+   the three house extras that don't overlap it (Yeet, Vampire Teeth,
+   Zoomies). "Axes" on the sheet = the chopping family (the Butcher's
+   Knife); "swords" cover daggers and greatswords too.
    ============================================================ */
+const SWORDS = ['blade', 'greatblade', 'dagger'];
 const ENCHANTS = [
-  { key: 'whack',   name: 'Mega Whack',    max: 3, gems: 50,
-    does: 'every whack whacks harder: +1 damage per level',
-    fits: 'any',                                              goes: 'any weapon' },
-  { key: 'fire',    name: 'Fire Fury',     max: 3, gems: 60,
-    does: 'monsters you hit catch FIRE and keep sizzling — higher levels burn longer',
-    fits: ['blade', 'greatblade', 'dagger', 'cleaver', 'scythe', 'spear'],
-    goes: 'swords, daggers, cleavers, scythes & spears' },
-  { key: 'yeet',    name: 'Yeet',          max: 2, gems: 40,
+  { key: 'flourish',  name: 'Ending Flourish',  max: 1, gems: 120,
+    does: 'every 4th swing you perform a downward SMASH — splash damage all around you',
+    fits: SWORDS.concat(['cleaver', 'scythe', 'hammer']),  goes: 'swords, axes, scythes & hammers' },
+  { key: 'crit',      name: 'Critical Strike',  max: 5, gems: 60,
+    does: '10% chance per level you do TRIPLE damage',
+    fits: 'any',                                           goes: 'everything' },
+  { key: 'fortune',   name: 'Fortune',          max: 3, gems: 55,
+    does: 'enemies drop more loot',
+    fits: 'any',                                           goes: 'all weapons' },
+  { key: 'icy',       name: 'Icy Blade',        max: 3, gems: 70,
+    does: '10% chance per level the enemy FREEZES in an ice cube for 5 seconds',
+    fits: 'any',                                           goes: 'all weapons', notWith: 'trail' },
+  { key: 'shocking',  name: 'Shocking Blast',   max: 3, gems: 50,
+    does: 'enemies get STUNNED by your bomb blasts — 1 second per level',
+    fits: 'any',                                           goes: 'all weapons' },
+  { key: 'laser',     name: 'Laser Cutter',     max: 5, gems: 80,
+    does: '2% chance per level you chop an enemy STRAIGHT IN HALF',
+    fits: SWORDS.concat(['cleaver', 'scythe']),            goes: 'swords, axes & scythes' },
+  { key: 'killius',   name: 'Killius Maximus',  max: 1, gems: 1000,
+    does: 'every 5 enemies beaten, you fire a BEAM that destroys everything in its path — cracked walls too',
+    fits: 'any',                                           goes: 'all weapons' },
+  { key: 'deadly',    name: 'Deadly Point',     max: 7, gems: 45,
+    does: 'plus one damage every level',
+    fits: SWORDS.concat(['spear', 'scythe']),              goes: 'swords, spears & scythes' },
+  { key: 'trail',     name: 'Trail Blazer',     max: 3, gems: 65,
+    does: 'your swings leave a TRAIL OF FIRE burning on the ground',
+    fits: SWORDS.concat(['cleaver', 'scythe']),            goes: 'swords, axes & scythes', notWith: 'icy' },
+  { key: 'deafening', name: 'Deafening Blast',  max: 3, gems: 50,
+    does: 'your bombs explode WIDER',
+    fits: 'any',                                           goes: 'all weapons' },
+  { key: 'bone',      name: 'Bone Crusher',     max: 5, gems: 40,
+    does: 'deals +2 damage per level to SKELETONS',
+    fits: 'any',                                           goes: 'all weapons' },
+  { key: 'smash',     name: 'Exploding Smash',  max: 3, gems: 60,
+    does: '10% chance per level of an EXPLOSION on strike',
+    fits: ['hammer', 'spear'],                             goes: 'hammers & spears' },
+  { key: 'edge',      name: 'Edge of Doom',     max: 6, gems: 50,
+    does: 'your weapon reaches FURTHER every level',
+    fits: 'any',                                           goes: 'all weapons' },
+  { key: 'bigboom',   name: 'The Bigg Boom',    max: 4, gems: 55,
+    does: 'your bombs do +1 damage per level',
+    fits: 'any',                                           goes: 'all weapons' },
+  { key: 'yeet',      name: 'Yeet',             max: 2, gems: 40,
     does: 'monsters get whacked WAY backwards — great for making room',
-    fits: ['hammer', 'cleaver', 'greatblade'],                goes: 'hammers, cleavers & greatswords' },
-  { key: 'sparky',  name: 'Sparky',        max: 3, gems: 70,
-    does: 'hits can shoot LIGHTNING that zaps the nearest other monster',
-    fits: ['bolt', 'star', 'key', 'orb'],                     goes: 'zappy things — Thunder Rods, charms, keys & orbs' },
-  { key: 'freezy',  name: 'Freezy',        max: 2, gems: 45,
-    does: 'monsters go slow and shivery for a bit — brrr',
-    fits: ['dagger', 'scythe', 'spear'],                      goes: 'daggers, scythes & spears' },
-  { key: 'vamp',    name: 'Vampire Teeth', max: 3, gems: 65,
+    fits: ['hammer', 'cleaver', 'greatblade'],             goes: 'hammers, axes & greatswords' },
+  { key: 'vamp',      name: 'Vampire Teeth',    max: 3, gems: 65,
     does: 'beating a monster can give you half a heart back',
-    fits: ['fang', 'dagger', 'scythe', 'cleaver'],            goes: 'fangs, daggers, scythes & cleavers' },
-  { key: 'magnet',  name: 'Money Magnet',  max: 3, gems: 55,
-    does: 'monsters you beat drop EXTRA gems',
-    fits: 'any',                                              goes: 'any weapon' },
-  { key: 'zoomies', name: 'Zoomies',       max: 2, gems: 40,
+    fits: ['fang', 'dagger', 'scythe', 'cleaver'],         goes: 'fangs, daggers, scythes & axes' },
+  { key: 'zoomies',   name: 'Zoomies',          max: 2, gems: 40,
     does: 'you RUN faster while you hold it',
-    fits: 'any',                                              goes: 'any weapon' },
+    fits: 'any',                                           goes: 'any weapon' },
 ];
 const ENCH_STONE = 2;   // stone dust per level — the sparkly kind
-const romanN = n => ['', 'I', 'II', 'III', 'IV', 'V'][n] || n;
+const romanN = n => ['', 'I', 'II', 'III', 'IV', 'V', 'VI', 'VII'][n] || n;
+/* purchases from the starter book roll over to their sheet equivalents */
+const ENCH_MIGRATE = { whack: 'deadly', magnet: 'fortune', freezy: 'icy', sparky: 'shocking', fire: 'trail' };
+(function migrateEnch() {
+  let changed = false;
+  Object.keys(enchants).forEach(id => {
+    const e = enchants[id] || {};
+    Object.keys(e).forEach(k => {
+      if (ENCH_MIGRATE[k]) { const nk = ENCH_MIGRATE[k]; e[nk] = Math.max(e[nk] || 0, e[k]); delete e[k]; changed = true; }
+    });
+  });
+  if (changed) save('bbt-ench', enchants);
+})();
 
 /* only weapons go on the table (fused weapons take ANY enchantment) */
 const WEAPON_IDS = { 'sword-familiar': 1, 'spear': 1, 'scyth': 1, 'dagger-ice': 1, 'cleaver': 1, 'greatsword': 1 };
@@ -1298,7 +1339,9 @@ function renderEnchModal() {
       '<div class="preview">' + en.name + ' <span class="enchpips">' + (maxed ? 'MAX!' : romanN(lvl) + ' &rarr; ' + romanN(lvl + 1)) + '</span></div>' +
       '<p class="sub" style="margin-bottom:.2rem">' + en.does + ' &middot; <b>' + en.max + ' level' + (en.max > 1 ? 's' : '') + '</b></p>' +
       '<p class="sub" style="margin-bottom:.4rem">goes on: <b>' + en.goes + '</b>' + (it.parts ? ' (a fused weapon takes anything!)' : '') + '</p>';
+    const clash = en.notWith && enchLevel(it.id, en.notWith) > 0 ? ENCHANTS.find(x => x.key === en.notWith) : null;
     if (!fits) detail += '<p class="warn">The ' + en.name + ' enchantment doesn&rsquo;t fit the ' + it.name + ' &mdash; it goes on ' + en.goes + '.</p>';
+    else if (clash) detail += '<p class="warn">' + en.name + ' cannot pair with ' + clash.name + ' &mdash; the book says so! (Fire and ice don&rsquo;t mix.)</p>';
     else if (maxed) detail += '<p class="warn">The ' + it.name + '&rsquo;s ' + en.name + ' is already ' + romanN(en.max) + ' &mdash; MAX!</p>';
     else button = '<button class="abtn magic" data-act="doench">ENCHANT! <span class="costtag">' + (en.gems * (lvl + 1)) + ' ' + GEM_SVG + ' + ' + (ENCH_STONE * (lvl + 1)) + ' stone</span></button>';
   }
@@ -1320,6 +1363,7 @@ function doEnch() {
   const en = ENCHANTS.find(x => x.key === enchSel);
   if (!it || !en) return;
   if (!enchFits(en, it)) return;
+  if (en.notWith && enchLevel(it.id, en.notWith) > 0) return;   // fire and ice don't mix
   const lvl = enchLevel(it.id, en.key);
   if (lvl >= en.max) return;
   const needGems = en.gems * (lvl + 1), needStone = ENCH_STONE * (lvl + 1);
