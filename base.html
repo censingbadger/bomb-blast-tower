@@ -295,6 +295,10 @@ body.fighting .alarm { display: none; }
 .cardrow { display: flex; flex-wrap: wrap; justify-content: center; gap: .5rem; }
 .cardrow .btn { margin-top: .6rem; }
 #heldhome, #fallenhome, #heldok { background: linear-gradient(180deg, #d9cdb6, #b9a98d); border-color: #6b5a3f; }
+/* while the card is arming, taps sail right through the buttons */
+.overlay .btn { transition: opacity .35s ease; }
+.overlay.arming .card { pointer-events: none; }
+.overlay.arming .btn { opacity: .45; }
 
 /* ---------- toast ---------- */
 .toast {
@@ -387,7 +391,7 @@ footer {
     <p class="sub" id="heldsub"></p>
     <div class="cardrow">
       <button class="btn" id="nextfloor">Next Floor &#8594;</button>
-      <button class="btn" id="heldhome">Home Screen</button>
+      <button class="btn" id="heldhome">&#127968; Home Screen</button>
       <button class="btn" id="heldok">Back to building</button>
     </div>
   </div>
@@ -400,7 +404,7 @@ footer {
     <p class="sub">Your wall is broken &mdash; replace it cheap at the shop, then build back stronger!</p>
     <div class="cardrow">
       <button class="btn" id="fallenok">Rebuild</button>
-      <button class="btn" id="fallenhome">Home Screen</button>
+      <button class="btn" id="fallenhome">&#127968; Home Screen</button>
     </div>
   </div>
 </div>
@@ -900,7 +904,7 @@ function endWave(won) {
         $('#heldsub').textContent = matGain ? 'The wreckage left you +' + matGain + ' metal, stone and wood.' : 'Build bigger — he WILL be back.';
       }
       renderShop();
-      $('#ov-held').classList.add('show');
+      showResultCard('#ov-held');
     } else {
       sfx.lose();
       if (practice) {
@@ -918,10 +922,19 @@ function endWave(won) {
         $('#ov-fallen').querySelector('.sub').textContent = 'Your wall is broken — replace it cheap at the shop, then build back stronger!';
       }
       renderShop();
-      $('#ov-fallen').classList.add('show');
+      showResultCard('#ov-fallen');
     }
     sim = null;
   }, won ? 700 : 1100);
+}
+/* the after-ambush card waits a beat before its buttons work, so a finger
+   still spam-tapping bombs can't accidentally press "Next Floor" (or wave
+   the card away) the instant it pops up — the Home Screen button always
+   gets its moment */
+function showResultCard(sel) {
+  const ov = $(sel);
+  ov.classList.add('show', 'arming');
+  setTimeout(() => ov.classList.remove('arming'), 800);
 }
 
 function hurtEnemy(e, dmg) {
