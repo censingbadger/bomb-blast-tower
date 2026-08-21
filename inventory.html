@@ -297,6 +297,13 @@ header {
   box-shadow: 0 3px 0 rgba(0,0,0,.18);
 }
 .callout .cname { display: block; font-weight: 700; }
+.callout .cench { display: block; color: #cfa9ff; font-size: .88em; margin-top: .1rem; }
+/* enchanted weapons shimmer purple and glow faintly */
+.ench { animation: enchglow 2.1s ease-in-out infinite; }
+@keyframes enchglow {
+  0%, 100% { filter: drop-shadow(0 0 2px rgba(190,120,255,.65)) drop-shadow(0 0 7px rgba(150,80,255,.3)); }
+  50%      { filter: drop-shadow(0 0 5px rgba(216,160,255,.95)) drop-shadow(0 0 13px rgba(160,90,255,.55)); }
+}
 .callout .cval {
   display: inline-flex;
   align-items: center;
@@ -575,6 +582,7 @@ const mats = Object.assign({ metal: 0, stone: 0, wood: 0 }, load('bbt-mats', {})
 const owned = load('bbt-owned', []);
 const custom = load('bbt-custom', []);
 const upgrades = load('bbt-upgrades', {});
+const enchants = load('bbt-ench', {});     // itemId -> { enchantKey: level }, written by the Forge
 const kills = load('bbt-kills', 0) || 0;
 const floorNext = load('bbt-floor', 1);
 const TOTAL_FLOORS = 50;
@@ -736,7 +744,34 @@ function customArt(c) {
   if (c.base === 'shield') return 'shieldC';
   return 'charm';
 }
-function artFor(it) { return it.parts ? fusedArt(it.parts) : mini(it.art, it.mat); }
+/* enchanted things shimmer purple wherever they show up — the book is the drawn sheet */
+const ENCH_NAMES = {
+  flourish: 'Ending Flourish', crit: 'Critical Strike', fortune: 'Fortune', icy: 'Icy Blade',
+  shocking: 'Shocking Blast', laser: 'Laser Cutter', killius: 'Killius Maximus', deadly: 'Deadly Point',
+  trail: 'Trail Blazer', deafening: 'Deafening Blast', bone: 'Bone Crusher', smash: 'Exploding Smash',
+  edge: 'Edge of Doom', bigboom: 'The Bigg Boom', yeet: 'Yeet', vamp: 'Vampire Teeth', zoomies: 'Zoomies',
+};
+const romanN = n => ['', 'I', 'II', 'III', 'IV', 'V', 'VI', 'VII'][n] || n;
+/* purchases from the starter book roll over to their sheet equivalents */
+const ENCH_MIGRATE = { whack: 'deadly', magnet: 'fortune', freezy: 'icy', sparky: 'shocking', fire: 'trail' };
+Object.keys(enchants).forEach(id => {
+  const e = enchants[id] || {};
+  Object.keys(e).forEach(k => {
+    if (ENCH_MIGRATE[k]) { const nk = ENCH_MIGRATE[k]; e[nk] = Math.max(e[nk] || 0, e[k]); delete e[k]; }
+  });
+});
+const enchTotal = id => { const e = enchants[id] || {}; let n = 0; for (const k in e) n += e[k]; return n; };
+function enchListStr(id) {
+  const e = enchants[id] || {};
+  return Object.keys(e).filter(k => e[k] > 0).map(k => (ENCH_NAMES[k] || k) + ' ' + romanN(e[k])).join(' · ');
+}
+function enchify(svg, id) {
+  if (!enchTotal(id)) return svg;
+  return svg.indexOf('class="') !== -1
+    ? svg.replace('class="', 'class="ench ')
+    : svg.replace('<svg ', '<svg class="ench" ');
+}
+function artFor(it) { return enchify(it.parts ? fusedArt(it.parts) : mini(it.art, it.mat), it.id); }
 // the Tower reads this to pick your weapon's swing sound
 function weaponShapeOf(it) { return it && it.parts ? 'fused' : shapeOf(it); }
 function allGear() {
@@ -746,7 +781,7 @@ function allGear() {
   return g;
 }
 const stars = id => upgrades[id] || 0;
-const power = it => 2 + rankOf(it.rarity) + stars(it.id);   // the number in the little burst
+const power = it => 2 + rankOf(it.rarity) + stars(it.id) + enchTotal(it.id);   // the number in the little burst
 const defense = it => 1 + stars(it.id);
 
 /* ---------- rendering ---------- */
@@ -815,11 +850,14 @@ function renderDoll() {
   if (w && w.parts) dollSword.innerHTML =
     '<g transform="rotate(38 168 138) rotate(135 163 139) translate(129,88) scale(1.7)">' + fusedInner(w.parts) + '</g>';
   else dollSword.innerHTML = DEFAULT_SWORD;
+  // an enchanted weapon shimmers purple right in the knight's hand
+  dollSword.classList.toggle('ench', !!(w && enchTotal(w.id)));
   document.getElementById('doll-tunic').style.display = a ? '' : 'none';
   document.getElementById('doll-bomb').style.display = '';
 
   $('#c-weapon').innerHTML = w
-    ? '<span class="cname">' + w.name + '</span><span class="cval">' + power(w) + ' ' + BURST_SVG + '</span>'
+    ? '<span class="cname">' + w.name + '</span><span class="cval">' + power(w) + ' ' + BURST_SVG + '</span>' +
+      (enchTotal(w.id) ? '<span class="cench">&#10024; ' + enchListStr(w.id) + '</span>' : '')
     : '<span class="cname">No weapon equipped</span><span class="cval">fists&hellip;</span>';
   $('#c-armor').innerHTML = a
     ? '<span class="cname">' + a.name + '</span><span class="cval">' + defense(a) + ' ' + SHIELD_SVG + '</span>'
@@ -834,6 +872,11 @@ function totalStars(filterCat) {
   gear.forEach(g => { if (!filterCat || g.cat === filterCat) n += stars(g.id); });
   return n;
 }
+function totalEnchLevels() {
+  let n = 0;
+  allGear().forEach(g => { n += enchTotal(g.id); });
+  return n;
+}
 function computePower() {
   const gear = allGear();
   let best = 0;
@@ -845,6 +888,7 @@ function computePower() {
     + gear.filter(g => g.cat === 'weapon').length
     + totalStars()
     + (armorIt ? 2 + stars(armorIt.id) : 0)
+    + totalEnchLevels() * 2
     + floorsBeaten * 2
     + Math.floor(kills / 5);
 }
@@ -866,6 +910,7 @@ function renderStats() {
     ['Upgrades', String(totalStars())],
     ['Floors beaten', String(floorsBeaten) + ' / ' + TOTAL_FLOORS],
     ['Weapon upgrades', String(totalStars('weapon'))],
+    ['Enchantments', String(totalEnchLevels())],
   ];
   $('#statrows').innerHTML = rows.map(r =>
     '<div class="statrow"><span class="k">' + r[0] + ':</span>' +
@@ -944,8 +989,10 @@ window.__inv = {
   get equip() { return equip; },
   get kills() { return kills; },
   get floorsBeaten() { return floorsBeaten; },
+  get enchants() { return enchants; },
   power: computePower,
   stars: totalStars,
+  enchLevels: totalEnchLevels,
 };
 </script>
 </body>

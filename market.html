@@ -1033,11 +1033,14 @@ footer .reset:hover { color: var(--ink); }
     restockArmedUntil = 0;
     const before = gems;
     gems -= RESTOCK_COST;
-    // bought things go back on the shelves — their anvil stars go with them
+    // bought things go back on the shelves — their anvil stars and enchantments go with them
     try {
       const up = load('bbt-upgrades', {});
       owned.forEach(id => delete up[id]);
       save('bbt-upgrades', up);
+      const en = load('bbt-ench', {});
+      owned.forEach(id => delete en[id]);
+      save('bbt-ench', en);
     } catch (e) {}
     owned = [];
     // a completely different mix of goods comes out of the back room

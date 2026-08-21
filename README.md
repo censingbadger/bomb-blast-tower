@@ -80,8 +80,12 @@ python3 -m http.server
   that floor is thrown away and built again.
 
   Enemies drop gems you can spend in the Market. **Six bomb types** from the
-  drawings, swapped with V (or SWAP) — and now **every bomb has exactly ONE
-  job**, so you pick the right tool:
+  drawings — tap **SWAP** (or V) and a **ring of all six bombs** pops up
+  around you: just tap the one you want instead of flipping through them.
+  The whole game holds its breath while the ring is open (fuses too), so
+  picking is never how you get chomped. Bombs you haven't unlocked yet sit
+  in the ring with a little lock. And **every bomb has exactly ONE job**,
+  so you pick the right tool:
   **Bomb** (the ONLY one that boosts you UP onto platforms) ·
   **Dynamite** (the ONLY one that blows up cracked walls) ·
   **Landmine** (the trap — monsters step on it, and it dashes YOU sideways) ·
@@ -128,7 +132,7 @@ python3 -m http.server
   signpost at the end of the floor row now really walks you to the Forge.
 
 - **The Forge** (`forge.html`) — from the Forge drawing: a dark smithy with
-  drifting embers and four stations. **Workbench** — *"Repair & craft your own
+  drifting embers and five stations. **Workbench** — *"Repair & craft your own
   items!"*: repairing (20 💎) patches your armor for **+1 ❤ on your next Tower
   run**, and crafting opens **the blueprint book** — twelve real builds, from
   a 60 💎 Wooden Shield up to epic two-headed weapons welded onto one handle:
@@ -148,7 +152,31 @@ python3 -m http.server
   an ice dagger and a bomb on one hilt, a Thunder Rod + an Upgrade Orb gives
   you a lightning bolt and a glowing orb. The Combinatron shows off what it
   built, the weapon lands in your **Weapons** grid ready to equip, and your
-  knight holds it on the Inventory screen. **Lava** — *"Burn things you don't
+  knight holds it on the Inventory screen. **Enchanting Table** — *"Give
+  weapons special powers!"*: the glowing spell book **is the drawn
+  enchantment sheet**, entry for entry, in the sheet's own format — each
+  enchantment's **name**, how many **levels** it has, **what it does**,
+  and **which weapons it can be put on**. All fourteen from the sheet:
+  *Ending Flourish* (every 4th swing is a downward SMASH with splash
+  damage), *Critical Strike* I–V (chance of TRIPLE damage), *Fortune*
+  (enemies drop more loot), *Icy Blade* (enemies freeze inside an actual
+  ice cube for 5 seconds — and it **cannot pair with Trail Blazer**,
+  the book says so), *Shocking Blast* (your bomb blasts stun for 1–3
+  seconds), *Laser Cutter* (a lucky swing chops a monster STRAIGHT IN
+  HALF), **Killius Maximus** (the 1000 💎 legend: every 5th beaten enemy
+  fires a BEAM that destroys everything in its path, cracked walls
+  included), *Deadly Point* I–VII (+1 damage a level), *Trail Blazer*
+  (your swings leave fire burning on the ground), *Deafening Blast*
+  (bombs explode wider), *Bone Crusher* (+2 damage per level to
+  skeletons), *Exploding Smash* (hammer and spear strikes can explode),
+  *Edge of Doom* I–VI (your weapon reaches further) and *The Bigg Boom*
+  (bombs hit harder) — plus the three house extras that don't overlap the
+  sheet: *Yeet*, *Vampire Teeth* and *Zoomies*. Each level costs gems
+  plus sparkly stone dust, a **fused weapon takes any enchantment**, and
+  fusing two enchanted things keeps the best of both. An enchanted weapon
+  **shimmers purple and glows faintly** — on the shelf, in the Inventory,
+  in your knight's hand, and up the Tower, where every power really works
+  (the smashing, the freezing, the beam — all of it). **Lava** — *"Burn things you don't
   want."* Gone forever — though sometimes the lava burps up a few gems.
   Everything is shared with the rest of the game through your gems, materials
   and gear.
@@ -196,3 +224,6 @@ python3 -m http.server
 Once a homepage is picked, it becomes the real `index.html`. Still to build:
 
 - **More tower floors**
+- **The Build list** (spotted in the corner of the enchantment sheet):
+  a Cursed Axe, Heavy Metal Armor, a Goblin Bow (the empty Bow slot
+  waits!), an Iron Amulet, a Gong, and a Mushroom
