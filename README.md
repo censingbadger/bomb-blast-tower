@@ -53,8 +53,9 @@ python3 -m http.server
 - **The Tower** (`tower.html`) — the game! An isometric action crawler in the
   spirit of Back Stab's dungeon mode: WASD/arrows or a touch joystick to move,
   K/click to swing your sword, SPACE to hop, **B to drop a bomb**. Dark, dank
-  floors with torches, red carpets and hanging chains. Bombs blow open cracked
-  walls and **boost you onto platforms** (your own bombs never hurt you).
+  floors with torches, red carpets and hanging chains. Dynamite blows open
+  cracked walls and Bombs **boost you onto platforms** (your own bombs never
+  hurt you).
   Zombies, skeletons and spike traps stand between you and the glowing
   staircase; die and the floor resets to the start. Beat the floor: VICTORY —
   +25 gems — but the Warlock who took the tower is FURIOUS, and his ambush
@@ -78,15 +79,17 @@ python3 -m http.server
   Each gate is checked while the floor is built: if you could sneak around it,
   that floor is thrown away and built again.
 
-  Enemies drop gems you can spend in the Market. **Six bomb types** from the drawings, swapped with V (or SWAP):
-  **Bomb** (boosts upwards) · **Dynamite** (destroys blocks, big blast, no
-  boost) · **Landmine** (explodes when touched — monsters trigger it too — and
-  boosts you sideways) · **Time Bomb** (you set the timer with T: 1/3/5s, and
-  the countdown shows on the bomb) · **Remote Bomb** (press R to push the
-  button) · **Stick Bomb** (sticks to walls and even rides monsters; boosts
-  you diagonally upwards). Floor 1 teaches the Bomb; Floors 2–3 unlock the
-  rest, and every floor above that hands you all six (with a few more of each
-  the higher you go). Owning the Market's Box-o-Bombs grants +3 bombs every floor.
+  Enemies drop gems you can spend in the Market. **Six bomb types** from the
+  drawings, swapped with V (or SWAP) — and now **every bomb has exactly ONE
+  job**, so you pick the right tool:
+  **Bomb** (the ONLY one that boosts you UP onto platforms) ·
+  **Dynamite** (the ONLY one that blows up cracked walls) ·
+  **Landmine** (the trap — monsters step on it, and it dashes YOU sideways) ·
+  **Time Bomb** (you set the timer with T, and it hits the HARDEST — 6 damage) ·
+  **Remote Bomb** (place a whole bunch, then R fires them ALL at once) ·
+  **Stick Bomb** (sticks to walls and rides monsters; the only DIAGONAL boost).
+  Floor 1 hands you Bombs *and* Dynamite and teaches the swap; Floor 2 adds
+  landmines, Floor 3 the rest, and every floor above that carries all six. Owning the Market's Box-o-Bombs grants +3 bombs every floor.
   Smashing things also earns **crafting materials** for the Forge: monsters
   drop **metal**, bombed-open walls burst into **stone**, and bomb crates
   hold **wood** (walk over one for +2 bombs and a plank; blow one up and it
@@ -127,9 +130,14 @@ python3 -m http.server
 - **The Forge** (`forge.html`) — from the Forge drawing: a dark smithy with
   drifting embers and four stations. **Workbench** — *"Repair & craft your own
   items!"*: repairing (20 💎) patches your armor for **+1 ❤ on your next Tower
-  run**, and crafting (130 💎 + materials) builds your own gear — pick a base
-  (Sword, Shield, Hammer, Charm) and a material (metal, stone or wood) and get
-  a rare item like the *Stone Hammer*. **Anvil** — *"Upgrade items!"*: each ★
+  run**, and crafting opens **the blueprint book** — twelve real builds, from
+  a 60 💎 Wooden Shield up to epic two-headed weapons welded onto one handle:
+  the **Bomb Blade** (a sword with a bomb on it, obviously), the **Zombie
+  Chopper** (cleaver + fang), the **Dragon Spear**, **Frost Fang**, **Double
+  Trouble** (two blades, zero patience), the **Star Scythe**, the **Thunder
+  Hammer** (every whack is a thunderclap) and the **Key Blade** (opens
+  monsters). Each has its own gem + materials price, the Workbench shows off
+  what you built, and it lands in your Inventory ready to equip. **Anvil** — *"Upgrade items!"*: each ★
   (60 💎 + 6 metal, up to ★★★) makes your sword hit harder in the Tower.
   **Combinatron** — *"A machine from a different time, hmmm…"*: feed it two
   items and 300 💎 and it welds them into **one new weapon** with a
