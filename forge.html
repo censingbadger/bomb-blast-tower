@@ -406,6 +406,7 @@ footer {
 }
 .warn { color: #ff9d5e; font-size: 1rem; min-height: 1.2em; margin-bottom: .3rem; }
 .fusedshow { margin: .2rem 0 .1rem; }
+.craftbig { width: min(8.5rem, 38vw); height: auto; filter: drop-shadow(0 5px 0 rgba(0,0,0,.4)); }
 .fusedbig { width: min(11rem, 46vw); height: auto; filter: drop-shadow(0 6px 0 rgba(0,0,0,.45)); animation: fusedspin .7s ease; }
 @keyframes fusedspin { 0% { transform: scale(.4) rotate(-25deg); opacity: 0; } 60% { transform: scale(1.12) rotate(6deg); opacity: 1; } }
 .burnfx { font-size: 2.6rem; animation: burnpop .9s ease; display: inline-block; }
@@ -518,7 +519,7 @@ footer {
       <p class="quote">&ldquo;Repair &amp; craft your own items!&rdquo;</p>
       <div class="btns">
         <button class="abtn" id="repair">Repair armor <span class="costtag">20 <svg viewBox="0 0 40 40" aria-hidden="true"><path d="M8 14 L14 6 L26 6 L32 14 L20 34 Z" fill="#241505" stroke="none"/></svg></span></button>
-        <button class="abtn" id="craftbtn">Craft an item <span class="costtag">130 <svg viewBox="0 0 40 40" aria-hidden="true"><path d="M8 14 L14 6 L26 6 L32 14 L20 34 Z" fill="#241505" stroke="none"/></svg> + materials</span></button>
+        <button class="abtn" id="craftbtn">Craft an item <span class="costtag">from 60 <svg viewBox="0 0 40 40" aria-hidden="true"><path d="M8 14 L14 6 L26 6 L32 14 L20 34 Z" fill="#241505" stroke="none"/></svg> + materials</span></button>
       </div>
     </section>
 
@@ -723,13 +724,7 @@ const MAT_META = {
   stone: { label: 'Stone', fill: '#a89a82', line: '#5d5342' },
   wood:  { label: 'Wood',  fill: '#c07d3d', line: '#6b3a1a' },
 };
-const BASES = {
-  // extras: every sword needs a handle, every shield needs a rim…
-  sword:  { label: 'Sword',  extras: { wood: 2 } },
-  shield: { label: 'Shield', extras: { metal: 2 } },
-  hammer: { label: 'Hammer', extras: { wood: 2 } },
-  charm:  { label: 'Charm',  extras: {} },
-};
+const BASES = { sword: { label: 'Sword' }, shield: { label: 'Shield' }, hammer: { label: 'Hammer' }, charm: { label: 'Charm' } };
 /* little pictures for crafted things, tinted by their material */
 function baseArt(base, mat) {
   const m = MAT_META[mat] || MAT_META.metal;
@@ -898,68 +893,95 @@ $('#repair').addEventListener('click', () => {
   say('&#128296; Tap tap tap&hellip; armor repaired! You get <b>+1 &#10084;</b> on your next Tower run.');
 });
 
-let craftBase = null, craftMat = null;
-function craftCostStr(base, mat) {
-  const parts = ['130 ' + GEM_SVG];
-  const cost = craftCost(base, mat);
-  for (const k in cost) parts.push(cost[k] + ' ' + k);
-  return parts.join(' + ');
-}
-function craftCost(base, mat) {
-  // mostly made of the material you pick, plus the base's extras
-  const c = {}; c[mat] = 8;
-  const ex = BASES[base].extras;
-  for (const k in ex) c[k] = (c[k] || 0) + ex[k];
-  return c;
-}
-function craftName() {
-  if (!craftBase || !craftMat) return '&hellip;';
-  const matWord = { metal: 'Metal', stone: 'Stone', wood: 'Wooden' }[craftMat];
-  return matWord + ' ' + BASES[craftBase].label;
+/* ---------- the blueprint book: real crafts, not just colors ---------- */
+const BLUEPRINTS = [
+  { id: 'wood-shield',    name: 'Wooden Shield',  rarity: 'common',   gems: 60,  mats: { wood: 8 },                     base: 'shield', mat: 'wood',
+    fx: 'splintery but proud' },
+  { id: 'lucky-charm',    name: 'Lucky Charm',    rarity: 'uncommon', gems: 80,  mats: { stone: 6 },                    base: 'charm',  mat: 'stone',
+    fx: 'feels lucky. probably is.' },
+  { id: 'metal-sword',    name: 'Metal Sword',    rarity: 'uncommon', gems: 90,  mats: { metal: 8, wood: 2 },           base: 'sword',  mat: 'metal',
+    fx: 'the classic' },
+  { id: 'double-trouble', name: 'Double Trouble', rarity: 'uncommon', gems: 100, mats: { metal: 6, wood: 2 },           parts: ['blade', 'blade'],
+    fx: 'two blades, zero patience' },
+  { id: 'boulder-shield', name: 'Boulder Shield', rarity: 'rare',     gems: 110, mats: { stone: 8, wood: 2 },           base: 'shield', mat: 'stone',
+    fx: 'heavy. VERY heavy.' },
+  { id: 'zombie-chopper', name: 'Zombie Chopper', rarity: 'rare',     gems: 120, mats: { metal: 5, wood: 3 },           parts: ['cleaver', 'fang'],
+    fx: 'the zombies voted against it' },
+  { id: 'bomb-blade',     name: 'Bomb Blade',     rarity: 'rare',     gems: 130, mats: { metal: 6, wood: 2 },           parts: ['blade', 'bomb'],
+    fx: 'a sword with a bomb on it. obviously.' },
+  { id: 'dragon-spear',   name: 'Dragon Spear',   rarity: 'rare',     gems: 140, mats: { metal: 6, wood: 3 },           parts: ['spear', 'fang'],
+    fx: 'pointy AND toothy' },
+  { id: 'frost-fang',     name: 'Frost Fang',     rarity: 'rare',     gems: 150, mats: { metal: 5, stone: 2 },          parts: ['dagger', 'fang'],
+    fx: 'cold to the bone' },
+  { id: 'star-scythe',    name: 'Star Scythe',    rarity: 'epic',     gems: 190, mats: { metal: 7, stone: 3 },          parts: ['scythe', 'star'],
+    fx: 'harvests shooting stars' },
+  { id: 'thunder-hammer', name: 'Thunder Hammer', rarity: 'epic',     gems: 200, mats: { metal: 8, stone: 4 },          parts: ['hammer', 'bolt'],
+    fx: 'every whack is a thunderclap' },
+  { id: 'key-blade',      name: 'Key Blade',      rarity: 'epic',     gems: 210, mats: { metal: 6, stone: 4, wood: 2 }, parts: ['blade', 'key'],
+    fx: 'opens monsters' },
+];
+let craftSel = null;
+const bpArt = (bp, cls) => bp.parts
+  ? fusedArt(bp.parts, cls)
+  : baseArt(bp.base, bp.mat).replace('<svg ', '<svg class="' + (cls || 'mini') + '" ');
+function bpCostStr(bp) {
+  const bits = [bp.gems + ' ' + GEM_SVG];
+  for (const k in bp.mats) bits.push(bp.mats[k] + ' ' + k);
+  return bits.join(' + ');
 }
 function renderCraftModal() {
-  const baseRow = Object.keys(BASES).map(b =>
-    '<button class="choice' + (craftBase === b ? ' on' : '') + '" data-act="base" data-v="' + b + '">' + baseArt(b, craftMat || 'metal') + BASES[b].label + '</button>'
+  const grid = BLUEPRINTS.map(bp =>
+    '<button class="choice' + (craftSel === bp.id ? ' on' : '') + '" data-act="bp" data-v="' + bp.id + '">' + bpArt(bp) + bp.name + '</button>'
   ).join('');
-  const matRow = Object.keys(MAT_META).map(m =>
-    '<button class="choice' + (craftMat === m ? ' on' : '') + '" data-act="mat" data-v="' + m + '">' + MAT_META[m].label + ' <span class="mini">(' + (mats[m] || 0) + ')</span></button>'
-  ).join('');
-  const ready = craftBase && craftMat;
+  const bp = BLUEPRINTS.find(b => b.id === craftSel);
   openModal(
-    '<h2>Craft your own item</h2>' +
-    '<p class="sub">Pick a thing to make, then pick what it&rsquo;s mostly made of.</p>' +
-    '<div class="choicerow">' + baseRow + '</div>' +
-    '<div class="choicerow">' + matRow + '</div>' +
-    '<div class="preview">' + craftName() + '</div>' +
+    '<h2>The blueprint book</h2>' +
+    '<p class="sub">Pick something to build &mdash; the fancy ones weld two heads onto one handle.</p>' +
+    '<div class="pickgrid">' + grid + '</div>' +
+    (bp
+      ? '<div class="fusedshow">' + bpArt(bp, 'craftbig') + '</div>' +
+        '<div class="preview">' + bp.name + ' <i style="font-size:.75em">(' + bp.rarity + ')</i></div>' +
+        '<p class="sub" style="margin-bottom:.4rem">' + bp.fx + '</p>'
+      : '<div class="preview">&hellip;</div>') +
     '<p class="warn" id="craftwarn"></p>' +
     '<div class="cardbtns">' +
-      (ready ? '<button class="abtn" data-act="docraft">Craft it! <span class="costtag">' + craftCostStr(craftBase, craftMat) + '</span></button>' : '') +
+      (bp ? '<button class="abtn" data-act="docraft">Craft it! <span class="costtag">' + bpCostStr(bp) + '</span></button>' : '') +
       '<button class="abtn cool" data-act="close">Not now</button>' +
     '</div>',
-    ready ? '[data-act="docraft"]' : '[data-act="base"]'
+    bp ? '[data-act="docraft"]' : '[data-act="bp"]'
   );
 }
-$('#craftbtn').addEventListener('click', () => { sfx.init(); craftBase = null; craftMat = null; renderCraftModal(); });
+$('#craftbtn').addEventListener('click', () => { sfx.init(); craftSel = null; renderCraftModal(); });
 
 function doCraft() {
-  const cost = craftCost(craftBase, craftMat);
-  if (gems < 130) { shakeCard(); $('#craftwarn') && ($('#craftwarn').textContent = 'You need 130 gems (you have ' + gems + ').'); sfx.nope(); return; }
-  for (const k in cost) {
-    if ((mats[k] || 0) < cost[k]) {
+  const bp = BLUEPRINTS.find(b => b.id === craftSel);
+  if (!bp) return;
+  if (gems < bp.gems) { shakeCard(); const w = $('#craftwarn'); if (w) w.textContent = 'You need ' + bp.gems + ' gems (you have ' + gems + ').'; sfx.nope(); return; }
+  for (const k in bp.mats) {
+    if ((mats[k] || 0) < bp.mats[k]) {
       shakeCard(); sfx.nope();
       const w = $('#craftwarn');
-      if (w) w.textContent = 'Not enough ' + k + '! You need ' + cost[k] + ' and have ' + (mats[k] || 0) + '. Go smash things in the Tower!';
+      if (w) w.textContent = 'Not enough ' + k + '! You need ' + bp.mats[k] + ' and have ' + (mats[k] || 0) + '. Go smash things in the Tower!';
       return;
     }
   }
-  gems -= 130;
-  for (const k in cost) mats[k] -= cost[k];
-  const it = { id: uid(), name: craftName(), base: craftBase, mat: craftMat, rarity: 'rare' };
+  gems -= bp.gems;
+  for (const k in bp.mats) mats[k] -= bp.mats[k];
+  const it = { id: uid(), name: bp.name, rarity: bp.rarity };
+  if (bp.parts) { it.parts = bp.parts.slice(); it.cat = 'weapon'; it.base = 'sword'; it.mat = 'metal'; }
+  else { it.base = bp.base; it.mat = bp.mat; }
   custom.push(it); saveAll();
   renderAll('gems');
   sfx.hammer(); setTimeout(() => sfx.craft(), 180);
-  closeModal();
-  say('&#10024; You crafted the <b>' + it.name + '</b>! It&rsquo;s on your gear shelf.');
+  openModal(
+    '<h2>&#128296; TAP TAP&hellip; DONE!</h2>' +
+    '<p class="sub">You built it yourself:</p>' +
+    '<div class="fusedshow">' + bpArt(bp, 'fusedbig') + '</div>' +
+    '<div class="preview">' + it.name + '</div>' +
+    '<p class="sub">a <b>' + it.rarity + '</b> ' + (bp.parts ? 'weapon' : bp.base === 'shield' ? 'shield' : 'trinket') + ' &mdash; it&rsquo;s on your gear shelf and in your Inventory.</p>' +
+    '<div class="cardbtns"><button class="abtn" data-act="close">Nice!</button></div>',
+    '[data-act="close"]'
+  );
 }
 
 /* ============================================================
@@ -1109,8 +1131,7 @@ cardEl.addEventListener('click', e => {
   if (!btn) return;
   const act = btn.dataset.act, v = btn.dataset.v;
   if (act === 'close') closeModal();
-  else if (act === 'base') { craftBase = v; renderCraftModal(); }
-  else if (act === 'mat') { craftMat = v; renderCraftModal(); }
+  else if (act === 'bp') { craftSel = v; renderCraftModal(); }
   else if (act === 'docraft') doCraft();
   else if (act === 'anvil') doAnvil(v);
   else if (act === 'combisel') {

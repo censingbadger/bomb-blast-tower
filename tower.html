@@ -262,8 +262,8 @@ body {
 const FLOORS = [
   {
     name: 'FLOOR 1 — The Guardroom',
-    tip: 'Bomb the cracked wall! (B)',
-    loadout: { bomb: 3 },
+    tip: 'Swap with V — only DYNAMITE blasts the cracked wall!',
+    loadout: { bomb: 3, dynamite: 2 },
     grid: [
       '####################',
       '#S....#........#...#',
@@ -280,7 +280,7 @@ const FLOORS = [
   },
   {
     name: 'FLOOR 2 — The Spike Bridge',
-    tip: 'NEW: dynamite & landmines — press V to swap bombs!',
+    tip: 'NEW: landmines — monsters step on them! (Bombs boost, dynamite blasts)',
     loadout: { bomb: 2, dynamite: 2, landmine: 2 },
     grid: [
       '######################',
@@ -327,19 +327,26 @@ const FLOORS = [
 ];
 
 /* The six bombs, straight from the drawings. boost: 'up' | 'side' | 'diag' */
+/* Every bomb has ONE job now — you pick the right tool:
+   Bomb      = the ONLY one that boosts you UP onto platforms
+   Dynamite  = the ONLY one that blows up cracked walls
+   Landmine  = the trap: monsters step on it — and it dashes YOU sideways
+   Time Bomb = you set the timer, and it hits the HARDEST
+   Remote    = place a whole bunch, then R sets them ALL off at once
+   Stick     = sticks to monsters and walls; the only DIAGONAL boost */
 const BOMB_TYPES = {
-  bomb:     { name: 'Bomb',        fuse: 1150, radius: 1.9, dmg: 3, breaksWalls: true, boost: 'up',
-              desc: 'boosts upwards' },
-  dynamite: { name: 'Dynamite',    fuse: 1400, radius: 2.7, dmg: 5, breaksWalls: true, boost: null,
-              desc: 'DESTROYS blocks' },
-  landmine: { name: 'Landmine',    mine: true, arm: 800, radius: 1.6, dmg: 3, breaksWalls: true, boost: 'side',
-              desc: 'explodes when touched — boosts sideways' },
-  timebomb: { name: 'Time Bomb',   settable: true, radius: 2.0, dmg: 3, breaksWalls: true, boost: 'up',
-              desc: 'you set the timer (T)' },
-  remote:   { name: 'Remote Bomb', remote: true, radius: 2.0, dmg: 3, breaksWalls: true, boost: 'up',
-              desc: 'R presses the button' },
-  stick:    { name: 'Stick Bomb',  fuse: 1000, radius: 1.7, dmg: 3, breaksWalls: true, boost: 'diag', sticky: true,
-              desc: 'sticks to things — boosts diagonally' },
+  bomb:     { name: 'Bomb',        fuse: 1150, radius: 1.9, dmg: 2, breaksWalls: false, boost: 'up',
+              desc: 'the ONLY bomb that boosts you UP' },
+  dynamite: { name: 'Dynamite',    fuse: 1400, radius: 2.7, dmg: 4, breaksWalls: true, boost: null,
+              desc: 'the ONLY bomb that blows up walls' },
+  landmine: { name: 'Landmine',    mine: true, arm: 800, radius: 1.6, dmg: 3, breaksWalls: false, boost: 'side',
+              desc: 'a trap for monsters — dashes you sideways' },
+  timebomb: { name: 'Time Bomb',   settable: true, radius: 2.2, dmg: 6, breaksWalls: false, boost: null,
+              desc: 'you set the timer — the HARDEST hitter' },
+  remote:   { name: 'Remote Bomb', remote: true, radius: 2.0, dmg: 3, breaksWalls: false, boost: null,
+              desc: 'place a bunch, R fires them ALL' },
+  stick:    { name: 'Stick Bomb',  fuse: 1000, radius: 1.7, dmg: 3, breaksWalls: false, boost: 'diag', sticky: true,
+              desc: 'sticks to monsters — the only DIAGONAL boost' },
 };
 const BOMB_ORDER = ['bomb', 'dynamite', 'landmine', 'timebomb', 'remote', 'stick'];
 const BOMB_ICONS = {
@@ -2091,6 +2098,7 @@ window.__tower = {
   get G() { return G; },
   get sfx() { return sfx; },
   get music() { return MUSIC; },
+  get bombTypes() { return BOMB_TYPES; },
   get silent() { return silentKick; },
   get floors() { return FLOORS; },
   get mats() { return mats; },
