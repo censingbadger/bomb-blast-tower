@@ -737,6 +737,8 @@ function customArt(c) {
   return 'charm';
 }
 function artFor(it) { return it.parts ? fusedArt(it.parts) : mini(it.art, it.mat); }
+// the Tower reads this to pick your weapon's swing sound
+function weaponShapeOf(it) { return it && it.parts ? 'fused' : shapeOf(it); }
 function allGear() {
   const g = [];
   owned.forEach(id => { const m = MARKET_ITEMS[id]; if (m) g.push({ id, name: m.name, rarity: m.rarity, cat: m.cat, art: m.art }); });
@@ -894,6 +896,7 @@ document.querySelector('.sheet').addEventListener('click', e => {
   const kind = btn.dataset.kind, id = btn.dataset.id;
   if (kind === 'weapon') {
     equip.weapon = id;
+    equip.weaponShape = weaponShapeOf(allGear().find(g => g.id === id));
     sfx.equip();
     say('&#9876;&#65039; <b>' + (allGear().find(g => g.id === id) || {}).name + '</b> equipped!');
   } else if (kind === 'armor') {
@@ -916,7 +919,10 @@ document.querySelector('.sheet').addEventListener('click', e => {
   if (!equip.weapon && weapons.length) {
     weapons.sort((a, b) => (rankOf(b.rarity) + stars(b.id)) - (rankOf(a.rarity) + stars(a.id)));
     equip.weapon = weapons[0].id;
+    equip.weaponShape = weaponShapeOf(weapons[0]);
   }
+  if (equip.weapon && !equip.weaponShape) equip.weaponShape = weaponShapeOf(gear.find(g => g.id === equip.weapon));
+  if (!equip.weapon) equip.weaponShape = null;
   if (equip.armor && !gear.some(g => g.id === equip.armor && g.cat === 'armor')) equip.armor = null;
   if (!BOMB_META[equip.offhand]) equip.offhand = 'bomb';
   save('bbt-equip', equip);

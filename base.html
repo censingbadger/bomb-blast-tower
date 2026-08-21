@@ -290,6 +290,9 @@ body.fighting .alarm { display: none; }
   box-shadow: 0 4px 0 rgba(0,0,0,.4);
 }
 .card .btn:focus-visible { outline: 3px solid var(--gem); outline-offset: 3px; }
+.cardrow { display: flex; flex-wrap: wrap; justify-content: center; gap: .5rem; }
+.cardrow .btn { margin-top: .6rem; }
+#heldhome, #fallenhome, #heldok { background: linear-gradient(180deg, #d9cdb6, #b9a98d); border-color: #6b5a3f; }
 
 /* ---------- toast ---------- */
 .toast {
@@ -325,6 +328,7 @@ footer {
 <div class="page">
   <header>
     <a class="back" id="back" href="index.html">&#8592; Home</a>
+    <button class="back" id="mute" title="Music and sound on/off" style="padding-left:.9rem;padding-right:.9rem">&#128266;</button>
     <div class="title">BASE</div>
     <div class="wavechip" id="wavechip">Waves survived: 0</div>
     <div class="gems" id="gempill" aria-label="Your gems">
@@ -379,7 +383,11 @@ footer {
     <h1>&#127942; THE BASE HELD!</h1>
     <p id="heldmsg"></p>
     <p class="sub" id="heldsub"></p>
-    <button class="btn" id="heldok">Back to building</button>
+    <div class="cardrow">
+      <button class="btn" id="nextfloor">Next Floor &#8594;</button>
+      <button class="btn" id="heldhome">Home Screen</button>
+      <button class="btn" id="heldok">Back to building</button>
+    </div>
   </div>
 </div>
 
@@ -388,7 +396,10 @@ footer {
     <h1>&#128128; THE BASE HAS FALLEN</h1>
     <p id="fallenmsg"></p>
     <p class="sub">Your wall is broken &mdash; replace it cheap at the shop, then build back stronger!</p>
-    <button class="btn" id="fallenok">Rebuild</button>
+    <div class="cardrow">
+      <button class="btn" id="fallenok">Rebuild</button>
+      <button class="btn" id="fallenhome">Home Screen</button>
+    </div>
   </div>
 </div>
 
@@ -398,7 +409,27 @@ footer {
 /* ---------- tiny sounds ---------- */
 const sfx = {
   ctx: null,
-  init() { if (this.ctx) return; try { const C = window.AudioContext || window.webkitAudioContext; if (C) this.ctx = new C(); } catch (e) { this.ctx = null; } },
+  out: null, musicOut: null, muted: false,
+  init() {
+    if (this.ctx) { if (this.ctx.state === 'suspended') { try { this.ctx.resume(); } catch (e) {} } return; }
+    try {
+      const C = window.AudioContext || window.webkitAudioContext;
+      if (!C) return;
+      this.ctx = new C();
+      this.out = this.ctx.createGain(); this.out.gain.value = this.muted ? 0 : 1;
+      this.out.connect(this.ctx.destination);
+      this.musicOut = this.ctx.createGain(); this.musicOut.gain.value = this.muted ? 0 : 0.5;
+      this.musicOut.connect(this.ctx.destination);
+      if (this.ctx.state === 'suspended') this.ctx.resume();
+    } catch (e) { this.ctx = null; }
+  },
+  setMuted(m) {
+    this.muted = !!m;
+    try {
+      if (this.out) this.out.gain.value = this.muted ? 0 : 1;
+      if (this.musicOut) this.musicOut.gain.value = this.muted ? 0 : 0.5;
+    } catch (e) {}
+  },
   env(type, f0, f1, dur, vol, when) {
     if (!this.ctx) return;
     try {
@@ -407,7 +438,7 @@ const sfx = {
       o.type = type; o.frequency.setValueAtTime(f0, t);
       o.frequency.exponentialRampToValueAtTime(Math.max(28, f1), t + dur);
       g.gain.setValueAtTime(vol, t); g.gain.exponentialRampToValueAtTime(.001, t + dur);
-      o.connect(g); g.connect(this.ctx.destination);
+      o.connect(g); g.connect(this.out || this.ctx.destination);
       o.start(t); o.stop(t + dur);
     } catch (e) {}
   },
@@ -420,7 +451,7 @@ const sfx = {
       const src = this.ctx.createBufferSource(); src.buffer = buf;
       const f = this.ctx.createBiquadFilter(); f.type = 'lowpass'; f.frequency.value = cutoff;
       const g = this.ctx.createGain(); g.gain.value = vol;
-      src.connect(f); f.connect(g); g.connect(this.ctx.destination);
+      src.connect(f); f.connect(g); g.connect(this.out || this.ctx.destination);
       src.start();
     } catch (e) {}
   },
@@ -433,6 +464,119 @@ const sfx = {
   win() { [523, 659, 784, 1047].forEach((f, i) => this.env('sine', f, f, .3, .17, i * .13)); },
   lose() { this.env('sawtooth', 220, 40, 1.1, .22); },
 };
+/* ============================================================
+   THE SOUNDTRACK — a catchy little tune, played live by the
+   browser (no music files). Bass, drums and a hook that loops
+   over Am - F - C - G, with a calmer version for building and
+   a faster one for fights.
+   ============================================================ */
+const MUSIC = {
+  ctx: null, out: null, timer: null, step: 0, next: 0, on: false, mood: 'tower', bar: 0,
+  BPM: { tower: 126, calm: 100, battle: 144 },
+  /* 4 bars x 16 sixteenths. 0 = rest. It's A minor pentatonic, which is
+     almost impossible to make sound bad. */
+  LEAD: {
+    tower: [
+      [440, 0, 523, 0, 659, 0, 587, 523, 0, 440, 0, 0, 659, 0, 587, 0],
+      [523, 0, 440, 0, 349, 0, 440, 523, 0, 0, 392, 0, 440, 0, 0, 0],
+      [659, 0, 587, 0, 523, 0, 392, 440, 0, 523, 0, 0, 659, 0, 0, 0],
+      [587, 0, 494, 0, 392, 0, 494, 587, 0, 659, 0, 587, 0, 494, 0, 0],
+    ],
+    calm: [
+      [440, 0, 0, 0, 523, 0, 0, 0, 659, 0, 0, 0, 587, 0, 0, 0],
+      [349, 0, 0, 0, 440, 0, 0, 0, 523, 0, 0, 0, 440, 0, 0, 0],
+      [523, 0, 0, 0, 392, 0, 0, 0, 440, 0, 0, 0, 523, 0, 0, 0],
+      [587, 0, 0, 0, 494, 0, 0, 0, 392, 0, 0, 0, 440, 0, 0, 0],
+    ],
+    battle: [
+      [880, 880, 0, 659, 0, 659, 0, 587, 523, 0, 523, 0, 659, 0, 587, 523],
+      [698, 698, 0, 523, 0, 523, 0, 440, 349, 0, 349, 0, 523, 0, 440, 349],
+      [659, 659, 0, 523, 0, 523, 0, 494, 392, 0, 392, 0, 523, 0, 494, 392],
+      [587, 587, 0, 494, 0, 494, 0, 392, 294, 0, 392, 0, 494, 0, 587, 659],
+    ],
+  },
+  ROOTS: [110, 87.31, 130.81, 98],           // A  F  C  G
+  start(ctx, out) {
+    if (!ctx || this.on) return;
+    this.ctx = ctx;
+    this.out = out || ctx.destination;
+    this.on = true;
+    this.step = 0; this.bar = 0;
+    this.next = ctx.currentTime + 0.08;
+    this.timer = setInterval(() => this.tick(), 25);
+  },
+  stop() { this.on = false; clearInterval(this.timer); this.timer = null; },
+  setMood(m) { if (this.LEAD[m] && m !== this.mood) { this.mood = m; } },
+  stepDur() { return 60 / this.BPM[this.mood] / 4; },
+  tick() {
+    if (!this.on || !this.ctx) return;
+    try {
+      while (this.next < this.ctx.currentTime + 0.15) {
+        this.play(this.step, this.next);
+        this.next += this.stepDur();
+        this.step++;
+        if (this.step % 16 === 0) this.bar++;
+      }
+    } catch (e) { this.stop(); }
+  },
+  tone(f, t, dur, type, vol, glideTo) {
+    if (!f) return;
+    const o = this.ctx.createOscillator(), g = this.ctx.createGain();
+    o.type = type || 'square';
+    o.frequency.setValueAtTime(f, t);
+    if (glideTo) o.frequency.exponentialRampToValueAtTime(glideTo, t + dur);
+    g.gain.setValueAtTime(0.0001, t);
+    g.gain.exponentialRampToValueAtTime(vol, t + 0.012);
+    g.gain.exponentialRampToValueAtTime(0.0001, t + dur);
+    o.connect(g); g.connect(this.out);
+    o.start(t); o.stop(t + dur + 0.02);
+  },
+  drum(t, kind) {
+    if (kind === 'kick') {
+      const o = this.ctx.createOscillator(), g = this.ctx.createGain();
+      o.type = 'sine'; o.frequency.setValueAtTime(140, t);
+      o.frequency.exponentialRampToValueAtTime(45, t + 0.13);
+      g.gain.setValueAtTime(0.5, t); g.gain.exponentialRampToValueAtTime(0.001, t + 0.16);
+      o.connect(g); g.connect(this.out); o.start(t); o.stop(t + 0.18);
+      return;
+    }
+    // snare / hat: filtered noise
+    const dur = kind === 'snare' ? 0.16 : 0.045;
+    const n = Math.floor(this.ctx.sampleRate * dur);
+    const buf = this.ctx.createBuffer(1, n, this.ctx.sampleRate);
+    const d = buf.getChannelData(0);
+    for (let i = 0; i < n; i++) d[i] = (Math.random() * 2 - 1) * Math.pow(1 - i / n, kind === 'snare' ? 1.6 : 3);
+    const src = this.ctx.createBufferSource(); src.buffer = buf;
+    const f = this.ctx.createBiquadFilter();
+    f.type = kind === 'snare' ? 'bandpass' : 'highpass';
+    f.frequency.value = kind === 'snare' ? 1600 : 7000;
+    const g = this.ctx.createGain(); g.gain.value = kind === 'snare' ? 0.26 : 0.1;
+    src.connect(f); f.connect(g); g.connect(this.out);
+    src.start(t);
+  },
+  play(step, t) {
+    const s = step % 16, barInLoop = Math.floor(step / 16) % 4;
+    const mood = this.mood;
+    const root = this.ROOTS[barInLoop];
+    const busy = mood !== 'calm';
+    // drums
+    if (s === 0 || s === 8 || (busy && s === 14)) this.drum(t, 'kick');
+    if (s === 4 || s === 12) this.drum(t, 'snare');
+    if (busy && s % 2 === 0) this.drum(t, 'hat');
+    if (mood === 'battle' && s % 2 === 1) this.drum(t, 'hat');
+    // bass: root, with a bouncing octave to keep it moving
+    if (s % 4 === 0) this.tone(root, t, 0.2, 'triangle', 0.22);
+    else if (busy && s % 4 === 2) this.tone(root * 2, t, 0.12, 'triangle', 0.13);
+    // the hook (every other loop it jumps an octave, so it doesn't get boring)
+    const lead = this.LEAD[mood][barInLoop][s];
+    if (lead) {
+      const high = Math.floor(step / 64) % 2 === 1 && mood !== 'battle';
+      this.tone(lead * (high ? 2 : 1), t, mood === 'calm' ? 0.3 : 0.15, 'square', 0.1);
+      this.tone(lead * (high ? 2 : 1) * 1.005, t, mood === 'calm' ? 0.3 : 0.15, 'sawtooth', 0.035);
+    }
+  },
+};
+
 addEventListener('pointerdown', () => sfx.init(), { once: true });
 
 /* ---------- saved game ---------- */
@@ -633,7 +777,19 @@ document.querySelector('.yard').addEventListener('click', e => {
   }
   else return;
   saveAll();
-  renderShop();
+  let muted = !!load('bbt-mute', false);
+sfx.muted = muted;
+function paintMute() { const b = $('#mute'); if (b) b.innerHTML = muted ? '&#128263;' : '&#128266;'; }
+function startSound() {
+  sfx.init();
+  sfx.setMuted(muted);
+  if (sfx.ctx && !MUSIC.on) { MUSIC.setMood(sim ? 'battle' : 'calm'); MUSIC.start(sfx.ctx, sfx.musicOut); }
+}
+paintMute();
+addEventListener('pointerdown', startSound, { capture: true });
+addEventListener('keydown', startSound, { capture: true });
+
+renderShop();
 });
 
 /* ---------- the canvas world ---------- */
@@ -686,6 +842,7 @@ function startWave(n, practice) {
     time: 0, t0: performance.now(),
   };
   document.body.classList.add('fighting');
+  try { startSound(); MUSIC.setMood('battle'); } catch (e) {}
   $('#fighthint').innerHTML = '&#128163; <b>Tap the field to throw bombs!</b> Hold them off!';
   sfx.alarm();
 }
@@ -1218,11 +1375,32 @@ $('#alarm').addEventListener('click', () => {
   if (sim) return;
   startWave(Math.max(1, floorsBeaten), true);
 });
+const preview = () => String(location.href).startsWith('about');
 $('#heldok').addEventListener('click', () => $('#ov-held').classList.remove('show'));
 $('#fallenok').addEventListener('click', () => $('#ov-fallen').classList.remove('show'));
+$('#nextfloor').addEventListener('click', () => {
+  if (preview()) { say('This is just the preview &mdash; open the real page to climb on!'); return; }
+  location.href = 'tower.html';
+});
+$('#heldhome').addEventListener('click', () => {
+  if (preview()) { say('This is just the preview &mdash; open the real page to head home!'); return; }
+  location.href = 'index.html';
+});
+$('#fallenhome').addEventListener('click', () => {
+  if (preview()) { say('This is just the preview &mdash; open the real page to head home!'); return; }
+  location.href = 'index.html';
+});
 $('#back').addEventListener('click', e => {
-  if (String(location.href).startsWith('about')) { e.preventDefault(); say('This is just the preview &mdash; open the real page to head home!'); return; }
-  if (history.length > 1 && document.referrer) { e.preventDefault(); history.back(); }
+  // never history.back() — that lands you on the floor you just finished,
+  // stuck behind its VICTORY screen
+  e.preventDefault();
+  if (preview()) { say('This is just the preview &mdash; open the real page to head home!'); return; }
+  location.href = 'index.html';
+});
+$('#mute').addEventListener('click', e => {
+  e.preventDefault();
+  muted = !muted; save('bbt-mute', muted);
+  startSound(); sfx.setMuted(muted); paintMute();
 });
 
 /* the Warlock's real ambush (?ambush=N from a Tower victory) */

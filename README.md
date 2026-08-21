@@ -93,6 +93,18 @@ python3 -m http.server
   splinters into extra wood). Your metal/stone/wood counts live right in the
   HUD next to your gems.
 
+  **It has a soundtrack now** — a catchy loop the browser plays live (no music
+  files): bass, drums and a hook over Am–F–C–G that jumps an octave every few
+  bars so it doesn't get boring. It goes calm when you die and gets faster
+  during a base attack. **Every bomb has its own fuse and its own bang** — the
+  Bomb fizzes, Dynamite rumbles deep, the Landmine clicks live then CRACKS, the
+  Time Bomb *ticks down out loud*, the Remote blips like a radio and waits for
+  the button, the Stick Bomb thwips and pops. **Every weapon has its own
+  swing** too, picked from whatever you equipped in the Inventory: a dagger
+  shinks, a cleaver chops, a hammer whoomphs, a scythe whooshes, a Thunder Rod
+  crackles, and a fused weapon gets its own magic ring. The 🔊 button in the
+  corner mutes everything and remembers your choice.
+
 - **Market** (`market.html`) — based on Asher's market drawing. Two shelves
   (Artifacts and Weapons on hanging signs), a floor row, prices in gems, rarity
   tags from Common to Legendary, and the Forge teaser. Everyone starts
@@ -163,6 +175,10 @@ python3 -m http.server
   gems and salvage. If they smash through: **the base falls** — you lose a
   chunk of gems and materials and your wall breaks. There's a practice alarm
   too, so you can test your fort any time without risking anything.
+  **When you hold the base**, the victory card offers **Next Floor →** (straight
+  back into the Tower, on the floor you just unlocked), **Home Screen**, and
+  **Back to building** if you'd rather spend your winnings on the fort first.
+  If the base falls you get **Rebuild** and **Home Screen**.
   **Getting there:** the **Base** hex on the homepage, or the green *Base*
   button in the header of the Market, the Forge and Inventory & Stats — so
   your fort is one click away from wherever you are.

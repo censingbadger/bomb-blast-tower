@@ -212,6 +212,7 @@ body {
     <svg viewBox="0 0 24 24"><rect x="6" y="8.5" width="15" height="7.5" rx="2.6" fill="#b06f34" stroke="#6b3a1a" stroke-width="1.6"/><ellipse cx="6.6" cy="12.25" rx="2.9" ry="3.75" fill="#e0a35c" stroke="#6b3a1a" stroke-width="1.6"/><ellipse cx="6.6" cy="12.25" rx="1.2" ry="1.7" fill="none" stroke="#6b3a1a" stroke-width="1"/></svg><span id="m-wood">0</span>
   </span>
   <span class="floorname" id="floorname">FLOOR 1</span>
+  <button class="quit" id="mute" title="Music and sound on/off">&#128266;</button>
   <a class="quit" id="quit" href="index.html">&#8592; Leave</a>
 </div>
 
@@ -242,6 +243,7 @@ body {
     <p id="victorymsg">You beat this floor!</p>
     <p class="sub" id="victorysub">Teleporting you home&hellip;</p>
     <button class="btn" id="gohome">Back to the Tower door</button>
+    <button class="btn" id="victoryhome">Home Screen</button>
   </div>
 </div>
 
@@ -696,24 +698,48 @@ function makeFloor(n) {
 }
 for (let n = 4; n <= 50; n++) FLOORS.push(makeFloor(n));
 
-/* ---------- sound (best-effort, never blocks the game) ---------- */
+/* ---------- sound (best-effort, never blocks the game) ----------
+   Every bomb has its own fuse and its own bang, and every weapon has its
+   own swing, so you can tell what you're holding with your eyes shut. */
 const sfx = {
-  ctx: null,
-  init() { if (this.ctx) return; try { const C = window.AudioContext || window.webkitAudioContext; if (C) this.ctx = new C(); } catch (e) {} },
-  env(type, f0, f1, dur, vol) {
+  ctx: null, out: null, musicOut: null, muted: false, log: [],
+  init() {
+    if (this.ctx) { if (this.ctx.state === 'suspended') { try { this.ctx.resume(); } catch (e) {} } return; }
+    try {
+      const C = window.AudioContext || window.webkitAudioContext;
+      if (!C) return;
+      this.ctx = new C();
+      this.out = this.ctx.createGain();
+      this.out.gain.value = this.muted ? 0 : 1;
+      this.out.connect(this.ctx.destination);
+      this.musicOut = this.ctx.createGain();
+      this.musicOut.gain.value = this.muted ? 0 : 0.5;
+      this.musicOut.connect(this.ctx.destination);
+      if (this.ctx.state === 'suspended') this.ctx.resume();
+    } catch (e) { this.ctx = null; }
+  },
+  setMuted(m) {
+    this.muted = !!m;
+    try {
+      if (this.out) this.out.gain.value = this.muted ? 0 : 1;
+      if (this.musicOut) this.musicOut.gain.value = this.muted ? 0 : 0.5;
+    } catch (e) {}
+  },
+  mark(n) { this.log.push(n); if (this.log.length > 80) this.log.shift(); },
+  env(type, f0, f1, dur, vol, when) {
     if (!this.ctx) return;
     try {
-      const t = this.ctx.currentTime;
+      const t = this.ctx.currentTime + (when || 0);
       const o = this.ctx.createOscillator(), g = this.ctx.createGain();
       o.type = type; o.frequency.setValueAtTime(f0, t);
       o.frequency.exponentialRampToValueAtTime(Math.max(30, f1), t + dur);
       g.gain.setValueAtTime(vol, t);
       g.gain.exponentialRampToValueAtTime(.001, t + dur);
-      o.connect(g); g.connect(this.ctx.destination);
+      o.connect(g); g.connect(this.out || this.ctx.destination);
       o.start(t); o.stop(t + dur);
     } catch (e) {}
   },
-  noise(dur, vol, f0) {
+  noise(dur, vol, f0, when) {
     if (!this.ctx) return;
     try {
       const n = Math.floor(this.ctx.sampleRate * dur);
@@ -723,20 +749,188 @@ const sfx = {
       const src = this.ctx.createBufferSource(); src.buffer = buf;
       const f = this.ctx.createBiquadFilter(); f.type = 'lowpass'; f.frequency.value = f0;
       const g = this.ctx.createGain(); g.gain.value = vol;
-      src.connect(f); f.connect(g); g.connect(this.ctx.destination);
-      src.start();
+      src.connect(f); f.connect(g); g.connect(this.out || this.ctx.destination);
+      src.start(this.ctx.currentTime + (when || 0));
     } catch (e) {}
   },
-  swing() { this.env('triangle', 500, 190, .1, .12); },
-  hit() { this.env('square', 210, 90, .12, .16); },
-  hurt() { this.env('sawtooth', 180, 60, .3, .2); },
-  fuse() { this.env('sine', 900, 1150, .1, .07); },
-  boom() { this.noise(.55, .5, 500); this.env('sine', 130, 40, .5, .35); },
-  pickup() { this.env('sine', 660, 990, .14, .15); },
-  gem() { this.env('sine', 990, 1320, .12, .12); },
-  boost() { this.env('sine', 250, 720, .32, .2); },
-  stairs() { [523, 659, 784, 1047].forEach((f, i) => setTimeout(() => this.env('sine', f, f, .25, .18), i * 130)); },
-  die() { this.env('sawtooth', 220, 40, .8, .25); },
+
+  /* ---- weapons: one swing each ---- */
+  swingFor(shape) {
+    this.mark('swing:' + shape);
+    switch (shape) {
+      case 'dagger':     this.env('triangle', 940, 430, .07, .12); break;
+      case 'cleaver':    this.env('triangle', 320, 120, .15, .17); this.noise(.1, .13, 900); break;
+      case 'spear':      this.env('sine', 720, 300, .1, .11); this.noise(.08, .08, 3200); break;
+      case 'hammer':     this.env('sine', 210, 70, .2, .2); this.noise(.14, .16, 500); break;
+      case 'greatblade': this.env('triangle', 430, 130, .23, .17); this.noise(.17, .1, 1400); break;
+      case 'scythe':     this.noise(.2, .15, 2600); this.env('triangle', 620, 200, .18, .1); break;
+      case 'bolt':       this.env('sawtooth', 1250, 300, .12, .12); this.env('square', 2000, 800, .08, .06, .02); break;
+      case 'orb':        this.env('sine', 520, 1200, .16, .1); this.env('sine', 1200, 620, .12, .06, .06); break;
+      case 'fused':      this.env('triangle', 520, 190, .13, .14); this.env('sine', 900, 1700, .14, .07, .03); this.noise(.1, .1, 2400); break;
+      case 'fist':       this.noise(.07, .09, 900); break;
+      default:           this.env('triangle', 500, 190, .1, .12);
+    }
+  },
+  hitFor(shape) {
+    this.mark('hit:' + shape);
+    if (shape === 'hammer' || shape === 'cleaver') { this.env('square', 150, 60, .16, .18); this.noise(.1, .14, 420); }
+    else if (shape === 'dagger') this.env('square', 330, 140, .08, .14);
+    else if (shape === 'bolt') this.env('sawtooth', 900, 200, .12, .14);
+    else if (shape === 'fused') { this.env('square', 260, 90, .13, .16); this.env('sine', 1400, 700, .1, .06, .02); }
+    else this.env('square', 210, 90, .12, .16);
+  },
+
+  /* ---- bombs: one fuse and one bang each ---- */
+  fuseFor(type) {
+    this.mark('fuse:' + type);
+    switch (type) {
+      case 'dynamite': this.env('sawtooth', 300, 520, .18, .08); this.noise(.25, .1, 2600); break;
+      case 'landmine': this.env('square', 1400, 900, .05, .1); this.env('square', 900, 1500, .05, .08, .07); break;
+      case 'timebomb': this.env('sine', 1500, 1500, .05, .1); this.env('sine', 1800, 1800, .04, .07, .09); break;
+      case 'remote':   this.env('sine', 700, 1300, .09, .09); this.env('sine', 1300, 700, .09, .06, .1); break;
+      case 'stick':    this.noise(.12, .18, 1200); this.env('sine', 200, 700, .12, .1); break;
+      default:         this.env('sine', 900, 1150, .1, .07);
+    }
+  },
+  boomFor(type) {
+    this.mark('boom:' + type);
+    switch (type) {
+      case 'dynamite': this.noise(.85, .55, 380); this.env('sine', 110, 28, .9, .4); this.env('sawtooth', 70, 24, .7, .16); break;
+      case 'landmine': this.noise(.3, .5, 2400); this.env('square', 320, 60, .22, .3); break;
+      case 'timebomb': this.env('square', 1200, 1200, .06, .12); this.noise(.5, .45, 700); this.env('sine', 150, 40, .5, .32); break;
+      case 'remote':   this.env('sine', 1700, 400, .07, .1); this.noise(.5, .45, 900); this.env('sine', 140, 40, .5, .32); break;
+      case 'stick':    this.noise(.4, .45, 1600); this.env('sine', 330, 60, .3, .28); break;
+      default:         this.noise(.55, .5, 500); this.env('sine', 130, 40, .5, .35);
+    }
+  },
+  tick() { this.mark('tick'); this.env('square', 1800, 1800, .03, .07); },
+  armed() { this.mark('armed'); this.env('square', 1200, 1650, .05, .08); },
+  detonator() { this.mark('detonator'); this.env('square', 500, 950, .05, .12); this.env('square', 950, 500, .04, .08, .05); },
+
+  /* ---- everything else ---- */
+  swing() { this.swingFor('blade'); },
+  hit() { this.hitFor('blade'); },
+  fuse() { this.fuseFor('bomb'); },
+  boom() { this.boomFor('bomb'); },
+  hurt() { this.mark('hurt'); this.env('sawtooth', 180, 60, .3, .2); },
+  pickup() { this.mark('pickup'); this.env('sine', 660, 990, .14, .15); },
+  gem() { this.mark('gem'); this.env('sine', 990, 1320, .12, .12); },
+  boost() { this.mark('boost'); this.env('sine', 250, 720, .32, .2); },
+  stairs() { this.mark('stairs'); [523, 659, 784, 1047].forEach((f, i) => this.env('sine', f, f, .25, .18, i * .13)); },
+  die() { this.mark('die'); this.env('sawtooth', 220, 40, .8, .25); },
+};
+
+/* ============================================================
+   THE SOUNDTRACK — a catchy little tune, played live by the
+   browser (no music files). Bass, drums and a hook that loops
+   over Am - F - C - G, with a calmer version for building and
+   a faster one for fights.
+   ============================================================ */
+const MUSIC = {
+  ctx: null, out: null, timer: null, step: 0, next: 0, on: false, mood: 'tower', bar: 0,
+  BPM: { tower: 126, calm: 100, battle: 144 },
+  /* 4 bars x 16 sixteenths. 0 = rest. It's A minor pentatonic, which is
+     almost impossible to make sound bad. */
+  LEAD: {
+    tower: [
+      [440, 0, 523, 0, 659, 0, 587, 523, 0, 440, 0, 0, 659, 0, 587, 0],
+      [523, 0, 440, 0, 349, 0, 440, 523, 0, 0, 392, 0, 440, 0, 0, 0],
+      [659, 0, 587, 0, 523, 0, 392, 440, 0, 523, 0, 0, 659, 0, 0, 0],
+      [587, 0, 494, 0, 392, 0, 494, 587, 0, 659, 0, 587, 0, 494, 0, 0],
+    ],
+    calm: [
+      [440, 0, 0, 0, 523, 0, 0, 0, 659, 0, 0, 0, 587, 0, 0, 0],
+      [349, 0, 0, 0, 440, 0, 0, 0, 523, 0, 0, 0, 440, 0, 0, 0],
+      [523, 0, 0, 0, 392, 0, 0, 0, 440, 0, 0, 0, 523, 0, 0, 0],
+      [587, 0, 0, 0, 494, 0, 0, 0, 392, 0, 0, 0, 440, 0, 0, 0],
+    ],
+    battle: [
+      [880, 880, 0, 659, 0, 659, 0, 587, 523, 0, 523, 0, 659, 0, 587, 523],
+      [698, 698, 0, 523, 0, 523, 0, 440, 349, 0, 349, 0, 523, 0, 440, 349],
+      [659, 659, 0, 523, 0, 523, 0, 494, 392, 0, 392, 0, 523, 0, 494, 392],
+      [587, 587, 0, 494, 0, 494, 0, 392, 294, 0, 392, 0, 494, 0, 587, 659],
+    ],
+  },
+  ROOTS: [110, 87.31, 130.81, 98],           // A  F  C  G
+  start(ctx, out) {
+    if (!ctx || this.on) return;
+    this.ctx = ctx;
+    this.out = out || ctx.destination;
+    this.on = true;
+    this.step = 0; this.bar = 0;
+    this.next = ctx.currentTime + 0.08;
+    this.timer = setInterval(() => this.tick(), 25);
+  },
+  stop() { this.on = false; clearInterval(this.timer); this.timer = null; },
+  setMood(m) { if (this.LEAD[m] && m !== this.mood) { this.mood = m; } },
+  stepDur() { return 60 / this.BPM[this.mood] / 4; },
+  tick() {
+    if (!this.on || !this.ctx) return;
+    try {
+      while (this.next < this.ctx.currentTime + 0.15) {
+        this.play(this.step, this.next);
+        this.next += this.stepDur();
+        this.step++;
+        if (this.step % 16 === 0) this.bar++;
+      }
+    } catch (e) { this.stop(); }
+  },
+  tone(f, t, dur, type, vol, glideTo) {
+    if (!f) return;
+    const o = this.ctx.createOscillator(), g = this.ctx.createGain();
+    o.type = type || 'square';
+    o.frequency.setValueAtTime(f, t);
+    if (glideTo) o.frequency.exponentialRampToValueAtTime(glideTo, t + dur);
+    g.gain.setValueAtTime(0.0001, t);
+    g.gain.exponentialRampToValueAtTime(vol, t + 0.012);
+    g.gain.exponentialRampToValueAtTime(0.0001, t + dur);
+    o.connect(g); g.connect(this.out);
+    o.start(t); o.stop(t + dur + 0.02);
+  },
+  drum(t, kind) {
+    if (kind === 'kick') {
+      const o = this.ctx.createOscillator(), g = this.ctx.createGain();
+      o.type = 'sine'; o.frequency.setValueAtTime(140, t);
+      o.frequency.exponentialRampToValueAtTime(45, t + 0.13);
+      g.gain.setValueAtTime(0.5, t); g.gain.exponentialRampToValueAtTime(0.001, t + 0.16);
+      o.connect(g); g.connect(this.out); o.start(t); o.stop(t + 0.18);
+      return;
+    }
+    // snare / hat: filtered noise
+    const dur = kind === 'snare' ? 0.16 : 0.045;
+    const n = Math.floor(this.ctx.sampleRate * dur);
+    const buf = this.ctx.createBuffer(1, n, this.ctx.sampleRate);
+    const d = buf.getChannelData(0);
+    for (let i = 0; i < n; i++) d[i] = (Math.random() * 2 - 1) * Math.pow(1 - i / n, kind === 'snare' ? 1.6 : 3);
+    const src = this.ctx.createBufferSource(); src.buffer = buf;
+    const f = this.ctx.createBiquadFilter();
+    f.type = kind === 'snare' ? 'bandpass' : 'highpass';
+    f.frequency.value = kind === 'snare' ? 1600 : 7000;
+    const g = this.ctx.createGain(); g.gain.value = kind === 'snare' ? 0.26 : 0.1;
+    src.connect(f); f.connect(g); g.connect(this.out);
+    src.start(t);
+  },
+  play(step, t) {
+    const s = step % 16, barInLoop = Math.floor(step / 16) % 4;
+    const mood = this.mood;
+    const root = this.ROOTS[barInLoop];
+    const busy = mood !== 'calm';
+    // drums
+    if (s === 0 || s === 8 || (busy && s === 14)) this.drum(t, 'kick');
+    if (s === 4 || s === 12) this.drum(t, 'snare');
+    if (busy && s % 2 === 0) this.drum(t, 'hat');
+    if (mood === 'battle' && s % 2 === 1) this.drum(t, 'hat');
+    // bass: root, with a bouncing octave to keep it moving
+    if (s % 4 === 0) this.tone(root, t, 0.2, 'triangle', 0.22);
+    else if (busy && s % 4 === 2) this.tone(root * 2, t, 0.12, 'triangle', 0.13);
+    // the hook (every other loop it jumps an octave, so it doesn't get boring)
+    const lead = this.LEAD[mood][barInLoop][s];
+    if (lead) {
+      const high = Math.floor(step / 64) % 2 === 1 && mood !== 'battle';
+      this.tone(lead * (high ? 2 : 1), t, mood === 'calm' ? 0.3 : 0.15, 'square', 0.1);
+      this.tone(lead * (high ? 2 : 1) * 1.005, t, mood === 'calm' ? 0.3 : 0.15, 'sawtooth', 0.035);
+    }
+  },
 };
 
 /* ---------- game state ---------- */
@@ -751,6 +945,10 @@ let gems = load('bbt-gems', 0);   // everyone starts broke — beat monsters and
    stone: burst out of walls you bomb open
    wood:  from bomb crates (bombing them splinters out extra) */
 let mats = Object.assign({ metal: 0, stone: 0, wood: 0 }, load('bbt-mats', {}));
+
+/* the weapon you equipped in the Inventory decides how your swing sounds */
+const _eq = load('bbt-equip', {}) || {};
+const heroShape = _eq.weapon ? (_eq.weaponShape || 'blade') : 'fist';
 const MAT_INFO = {
   metal: { label: 'METAL', color: '#cdd3dc' },
   stone: { label: 'STONE', color: '#c0b295' },
@@ -905,7 +1103,7 @@ function cycleTimer() {
 function detonateRemotes() {
   let any = false;
   G.bombs.forEach(b => { if (b.remote) { b.goBoom = true; any = true; } });
-  if (any) { sfx.init(); sfx.fuse(); }
+  if (any) { sfx.init(); sfx.detonator(); }
 }
 function banner(txt, ms) {
   const b = $('#banner');
@@ -978,7 +1176,7 @@ function heroAttack() {
   sfx.init();
   h.attackReadyAt = now + 380;
   h.swingUntil = now + 180;
-  sfx.swing();
+  sfx.swingFor(heroShape);
   const reach = 1.7, arc = 2.1;
   G.enemies.forEach(e => {
     if (e.dead) return;
@@ -994,7 +1192,7 @@ function hurtEnemy(e, dmg, from) {
   const now = performance.now();
   e.hp -= dmg;
   e.hurtUntil = now + 180;
-  sfx.hit();
+  if (from === G.hero) sfx.hitFor(heroShape); else sfx.hit();
   const m = dist(from.fx, from.fy, e.fx, e.fy) || 1;
   moveEnemy(e, (e.fx - from.fx) / m * 0.45, (e.fy - from.fy) / m * 0.45);
   floatText(e.fx, e.fy, '-' + dmg, '#ffd23f');
@@ -1022,7 +1220,7 @@ function placeBomb() {
   if (G.over || h.dead) return;
   const sel = h.sel, T = BOMB_TYPES[sel];
   if ((h.belt[sel] || 0) <= 0) { banner('NO ' + T.name.toUpperCase() + 'S! Find a crate.', 1200); return; }
-  sfx.init(); sfx.fuse();
+  sfx.init(); sfx.fuseFor(sel);
   h.belt[sel]--;
   updateHUD();
   const b = { fx: h.fx, fy: h.fy, at: now, type: sel };
@@ -1044,7 +1242,7 @@ function placeBomb() {
 }
 function explode(b) {
   const now = performance.now(), T = BOMB_TYPES[b.type];
-  sfx.boom(); shake();
+  sfx.boomFor(b.type); shake();
   G.booms.push({ fx: b.fx, fy: b.fy, at: now, radius: T.radius });
   // break cracked walls
   if (T.breaksWalls) {
@@ -1108,6 +1306,7 @@ function hurtHero(amount) {
 function heroDie() {
   const h = G.hero;
   h.dead = true; G.over = true;
+  try { MUSIC.setMood('calm'); } catch (e) {}
   sfx.die();
   $('#death').classList.add('show');
   setTimeout(() => {
@@ -1118,6 +1317,7 @@ function heroDie() {
 function reachStairs() {
   if (G.over) return;
   G.over = true; G.won = true;
+  try { MUSIC.stop(); } catch (e) {}
   sfx.stairs();
   const bonus = 25 + (floorNum - 1) * 3;   // the higher you climb, the better the prize
   gems += bonus; save('bbt-gems', gems);
@@ -1145,6 +1345,10 @@ function goBase() {
   location.href = 'base.html?ambush=' + floorNum;
 }
 $('#gohome').addEventListener('click', () => { (G && G.won) ? goBase() : goHome(); });
+$('#victoryhome').addEventListener('click', () => {
+  if (String(location.href).startsWith('about')) { location.reload(); return; }
+  location.href = 'index.html';
+});
 $('#quit').addEventListener('click', e => {
   if (history.length > 1 && document.referrer) { e.preventDefault(); history.back(); }
 });
@@ -1245,6 +1449,7 @@ function update(dt, now) {
     if (b.stuckTo && !b.stuckTo.dead) { b.fx = b.stuckTo.fx; b.fy = b.stuckTo.fy; }
     if (T.mine && !b.goBoom) {
       if (now < b.armAt) continue;
+      if (!b.armSaid) { b.armSaid = true; sfx.armed(); }        // *click* — it's live
       let touched = false;
       if (!h.dead && h.elev === 0 && dist(h.fx, h.fy, b.fx, b.fy) < 0.5) touched = true;
       if (!touched) touched = G.enemies.some(e => !e.dead && dist(e.fx, e.fy, b.fx, b.fy) < 0.55);
@@ -1253,6 +1458,11 @@ function update(dt, now) {
     }
     if (b.remote && !b.goBoom) continue;
     const fu = b.fuse || T.fuse || 0;
+    if (T.settable && !b.goBoom) {                              // a time bomb counts down out loud
+      const left = fu - (now - b.at);
+      if (b.nextTick === undefined) b.nextTick = fu - 1000;
+      if (left <= b.nextTick && left > 0) { b.nextTick -= 1000; sfx.tick(); }
+    }
     if (b.goBoom || now - b.at >= fu) { G.bombs.splice(i, 1); explode(b); }
   }
   // show the DETONATE button only while remote bombs are waiting
@@ -1824,8 +2034,32 @@ function frame(now) {
 requestAnimationFrame(frame);
 
 /* debug hooks (also fun for the developers to poke in the console!) */
+/* ---------- music: starts on your first tap, remembers if you muted it ---------- */
+let muted = !!load('bbt-mute', false);
+sfx.muted = muted;
+function paintMute() { const b = $('#mute'); if (b) b.innerHTML = muted ? '&#128263;' : '&#128266;'; }
+function startSound() {
+  sfx.init();
+  sfx.setMuted(muted);
+  if (sfx.ctx && !MUSIC.on) { MUSIC.setMood('tower'); MUSIC.start(sfx.ctx, sfx.musicOut); }
+}
+$('#mute').addEventListener('click', e => {
+  e.preventDefault(); e.stopPropagation();
+  muted = !muted; save('bbt-mute', muted);
+  startSound(); sfx.setMuted(muted); paintMute();
+});
+paintMute();
+addEventListener('pointerdown', startSound, { capture: true });
+addEventListener('keydown', startSound, { capture: true });
+
+/* coming BACK to a finished floor (browser Back) must never strand you on
+   the victory screen — start the floor fresh instead */
+addEventListener('pageshow', e => { if (e.persisted) location.reload(); });
+
 window.__tower = {
   get G() { return G; },
+  get sfx() { return sfx; },
+  get music() { return MUSIC; },
   get floors() { return FLOORS; },
   get mats() { return mats; },
   swordDmg,
