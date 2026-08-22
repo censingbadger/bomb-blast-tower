@@ -212,9 +212,11 @@ python3 -m http.server
   chunk of gems and materials and your wall breaks. There's a practice alarm
   too, so you can test your fort any time without risking anything.
   **When you hold the base**, the victory card offers **Next Floor →** (straight
-  back into the Tower, on the floor you just unlocked), **Home Screen**, and
+  back into the Tower, on the floor you just unlocked), **🏠 Home Screen**, and
   **Back to building** if you'd rather spend your winnings on the fort first.
-  If the base falls you get **Rebuild** and **Home Screen**.
+  If the base falls you get **Rebuild** and **🏠 Home Screen**. Either card
+  waits a beat before its buttons switch on — so a finger still spam-tapping
+  bombs when the wave ends can't accidentally press anything.
   **Getting there:** the **Base** hex on the homepage, or the green *Base*
   button in the header of the Market, the Forge and Inventory & Stats — so
   your fort is one click away from wherever you are.
