@@ -219,7 +219,13 @@ python3 -m http.server
   Slingshot 140, Spikes on Wall 150, and the 600 💎 **Turret** ("how did that
   get here?"). Every time you beat a Tower floor, the **Warlock sends an
   ambush at your base** — a "WAVE N" flag goes up and monsters march on your
-  wall and gate, stronger with every floor you've beaten. Your defenses fight
+  wall and gate, stronger with every floor you've beaten. **And the ambush
+  cannot be skipped**: beating a floor writes it down as *owed*. Duck out to
+  the home screen and the Base hex flashes **⚔️ UNDER ATTACK!**, the Tower
+  door bounces you straight to the fight until you've defended, the base's
+  Home button refuses to work mid-battle ("the zombies are AT THE GATES"),
+  and win *or* lose, facing the wave is what pays the debt. Practice alarms
+  stay free — leave those whenever you like. Your defenses fight
   on their own and **you can tap the field to throw bombs**. Hold them off:
   gems and salvage. If they smash through: **the base falls** — you lose a
   chunk of gems and materials and your wall breaks. There's a practice alarm

@@ -1104,6 +1104,12 @@ let G = null;                 // current floor run
 const floorParam = new URLSearchParams(location.search).get('floor');
 const savedFloor = load('bbt-floor', 1);
 const floorNum = clamp(parseInt(floorParam || savedFloor, 10) || 1, 1, FLOORS.length);
+/* the ambush is NOT skippable: if one is owed from your last victory, the
+   tower door won't open until you've defended your base — off you go */
+const _owedAmbush = load('bbt-ambush', 0) || 0;
+if (_owedAmbush >= 1 && !String(location.href).startsWith('about')) {
+  location.replace('base.html?ambush=' + _owedAmbush);
+}
 let gems = load('bbt-gems', 0);   // everyone starts broke — beat monsters and floors to earn
 
 /* ---------- crafting materials (spend them at the Forge!) ----------
@@ -1713,6 +1719,7 @@ function reachStairs() {
   gems += bonus; save('bbt-gems', gems);
   const next = floorNum + 1;
   save('bbt-floor', Math.min(next, FLOORS.length + 1));
+  save('bbt-ambush', floorNum);   // the Warlock's ambush is now OWED — dodging only delays it
   $('#victorymsg').innerHTML = 'You beat <b>Floor ' + floorNum + '</b>! &nbsp;+' + bonus + ' ◆';
   $('#victorysub').textContent = next <= FLOORS.length
     ? 'The WARLOCK is furious — his ambush is racing to your BASE!'
