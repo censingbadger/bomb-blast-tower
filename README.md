@@ -75,9 +75,22 @@ python3 -m http.server
   (there is no walking around it) and, on most floors, a **cracked wall you
   have to blow open**. The way into the staircase room is always shut behind
   one of them, so you fight your way through the monsters and blast your way
-  in. A bomb crate waits in the room before every gate, so you never run dry.
-  Each gate is checked while the floor is built: if you could sneak around it,
-  that floor is thrown away and built again.
+  in. Each gate is checked while the floor is built: if you could sneak around
+  it, that floor is thrown away and built again.
+
+  **Every floor is a little bomb puzzle now.** The game walks each floor
+  before you do and counts exactly what it demands — one Bomb per mandatory
+  platform boost, one Dynamite per mandatory wall — and your pack is **the
+  demand plus one spare each**: a hard floor stacked with platforms hands you
+  a big pack, an easy floor keeps you honest with a lean one (some floors
+  hand you a single bomb!). A **🎒 PACK CHECK** banner announces the plan as
+  you walk in ("2💣 for 1 boost · 2🧨 for 1 wall — spend them wisely!"),
+  and the game warns you as you place your **LAST 💣** or **LAST 🧨**. Bomb
+  crates are the rescue ration — each holds exactly **+1 Bomb and +1
+  Dynamite** (blow one open and it also splinters into extra wood), with one
+  waiting in the room before every gate, so a wasted bomb costs you a
+  walk-back instead of the floor. Waste everything anyway? Falling in battle
+  resets the floor, pack and all — take a breath and plan the bombs better.
 
   Enemies drop gems you can spend in the Market. **Six bomb types** from the
   drawings — tap **SWAP** (or V) and a **ring of all six bombs** pops up

@@ -728,6 +728,14 @@ function buildFloor(n, attempt) {
 
   const hasP = gates.some(x => x.type === 'plat'), hasC = gates.some(x => x.type === 'crack');
   const cap = v => Math.min(9, v);
+  /* THE PUZZLE PACK: exactly what this floor demands, plus one spare each.
+     More platform gates = more bombs in your pack; an easy floor keeps you
+     honest with a lean one. (We take the bigger of the cheapest-route math
+     and the gate count, so the obvious route is always affordable too.) */
+  const gridRows = g.map(row => row.join(''));
+  const need = bombNeeds(gridRows);
+  const platGates = gates.filter(x => x.type === 'plat').length;
+  const crackGates = gates.filter(x => x.type === 'crack').length;
   return {
     pathLen: dist,
     def: {
@@ -740,14 +748,14 @@ function buildFloor(n, attempt) {
       hpBonus: Math.floor(deep / 8),
       gates,
       loadout: {
-        bomb: cap(3 + Math.floor(deep / 8)),
-        dynamite: cap(2 + Math.floor(deep / 10)),
+        bomb: cap(Math.max(need.bombs, platGates) + 1 + Math.floor(deep / 16)),
+        dynamite: cap(Math.max(need.dynamite, crackGates) + 1 + Math.floor(deep / 20)),
         landmine: cap(2 + Math.floor(deep / 12)),
         timebomb: cap(2 + Math.floor(deep / 12)),
         remote: cap(2 + Math.floor(deep / 12)),
-        stick: cap(3 + Math.floor(deep / 10)),
+        stick: cap(2 + Math.floor(deep / 14)),
       },
-      grid: g.map(row => row.join('')),
+      grid: gridRows,
     },
   };
 }
@@ -780,9 +788,63 @@ function linearFloor(n) {
     tip: 'Boost over the platform, then BOMB your way to the stairs!',
     hpBonus: Math.floor(deep / 8),
     gates: [{ type: 'plat', tiles: [[mid, lanes[1]], [mid + 1, lanes[1]]] }, { type: 'crack', tiles: [[mid, lanes[2]]] }],
-    loadout: { bomb: 4, dynamite: 3, landmine: 2, timebomb: 2, remote: 2, stick: 3 },
+    // 1 boost + 1 wall + a spare each, deepened like every other floor
+    loadout: {
+      bomb: Math.min(9, 2 + Math.floor(deep / 16)),
+      dynamite: Math.min(9, 2 + Math.floor(deep / 20)),
+      landmine: Math.min(9, 2 + Math.floor(deep / 12)),
+      timebomb: Math.min(9, 2 + Math.floor(deep / 12)),
+      remote: Math.min(9, 2 + Math.floor(deep / 12)),
+      stick: Math.min(9, 2 + Math.floor(deep / 14)),
+    },
     grid: g.map(row => row.join('')),
   };
+}
+
+/* ============================================================
+   THE BOMB BUDGET — what makes every floor a little puzzle.
+   Walk the floor from S to X like a careful planner: stepping onto a
+   fresh platform patch costs ONE Bomb (the boost), punching into a
+   fresh cracked-wall patch costs ONE Dynamite (the blast) — and tiles
+   of the same patch are covered by that one spend. The cheapest route
+   tells us what the floor truly DEMANDS, and your pack is exactly the
+   demand plus one spare each. Hard floors with lots of platforms hand
+   you a big pack; easy floors keep you honest.
+   ============================================================ */
+function bombNeeds(rows) {
+  const H = rows.length, W = rows[0].length;
+  const at = (x, y) => (rows[y] && rows[y][x]) || '#';
+  let sx = 1, sy = 1, gx = W - 2, gy = 1;
+  for (let y = 0; y < H; y++) for (let x = 0; x < W; x++) {
+    if (at(x, y) === 'S') { sx = x; sy = y; }
+    if (at(x, y) === 'X') { gx = x; gy = y; }
+  }
+  // Dijkstra with tiny costs, bucketed by total bombs+dynamite spent
+  const seen = new Map();
+  const buckets = [[[sx, sy, 0, 0]]];
+  seen.set(sx + ',' + sy, 0);
+  for (let spend = 0; spend < buckets.length && spend < 40; spend++) {
+    const bucket = buckets[spend] || [];
+    for (let i = 0; i < bucket.length; i++) {
+      const [x, y, b, d] = bucket[i];
+      const k0 = x + ',' + y;
+      if ((seen.has(k0) ? seen.get(k0) : Infinity) < b + d) continue;
+      if (x === gx && y === gy) return { bombs: b, dynamite: d };
+      for (const [dx, dy] of [[1, 0], [-1, 0], [0, 1], [0, -1]]) {
+        const nx = x + dx, ny = y + dy, c = at(nx, ny);
+        if (c === '#') continue;
+        const from = at(x, y);
+        let nb = b, nd = d;
+        if (c === 'P' && from !== 'P') nb++;
+        if (c === '%' && from !== '%') nd++;
+        const key = nx + ',' + ny, tot = nb + nd;
+        if ((seen.has(key) ? seen.get(key) : Infinity) <= tot) continue;
+        seen.set(key, tot);
+        (buckets[tot] = buckets[tot] || []).push([nx, ny, nb, nd]);
+      }
+    }
+  }
+  return { bombs: 1, dynamite: 1 };   // never happens — every floor is checked finishable
 }
 
 /* build a floor: try a few layouts and keep the longest good one */
@@ -1193,9 +1255,17 @@ function startFloor() {
   updateHUD();
   banner(def.name.replace(' — ', ' — ').toUpperCase(), 1900);
   setTimeout(() => { if (G && !G.over) banner(def.tip, 1700); }, 2100);
+  // PACK CHECK: this floor is a bomb puzzle — here's what it demands vs. what you carry
+  G.needs = bombNeeds(def.grid);
+  const packBits = [];
+  if (G.needs.bombs) packBits.push((G.hero.belt.bomb || 0) + '💣 for ' + G.needs.bombs + ' boost' + (G.needs.bombs > 1 ? 's' : ''));
+  if (G.needs.dynamite) packBits.push((G.hero.belt.dynamite || 0) + '🧨 for ' + G.needs.dynamite + ' wall' + (G.needs.dynamite > 1 ? 's' : ''));
+  if (packBits.length) {
+    setTimeout(() => { if (G && !G.over) banner('🎒 PACK CHECK: ' + packBits.join(' · ') + ' — spend them wisely!', 2000); }, 4300);
+  }
   if (enchanted) {
     const names = Object.keys(_ench).filter(k => _ench[k] > 0).map(k => (ENCH_NAMES[k] || k) + ' ' + rom(_ench[k]));
-    setTimeout(() => { if (G && !G.over) banner('✨ YOUR WEAPON SHIMMERS: ' + names.join(' · '), 2200); }, 4300);
+    setTimeout(() => { if (G && !G.over) banner('✨ YOUR WEAPON SHIMMERS: ' + names.join(' · '), 2200); }, packBits.length ? 6600 : 4300);
   }
 }
 
@@ -1522,6 +1592,15 @@ function placeBomb() {
   if ((h.belt[sel] || 0) <= 0) { banner('NO ' + T.name.toUpperCase() + 'S! Find a crate.', 1200); return; }
   sfx.init(); sfx.fuseFor(sel);
   h.belt[sel]--;
+  // puzzle nudge: your gate-openers are precious — one warning per type per floor
+  if (sel === 'bomb' && h.belt.bomb === 1 && (G.needs && G.needs.bombs > 0) && !h.warnedBomb) {
+    h.warnedBomb = true;
+    banner('LAST 💣 — save it for a platform!', 1500);
+  }
+  if (sel === 'dynamite' && h.belt.dynamite === 1 && (G.needs && G.needs.dynamite > 0) && !h.warnedDyn) {
+    h.warnedDyn = true;
+    banner('LAST 🧨 — save it for a cracked wall!', 1500);
+  }
   updateHUD();
   const b = { fx: h.fx, fy: h.fy, at: now, type: sel };
   if (T.settable) b.fuse = G.timerSetting;
@@ -1574,12 +1653,13 @@ function explode(b) {
       }
     }
   });
-  // crates in the blast burst open — you keep the bombs AND the splinters
+  // crates in the blast burst open — you keep the ration AND the splinters
   G.crates.forEach(c => {
     if (!c.taken && dist(c.x, c.y, b.fx, b.fy) <= R + 0.2) {
       c.taken = true;
-      G.hero.belt[G.hero.sel] = (G.hero.belt[G.hero.sel] || 0) + 2;
-      floatText(c.x, c.y, '+2 ' + BOMB_TYPES[G.hero.sel].name.toUpperCase() + 'S', '#ff8c1a');
+      G.hero.belt.bomb = (G.hero.belt.bomb || 0) + 1;
+      G.hero.belt.dynamite = (G.hero.belt.dynamite || 0) + 1;
+      floatText(c.x, c.y, '+1💣 +1🧨', '#ff8c1a');
       setTimeout(() => { try { gainMat('wood', 2, c.x, c.y); } catch (err) {} }, 280);
       updateHUD();
     }
@@ -1738,12 +1818,13 @@ function update(dt, now) {
       }
     }
 
-    // bomb crates
+    // bomb crates: the rescue ration — one boost and one blast, never a feast
     G.crates.forEach(c => {
       if (!c.taken && dist(c.x, c.y, h.fx, h.fy) < 0.75) {
         c.taken = true; sfx.pickup();
-        h.belt[h.sel] = (h.belt[h.sel] || 0) + 2;
-        floatText(c.x, c.y, '+2 ' + BOMB_TYPES[h.sel].name.toUpperCase() + 'S', '#ff8c1a');
+        h.belt.bomb = (h.belt.bomb || 0) + 1;
+        h.belt.dynamite = (h.belt.dynamite || 0) + 1;
+        floatText(c.x, c.y, '+1💣 +1🧨', '#ff8c1a');
         setTimeout(() => { try { gainMat('wood', 1, c.x, c.y); } catch (err) {} }, 280);
         updateHUD();
       }
@@ -2508,6 +2589,8 @@ window.__tower = {
   get silent() { return silentKick; },
   get floors() { return FLOORS; },
   get mats() { return mats; },
+  get needs() { return G.needs; },
+  bombNeeds,
   get ench() { return _ench; },
   get ringOpen() { return ringOpen; },
   get killStreak() { return (G && G.killStreak) || 0; },
