@@ -843,6 +843,9 @@ footer .reset:hover { color: var(--ink); }
     { id: 'silkrope', name: 'Spider Silk Rope', price: 120, rarity: 'uncommon', cat: 'other', icon: 'charm',
       flavor: 'Sticky. Strong. Ew.',
       art: '<svg class="art" viewBox="0 0 100 120" aria-hidden="true"><ellipse cx="50" cy="60" rx="30" ry="14" fill="none" stroke="#e8e4da" stroke-width="9"/><ellipse cx="50" cy="60" rx="30" ry="14" fill="none" stroke="#4a3826" stroke-width="3"/><ellipse cx="50" cy="76" rx="24" ry="11" fill="none" stroke="#e8e4da" stroke-width="9"/><ellipse cx="50" cy="76" rx="24" ry="11" fill="none" stroke="#4a3826" stroke-width="3"/><path d="M74 66 q12 8 6 22" fill="none" stroke="#e8e4da" stroke-width="8"/><path d="M74 66 q12 8 6 22" fill="none" stroke="#4a3826" stroke-width="2.6"/></svg>' },
+    { id: 'heartjar', name: 'Heart in a Jar', price: 999, rarity: 'legendary', cat: 'other', icon: 'potion',
+      flavor: 'Still beating. +1 heart FOREVER. The shopkeeper will not say where it came from.',
+      art: '<svg class="art" viewBox="0 0 100 120" aria-hidden="true"><rect x="38" y="12" width="24" height="12" rx="4" fill="#b06f34" stroke="#4a3826" stroke-width="3.4"/><path d="M30 24 L70 24 L72 34 Q76 40 76 50 L76 92 Q76 104 64 104 L36 104 Q24 104 24 92 L24 50 Q24 40 28 34 Z" fill="#dff3ff" fill-opacity=".55" stroke="#4a3826" stroke-width="3.6" stroke-linejoin="round"/><path d="M50 86 C34 70 36 50 50 58 C64 50 66 70 50 86 Z" fill="#ff4d5e" stroke="#8a1420" stroke-width="3.4" stroke-linejoin="round"/><path d="M44 62 q-3 3 -2 7" fill="none" stroke="#ffb3ba" stroke-width="2.6" stroke-linecap="round"/><path d="M30 34 q2 22 0 52" stroke="#fff" stroke-width="3" stroke-linecap="round" opacity=".7"/><circle cx="62" cy="42" r="2.5" fill="#fff" opacity=".8"/><circle cx="57" cy="34" r="1.8" fill="#fff" opacity=".6"/><path d="M80 20 l2.4 5 l5 2.4 l-5 2.4 l-2.4 5 l-2.4 -5 l-5 -2.4 l5 -2.4 Z" fill="#ffd23f"/></svg>' },
     { id: 'keyring', name: "Warden's Keyring", price: 180, rarity: 'rare', cat: 'other', icon: 'charm',
       flavor: 'Opens something, somewhere. Good luck.',
       art: '<svg class="art" viewBox="0 0 100 120" aria-hidden="true"><circle cx="50" cy="40" r="16" fill="none" stroke="#8d959d" stroke-width="6"/><circle cx="50" cy="40" r="16" fill="none" stroke="#4a3826" stroke-width="2.6"/><path d="M38 52 L30 92 L40 92 L46 58" fill="#c98a4b" stroke="#4a3826" stroke-width="3" stroke-linejoin="round"/><path d="M30 80 h-8 M30 88 h-8" stroke="#4a3826" stroke-width="3" stroke-linecap="round"/><path d="M62 52 L70 90 L60 90 L54 58" fill="#8d959d" stroke="#4a3826" stroke-width="3" stroke-linejoin="round"/><path d="M70 80 h8 M70 88 h8" stroke="#4a3826" stroke-width="3" stroke-linecap="round"/></svg>' },
@@ -987,6 +990,7 @@ footer .reset:hover { color: var(--ink); }
     const before = gems;
     const btn = current;                       // closeCard() forgets which item we clicked
     const boughtName = current.dataset.name;
+    const boughtId = current.dataset.id;       // restockSlot() will re-fill the slot with something new
     gems -= price;
     owned.push(current.dataset.id);
     save('bbt-gems', gems); save('bbt-owned', owned);
@@ -997,9 +1001,15 @@ footer .reset:hover { color: var(--ink); }
     // the shopkeeper rummages in the back and puts something else out
     const fresh = restockSlot(btn);
     renderOwned();
-    say(fresh
-      ? 'You bought the <b>' + boughtName + '</b>! The shopkeeper digs out a <b>' + fresh.name + '</b> for the empty spot.'
-      : 'You bought the <b>' + boughtName + '</b>! That was the last of the shopkeeper’s stock.');
+    if (boughtId === 'heartjar') {
+      // the legend itself: one extra heart, FOREVER — restocks can't take it back
+      save('bbt-heartjar', true);
+      say('&#128151; The <b>Heart in a Jar</b> is yours &mdash; <b>+1 &#10084; FOREVER</b>! You can feel it beating in your pack.');
+    } else {
+      say(fresh
+        ? 'You bought the <b>' + boughtName + '</b>! The shopkeeper digs out a <b>' + fresh.name + '</b> for the empty spot.'
+        : 'You bought the <b>' + boughtName + '</b>! That was the last of the shopkeeper’s stock.');
+    }
   });
 
   document.querySelectorAll('.item').forEach(btn => {
@@ -1033,16 +1043,17 @@ footer .reset:hover { color: var(--ink); }
     restockArmedUntil = 0;
     const before = gems;
     gems -= RESTOCK_COST;
+    const keepJar = owned.includes('heartjar');   // FOREVER means forever
     // bought things go back on the shelves — their anvil stars and enchantments go with them
     try {
       const up = load('bbt-upgrades', {});
       owned.forEach(id => delete up[id]);
       save('bbt-upgrades', up);
       const en = load('bbt-ench', {});
-      owned.forEach(id => delete en[id]);
+      owned.forEach(id => { if (id !== 'heartjar') delete en[id]; });
       save('bbt-ench', en);
     } catch (e) {}
-    owned = [];
+    owned = keepJar ? ['heartjar'] : [];
     // a completely different mix of goods comes out of the back room
     const all = Object.keys(CATALOG);
     for (let i = all.length - 1; i > 0; i--) { const j = Math.floor(Math.random() * (i + 1)); const t = all[i]; all[i] = all[j]; all[j] = t; }

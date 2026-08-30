@@ -51,8 +51,13 @@ python3 -m http.server
 ## Game screens
 
 - **The Tower** (`tower.html`) — the game! An isometric action crawler in the
-  spirit of Back Stab's dungeon mode: WASD/arrows or a touch joystick to move,
-  K/click to swing your sword, SPACE to hop, **B to drop a bomb**. Dark, dank
+  spirit of Back Stab's dungeon mode: WASD/arrows on a keyboard, or on a
+  phone a **fixed joystick pad you just tap and hold** — touch the side of
+  the pad you want to walk toward and you're moving from the very first
+  touch, no dragging needed (slide your thumb to steer). K/click swings your
+  sword, SPACE hops, **B drops a bomb**. Getting hit is impossible to miss:
+  the hearts **pop and flash**, the damage floats up off your knight, a half
+  heart shows as a proper broken 💔, and spent hearts go dark. Dark, dank
   floors with torches, red carpets and hanging chains. Dynamite blows open
   cracked walls and Bombs **boost you onto platforms** (your own bombs never
   hurt you).
@@ -134,9 +139,12 @@ python3 -m http.server
   a different item out of the back room to fill the empty spot, with a green
   NEW! tag — an Everburning Lantern, Iron Boots, a Thunder Rod, a Toy Sword
   that squeaks, Zombie Repellent, a Golden Bomb, the Warlock's Old Hat, and a
-  dozen more. There are **28 things** he can put out and only 12 spots, so the
+  dozen more. There are **29 things** he can put out and only 12 spots, so the
   shop looks different every time you come back (and it remembers what was on
-  the shelves). The Inventory and the Forge recognise everything he invents.
+  the shelves). The rarest thing in the back room is the **Heart in a Jar** —
+  legendary, **999 💎**, still beating: buy it once and you have **+1 heart
+  FOREVER**, on every Tower run, and not even a restock can take it back.
+  The Inventory and the Forge recognise everything he invents.
   The *restock shop* link **costs 25 💎** (the shopkeeper doesn't work for
   free): it clears the shelves for a whole new mix, puts everything you bought
   back on sale — stars and all — and asks you to click twice so nobody
