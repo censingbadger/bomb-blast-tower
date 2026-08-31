@@ -51,8 +51,13 @@ python3 -m http.server
 ## Game screens
 
 - **The Tower** (`tower.html`) — the game! An isometric action crawler in the
-  spirit of Back Stab's dungeon mode: WASD/arrows or a touch joystick to move,
-  K/click to swing your sword, SPACE to hop, **B to drop a bomb**. Dark, dank
+  spirit of Back Stab's dungeon mode: WASD/arrows on a keyboard, or on a
+  phone a **fixed joystick pad you just tap and hold** — touch the side of
+  the pad you want to walk toward and you're moving from the very first
+  touch, no dragging needed (slide your thumb to steer). K/click swings your
+  sword, SPACE hops, **B drops a bomb**. Getting hit is impossible to miss:
+  the hearts **pop and flash**, the damage floats up off your knight, a half
+  heart shows as a proper broken 💔, and spent hearts go dark. Dark, dank
   floors with torches, red carpets and hanging chains. Dynamite blows open
   cracked walls and Bombs **boost you onto platforms** (your own bombs never
   hurt you).
@@ -134,9 +139,12 @@ python3 -m http.server
   a different item out of the back room to fill the empty spot, with a green
   NEW! tag — an Everburning Lantern, Iron Boots, a Thunder Rod, a Toy Sword
   that squeaks, Zombie Repellent, a Golden Bomb, the Warlock's Old Hat, and a
-  dozen more. There are **28 things** he can put out and only 12 spots, so the
+  dozen more. There are **29 things** he can put out and only 12 spots, so the
   shop looks different every time you come back (and it remembers what was on
-  the shelves). The Inventory and the Forge recognise everything he invents.
+  the shelves). The rarest thing in the back room is the **Heart in a Jar** —
+  legendary, **999 💎**, still beating: buy it once and you have **+1 heart
+  FOREVER**, on every Tower run, and not even a restock can take it back.
+  The Inventory and the Forge recognise everything he invents.
   The *restock shop* link **costs 25 💎** (the shopkeeper doesn't work for
   free): it clears the shelves for a whole new mix, puts everything you bought
   back on sale — stars and all — and asks you to click twice so nobody
@@ -219,7 +227,13 @@ python3 -m http.server
   Slingshot 140, Spikes on Wall 150, and the 600 💎 **Turret** ("how did that
   get here?"). Every time you beat a Tower floor, the **Warlock sends an
   ambush at your base** — a "WAVE N" flag goes up and monsters march on your
-  wall and gate, stronger with every floor you've beaten. Your defenses fight
+  wall and gate, stronger with every floor you've beaten. **And the ambush
+  cannot be skipped**: beating a floor writes it down as *owed*. Duck out to
+  the home screen and the Base hex flashes **⚔️ UNDER ATTACK!**, the Tower
+  door bounces you straight to the fight until you've defended, the base's
+  Home button refuses to work mid-battle ("the zombies are AT THE GATES"),
+  and win *or* lose, facing the wave is what pays the debt. Practice alarms
+  stay free — leave those whenever you like. Your defenses fight
   on their own and **you can tap the field to throw bombs**. Hold them off:
   gems and salvage. If they smash through: **the base falls** — you lose a
   chunk of gems and materials and your wall breaks. There's a practice alarm

@@ -361,6 +361,29 @@ body {
 }
 .hexbtn:hover, .hexbtn:focus-visible { transform: translateY(-6px); }
 .hexbtn:active { transform: scale(.93); }
+/* the Warlock's ambush is owed — the Base hex sounds the alarm */
+.hexbtn { position: relative; }
+.siege {
+  position: absolute;
+  top: -0.6rem; left: 50%;
+  transform: translateX(-50%) rotate(-4deg);
+  font-size: clamp(.62rem, 2vw, .8rem);
+  letter-spacing: .05em;
+  white-space: nowrap;
+  color: #fff;
+  background: linear-gradient(180deg, #e0413f, #a11f26);
+  border: 2px solid #57090f;
+  border-radius: 999px;
+  padding: .22rem .6rem .12rem;
+  box-shadow: 0 2px 0 rgba(6,9,16,.7);
+  animation: siegepulse 1s ease-in-out infinite;
+  pointer-events: none;
+  z-index: 3;
+}
+@keyframes siegepulse {
+  0%, 100% { transform: translateX(-50%) rotate(-4deg) scale(1); }
+  50% { transform: translateX(-50%) rotate(-4deg) scale(1.12); }
+}
 .hexbtn:focus-visible { outline: 2px solid var(--electric); outline-offset: 8px; }
 .hexwrap { filter: drop-shadow(0 7px 0 rgba(6,9,16,.7)); transition: filter .18s ease; }
 .hexbtn:hover .hexwrap, .hexbtn:focus-visible .hexwrap { filter: drop-shadow(0 7px 0 rgba(6,9,16,.7)) drop-shadow(0 0 16px rgba(157,184,255,.65)); }
@@ -960,6 +983,20 @@ footer {
     page.classList.remove('kaboom'); void page.offsetWidth; page.classList.add('kaboom');
     audio.crack(.8);
   });
+
+  // the Warlock's ambush is owed? the Base hex sounds the alarm
+  try {
+    const owed = JSON.parse(localStorage.getItem('bbt-ambush') || '0') || 0;
+    if (owed >= 1) {
+      const b = [...document.querySelectorAll('.hexbtn')].find(x => /base/i.test(x.dataset.name));
+      if (b && !b.querySelector('.siege')) {
+        const tag = document.createElement('span');
+        tag.className = 'siege';
+        tag.textContent = '⚔️ UNDER ATTACK!';
+        b.appendChild(tag);
+      }
+    }
+  } catch (e) {}
 
   // ---------- boot ----------
   // The intro auto-plays. Browsers only allow sound after the first tap or

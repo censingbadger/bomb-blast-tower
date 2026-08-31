@@ -885,6 +885,7 @@ function endWave(won) {
   sim.over = true; sim.won = won;
   const n = sim.n, practice = sim.practice;
   lastResult = { won, n, practice };
+  if (!practice) save('bbt-ambush', 0);   // debt paid — win or lose, you FACED it
   setTimeout(() => {
     document.body.classList.remove('fighting');
     $('#fighthint').textContent = 'Build up your base — the Warlock sends an ambush every time you beat a floor!';
@@ -1436,6 +1437,11 @@ $('#back').addEventListener('click', e => {
   // never history.back() — that lands you on the floor you just finished,
   // stuck behind its VICTORY screen
   e.preventDefault();
+  // and NO strolling out of a real ambush — the zombies don't take breaks
+  if (sim && !sim.practice && !sim.over) {
+    say('&#9876;&#65039; The zombies are AT THE GATES &mdash; hold them off first!');
+    return;
+  }
   if (preview()) { say('This is just the preview &mdash; open the real page to head home!'); return; }
   location.href = 'index.html';
 });
@@ -1446,8 +1452,10 @@ $('#mute').addEventListener('click', e => {
   startSound(); sfx.setMuted(muted); paintMute();
 });
 
-/* the Warlock's real ambush (?ambush=N from a Tower victory) */
-const ambushN = parseInt(new URLSearchParams(location.search).get('ambush'), 10);
+/* the Warlock's real ambush — fresh from a Tower victory (?ambush=N), or the
+   one you tried to walk away from (the saved debt: dodging only delays it) */
+const ambushParam = parseInt(new URLSearchParams(location.search).get('ambush'), 10);
+const ambushN = (ambushParam >= 1 ? ambushParam : 0) || (load('bbt-ambush', 0) || 0);
 if (ambushN >= 1) {
   $('#incomingmsg').innerHTML = 'The Warlock is FURIOUS that you beat <b>Floor ' + ambushN + '</b>.';
   $('#ov-incoming').classList.add('show');

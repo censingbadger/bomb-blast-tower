@@ -59,8 +59,17 @@ body {
 .hud .mats { gap: .5rem; font-size: .95rem; color: #cfc6ba; }
 .hud .mats span { min-width: 1em; }
 .hud .hearts { font-size: 1.2rem; letter-spacing: .06em; color: #ff4d5e; }
-.hud .hearts .half { color: #ff9d5e; }
-.hud .hearts .empty { color: #4a3a46; }
+.hud .hearts .half { color: #ff9d5e; }   /* the 💔 emoji brings its own color */
+.hud .hearts .empty { color: #3a2c34; opacity: .55; }
+/* getting hit makes the hearts POP so you can't miss it */
+.hud .hearts.ouch { animation: heartouch .55s ease; }
+@keyframes heartouch {
+  0%   { transform: scale(1); }
+  22%  { transform: scale(1.45); filter: drop-shadow(0 0 10px rgba(255,77,94,.95)); }
+  50%  { transform: translateX(-4px) scale(1.18); }
+  72%  { transform: translateX(4px) scale(1.08); }
+  100% { transform: scale(1); }
+}
 .hud svg { width: 1.05em; height: auto; }
 #bombchip svg { width: 1.3em; }
 .floorname {
@@ -94,18 +103,18 @@ body {
 .tc { position: fixed; bottom: max(1rem, env(safe-area-inset-bottom)); z-index: 10; }
 #joyzone { left: 0; width: 46vw; height: 42vh; bottom: 0; position: fixed; z-index: 9; }
 #joy {
-  left: 4.5vw; width: 108px; height: 108px;
+  left: 4.5vw; width: 124px; height: 124px;
   border-radius: 50%;
-  background: rgba(255,255,255,.05);
-  border: 2px solid rgba(255,255,255,.14);
+  background: rgba(255,255,255,.09);
+  border: 2px solid rgba(255,255,255,.3);
   display: none;
 }
 #joy .knob {
   position: absolute; left: 50%; top: 50%;
-  width: 48px; height: 48px; margin: -24px 0 0 -24px;
+  width: 54px; height: 54px; margin: -27px 0 0 -27px;
   border-radius: 50%;
-  background: rgba(255,255,255,.22);
-  border: 2px solid rgba(255,255,255,.3);
+  background: rgba(255,255,255,.26);
+  border: 2px solid rgba(255,255,255,.4);
 }
 .tbtns { right: 3vw; display: none; flex-direction: column; gap: .7rem; align-items: flex-end; }
 .tbtn {
@@ -1104,6 +1113,12 @@ let G = null;                 // current floor run
 const floorParam = new URLSearchParams(location.search).get('floor');
 const savedFloor = load('bbt-floor', 1);
 const floorNum = clamp(parseInt(floorParam || savedFloor, 10) || 1, 1, FLOORS.length);
+/* the ambush is NOT skippable: if one is owed from your last victory, the
+   tower door won't open until you've defended your base — off you go */
+const _owedAmbush = load('bbt-ambush', 0) || 0;
+if (_owedAmbush >= 1 && !String(location.href).startsWith('about')) {
+  location.replace('base.html?ambush=' + _owedAmbush);
+}
 let gems = load('bbt-gems', 0);   // everyone starts broke — beat monsters and floors to earn
 
 /* ---------- crafting materials (spend them at the Forge!) ----------
@@ -1246,9 +1261,13 @@ function startFloor() {
   try { if ((load('bbt-owned', []) || []).includes('bombs')) G.hero.belt.bomb = (G.hero.belt.bomb || 0) + 3; } catch (e) {}
   // your Inventory's favorite off-hand bomb starts selected (when this floor has it)
   try { const fav = (load('bbt-equip', {}) || {}).offhand; if (fav && fav in G.hero.belt) G.hero.sel = fav; } catch (e) {}
+  // the Market's Heart in a Jar: +1 heart FOREVER (it's still beating)
+  if (load('bbt-heartjar', false)) {
+    G.hero.maxHearts += 2; G.hero.hearts += 2;
+  }
   // the Workbench repaired your armor: +1 heart for this whole visit
   if (repairBonus) {
-    G.hero.maxHearts = 8; G.hero.hearts = 8;
+    G.hero.maxHearts += 2; G.hero.hearts += 2;
     setTimeout(() => { try { if (G && !G.over) floatText(G.hero.fx, G.hero.fy, 'ARMOR REPAIRED! +1 ❤', '#7dffa5'); } catch (e) {} }, 800);
   }
   $('#floorname').textContent = def.name;
@@ -1275,7 +1294,7 @@ function updateHUD() {
   let s = '';
   for (let i = 0; i < h.maxHearts; i += 2) {
     const v = h.hearts - i;
-    s += v >= 2 ? '❤' : v >= 1 ? '<span class="half">❤</span>' : '<span class="empty">❤</span>';
+    s += v >= 2 ? '❤' : v >= 1 ? '<span class="half">💔</span>' : '<span class="empty">❤</span>';
   }
   $('#hearts').innerHTML = s;
   const T = BOMB_TYPES[h.sel];
@@ -1690,6 +1709,10 @@ function hurtHero(amount) {
   h.hurtUntil = now + 250;
   h.iframesUntil = now + 700;
   sfx.hurt(); shake();
+  // make the hit IMPOSSIBLE to miss: the hearts pop and the damage floats up
+  floatText(h.fx, h.fy, amount >= 1 ? '-' + amount + ' ❤' : '-½ ❤', '#ff5c7a');
+  const chip = $('#hearts');
+  chip.classList.remove('ouch'); void chip.offsetWidth; chip.classList.add('ouch');
   updateHUD();
   if (h.hearts <= 0) heroDie();
 }
@@ -1713,6 +1736,7 @@ function reachStairs() {
   gems += bonus; save('bbt-gems', gems);
   const next = floorNum + 1;
   save('bbt-floor', Math.min(next, FLOORS.length + 1));
+  save('bbt-ambush', floorNum);   // the Warlock's ambush is now OWED — dodging only delays it
   $('#victorymsg').innerHTML = 'You beat <b>Floor ' + floorNum + '</b>! &nbsp;+' + bonus + ' ◆';
   $('#victorysub').textContent = next <= FLOORS.length
     ? 'The WARLOCK is furious — his ambush is racing to your BASE!'
@@ -2480,24 +2504,31 @@ canvas.addEventListener('mousedown', () => heroAttack());
 
 const isTouch = matchMedia('(pointer: coarse)').matches;
 if (isTouch) document.body.classList.add('touch');
+/* the joystick is a FIXED pad now — no dragging needed. Just TAP the side of
+   the pad you want to walk toward and HOLD: your finger's spot relative to
+   the pad's CENTER is the direction, from the very first touch. Slide your
+   thumb to steer. (Anywhere in the lower-left zone works.) */
 const joyEl = $('#joy'), knob = joyEl.querySelector('.knob'), joyzone = $('#joyzone');
-let joyId = null, joyCx = 0, joyCy = 0;
+let joyId = null;
+function steerJoy(t) {
+  const r = joyEl.getBoundingClientRect();
+  const dx = t.clientX - (r.left + r.width / 2), dy = t.clientY - (r.top + r.height / 2);
+  const m = Math.hypot(dx, dy), cap = 44;
+  if (m < 6) { G.joy.dx = 0; G.joy.dy = 0; knob.style.transform = 'translate(0,0)'; return; }
+  const mag = Math.min(1, m / cap);
+  G.joy.dx = dx / m * mag; G.joy.dy = dy / m * mag;
+  const k = m > cap ? cap / m : 1;
+  knob.style.transform = 'translate(' + dx * k + 'px,' + dy * k + 'px)';
+}
 joyzone.addEventListener('touchstart', e => {
   const t = e.changedTouches[0];
-  joyId = t.identifier; joyCx = t.clientX; joyCy = t.clientY;
-  joyEl.style.left = (joyCx - 54) + 'px'; joyEl.style.bottom = 'auto'; joyEl.style.top = (joyCy - 54) + 'px';
+  joyId = t.identifier;
   G.joy.active = true;
+  steerJoy(t);   // moving from the FIRST touch — a tap-and-hold is enough
   e.preventDefault();
 }, { passive: false });
 addEventListener('touchmove', e => {
-  for (const t of e.changedTouches) {
-    if (t.identifier !== joyId) continue;
-    const dx = t.clientX - joyCx, dy = t.clientY - joyCy;
-    const m = Math.hypot(dx, dy), cap = 44;
-    const s = m > cap ? cap / m : 1;
-    G.joy.dx = dx * s / cap; G.joy.dy = dy * s / cap;
-    knob.style.transform = 'translate(' + dx * s + 'px,' + dy * s + 'px)';
-  }
+  for (const t of e.changedTouches) if (t.identifier === joyId) steerJoy(t);
 }, { passive: true });
 addEventListener('touchend', e => {
   for (const t of e.changedTouches) {

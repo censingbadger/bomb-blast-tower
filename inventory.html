@@ -583,6 +583,7 @@ const owned = load('bbt-owned', []);
 const custom = load('bbt-custom', []);
 const upgrades = load('bbt-upgrades', {});
 const enchants = load('bbt-ench', {});     // itemId -> { enchantKey: level }, written by the Forge
+const heartJar = !!load('bbt-heartjar', false);   // the Market's legend: +1 heart FOREVER
 const kills = load('bbt-kills', 0) || 0;
 const floorNext = load('bbt-floor', 1);
 const TOTAL_FLOORS = 50;
@@ -911,6 +912,7 @@ function renderStats() {
     ['Floors beaten', String(floorsBeaten) + ' / ' + TOTAL_FLOORS],
     ['Weapon upgrades', String(totalStars('weapon'))],
     ['Enchantments', String(totalEnchLevels())],
+    ['Hearts', '<span class="v">' + (3 + (heartJar ? 1 : 0)) + ' ❤' + (heartJar ? ' (Heart in a Jar!)' : '') + '</span>', true],
   ];
   $('#statrows').innerHTML = rows.map(r =>
     '<div class="statrow"><span class="k">' + r[0] + ':</span>' +
