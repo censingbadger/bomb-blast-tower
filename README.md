@@ -73,6 +73,21 @@ python3 -m http.server
   skeletons, extra monster health past Floor 11, and a bigger victory prize
   every floor (+25 on Floor 1, +172 on Floor 50).
 
+  **And on Floor 50, THE WARLOCK HIMSELF is waiting.** He floats between
+  you and the staircase with his own boss health bar, swipes for a **full
+  heart**, and *appears beside you* in a burst of purple sparks if you try
+  to keep your distance. He is extremely hard to kill: his health is
+  **forty-two of your sword swings deep**, and only your **weapon** can
+  hurt him — his magic *drinks* every bomb blast, shrugs off every
+  enchantment, and even a critical hit lands as one ordinary swing, so he
+  truly takes **at least forty hits**. And when you finally carve him down
+  to a **twentieth of his health**, the battle freezes into a cutscene: the
+  Warlock speaks — *"I've watched you a long time, and you think you have
+  the power to defeat me, but you're wrong. I will prevail."* — and
+  vanishes in a swirl of purple smoke before your final blow can land.
+  The floor is yours (+172 💎)… but he keeps his word about prevailing:
+  his angriest ambush is already marching on your Base.
+
   Every floor is a proper trek (about 66 tiles of walking, over 100 near the
   top): rooms are strung out across the whole floor and you snake through all
   of them, with **the staircase waiting in the very last room**. On the way,

@@ -207,6 +207,84 @@ body {
 }
 @media (max-width: 700px) { #tip { display: none; } }
 
+/* ---------- FLOOR 50: THE WARLOCK ---------- */
+#bossbar {
+  position: fixed;
+  top: 3.4rem; left: 50%;
+  transform: translateX(-50%);
+  width: min(88vw, 30rem);
+  z-index: 8;
+  display: none;
+  text-align: center;
+}
+#bossbar.show { display: block; }
+#bossbar .bname {
+  font-family: 'Luckiest Guy', cursive;
+  font-size: 1.05rem;
+  letter-spacing: .12em;
+  color: #d9b8ff;
+  text-shadow: 0 2px 0 rgba(0,0,0,.7), 0 0 14px rgba(176,109,255,.6);
+}
+#bossbar .btrack {
+  height: 14px;
+  border-radius: 999px;
+  border: 2px solid #2a1440;
+  background: rgba(10,6,18,.8);
+  overflow: hidden;
+  box-shadow: 0 2px 0 rgba(0,0,0,.5);
+}
+#bossbar .bfill {
+  height: 100%;
+  width: 100%;
+  border-radius: 999px;
+  background: linear-gradient(90deg, #7c3aed, #b06dff);
+  box-shadow: 0 0 12px rgba(176,109,255,.8) inset;
+  transition: width .25s ease;
+}
+#cutscene {
+  position: fixed; inset: 0;
+  z-index: 30;
+  display: none;
+  background: radial-gradient(ellipse at 50% 30%, rgba(46,20,80,.96), rgba(8,4,16,.985));
+  align-items: center; justify-content: center;
+  text-align: center;
+}
+#cutscene.show { display: flex; }
+#cutscene .cpanel { max-width: min(92vw, 34rem); padding: 1rem; }
+#cutscene svg.cface { width: min(46vw, 15rem); height: auto; filter: drop-shadow(0 0 30px rgba(176,109,255,.55)); animation: cfloat 3.2s ease-in-out infinite; }
+@keyframes cfloat { 50% { transform: translateY(-9px); } }
+#cutname {
+  font-family: 'Luckiest Guy', cursive;
+  font-size: clamp(1.3rem, 5vw, 1.9rem);
+  letter-spacing: .14em;
+  color: #d9b8ff;
+  text-shadow: 0 3px 0 rgba(0,0,0,.7), 0 0 18px rgba(176,109,255,.7);
+  margin: .6rem 0 .5rem;
+}
+#cutline {
+  min-height: 5.2em;
+  font-size: clamp(1.05rem, 3.6vw, 1.3rem);
+  line-height: 1.5;
+  color: #efe6ff;
+  text-shadow: 0 2px 0 rgba(0,0,0,.6);
+}
+#cutgo {
+  margin-top: 1rem;
+  font-family: 'Luckiest Guy', cursive;
+  font-size: 1.1rem;
+  letter-spacing: .06em;
+  color: #24084a;
+  background: linear-gradient(180deg, #dcbcff, #a06dff);
+  border: 3px solid #5b2fa8;
+  border-radius: 999px;
+  padding: .65rem 1.6rem .45rem;
+  cursor: pointer;
+  box-shadow: 0 5px 0 rgba(0,0,0,.55);
+  visibility: hidden;
+}
+#cutgo.ready { visibility: visible; animation: cutgopop .4s ease; }
+@keyframes cutgopop { 0% { transform: scale(.6); } 70% { transform: scale(1.12); } }
+
 /* ---------- the bomb ring: SWAP shows every bomb in a circle ---------- */
 #ringwrap {
   position: fixed; inset: 0;
@@ -320,6 +398,30 @@ body {
   <button class="tbtn" id="t-swap">SWAP</button>
   <button class="tbtn" id="t-det" style="display:none; border-color:rgba(255,80,80,.6);">DET!</button>
   <button class="tbtn" id="t-jump">JUMP</button>
+</div>
+
+<div id="bossbar" aria-hidden="true">
+  <div class="bname">THE WARLOCK</div>
+  <div class="btrack"><div class="bfill" id="bossfill"></div></div>
+</div>
+
+<div id="cutscene" role="dialog" aria-label="The Warlock speaks">
+  <div class="cpanel">
+    <svg class="cface" viewBox="0 0 200 200" aria-hidden="true">
+      <path d="M100 18 C56 18 40 62 40 104 L34 178 L74 160 L100 176 L126 160 L166 178 L160 104 C160 62 144 18 100 18 Z" fill="#3a2c5e" stroke="#1c1130" stroke-width="7" stroke-linejoin="round"/>
+      <path d="M100 30 C66 30 54 66 54 102 L54 128 L146 128 L146 102 C146 66 134 30 100 30 Z" fill="#0d0716"/>
+      <path d="M67 92 q14 -12 26 0" fill="none" stroke="#b06dff" stroke-width="8" stroke-linecap="round"/>
+      <path d="M107 92 q14 -12 26 0" fill="none" stroke="#b06dff" stroke-width="8" stroke-linecap="round"/>
+      <path d="M67 92 q14 -12 26 0 M107 92 q14 -12 26 0" fill="none" stroke="#e8d6ff" stroke-width="3" stroke-linecap="round"/>
+      <path d="M84 122 q16 8 32 0" fill="none" stroke="#4b3a7a" stroke-width="5" stroke-linecap="round"/>
+      <path d="M100 18 L92 2 M100 18 L112 4" stroke="#1c1130" stroke-width="7" stroke-linecap="round"/>
+      <path d="M30 70 l4 8 l8 4 l-8 4 l-4 8 l-4 -8 l-8 -4 l8 -4 Z" fill="#d9b8ff" opacity=".9"/>
+      <path d="M170 52 l3 6 l6 3 l-6 3 l-3 6 l-3 -6 l-6 -3 l6 -3 Z" fill="#b06dff" opacity=".8"/>
+    </svg>
+    <div id="cutname">THE WARLOCK</div>
+    <div id="cutline"></div>
+    <button id="cutgo">&#9876;&#65039; WE&rsquo;LL SEE ABOUT THAT!</button>
+  </div>
 </div>
 
 <div id="banner"></div>
@@ -1265,6 +1367,30 @@ function startFloor() {
   if (load('bbt-heartjar', false)) {
     G.hero.maxHearts += 2; G.hero.hearts += 2;
   }
+  /* FLOOR 50: THE WARLOCK HIMSELF guards the staircase.
+     Only your WEAPON can hurt him — his magic drinks every blast — and his
+     health is 42 of your swings deep, so he takes AT LEAST forty hits.
+     At a twentieth of his health, he has something to say. */
+  if (floorNum === 50) {
+    const bhp = heroDmg * 42;
+    G.boss = {
+      kind: 'warlock', name: 'THE WARLOCK',
+      fx: G.stairs.x, fy: G.stairs.y - 0.2, homeX: G.stairs.x, homeY: G.stairs.y,
+      hp: bhp, maxHp: bhp,
+      speed: 1.15, aggro: 7.5, dmg: 1, swipeCool: 1500, swipeDmg: 1, gems: 0,
+      body: '#3a2c5e', cloth: '#241844', eye: '#b06dff',
+      facing: 1, swipeReadyAt: 0, swingUntil: 0, hurtUntil: 0,
+      dead: false, deadAt: 0, seed: 50, wanderAt: 0, wx: G.stairs.x, wy: G.stairs.y,
+      teleportAt: performance.now() + 8000, spoke: false, fled: false,
+    };
+    G.enemies.push(G.boss);
+    $('#bossbar').classList.add('show');
+    $('#bossfill').style.width = '100%';
+    def.tip = 'HE IS HERE. Your weapon is the only thing he fears — his magic drinks the blasts!';
+    try { MUSIC.setMood('battle'); } catch (e) {}
+  } else {
+    $('#bossbar').classList.remove('show');
+  }
   // the Workbench repaired your armor: +1 heart for this whole visit
   if (repairBonus) {
     G.hero.maxHearts += 2; G.hero.hearts += 2;
@@ -1333,7 +1459,7 @@ function buildRing() {
   $('#ringdesc').textContent = T.name.toUpperCase() + ' — ' + T.desc;
 }
 function openRing() {
-  if (G.over || G.hero.dead || ringOpen) return;
+  if (G.over || G.hero.dead || ringOpen || cutsceneOn) return;
   ringOpen = true; ringOpenedAt = performance.now();
   buildRing();
   $('#ringwrap').classList.add('show');
@@ -1346,7 +1472,7 @@ function closeRing(pick) {
   G.bombs.forEach(b => { b.at += d; if (b.armAt) b.armAt += d; });
   const h = G.hero;
   ['jumpUntil', 'boostUntil', 'boostFrom', 'dashUntil', 'hurtUntil', 'iframesUntil', 'attackReadyAt', 'swingUntil', 'spikeHurtAt'].forEach(k => { if (h[k]) h[k] += d; });
-  G.enemies.forEach(e => ['swipeReadyAt', 'swingUntil', 'hurtUntil', 'wanderAt', 'deadAt', 'frozenUntil', 'stunUntil', 'trailNext', 'burnShow'].forEach(k => { if (e[k]) e[k] += d; }));
+  G.enemies.forEach(e => ['swipeReadyAt', 'swingUntil', 'hurtUntil', 'wanderAt', 'deadAt', 'frozenUntil', 'stunUntil', 'trailNext', 'burnShow', 'teleportAt', 'drankAt', 'resistAt', 'barredAt'].forEach(k => { if (e[k]) e[k] += d; }));
   G.firetrail.forEach(p => { p.until += d; });
   G.beams.forEach(z => { z.at += d; });
   G.slams.forEach(s => { s.at += d; });
@@ -1457,7 +1583,7 @@ function moveEnemy(e, dx, dy) {
 /* ---------- actions ---------- */
 function heroAttack() {
   const h = G.hero, now = performance.now();
-  if (G.over || h.dead || ringOpen || now < h.attackReadyAt) return;
+  if (G.over || h.dead || ringOpen || cutsceneOn || now < h.attackReadyAt) return;
   sfx.init();
   h.attackReadyAt = now + 380;
   h.swingUntil = now + 180;
@@ -1502,6 +1628,10 @@ function weaponDamageFor(e) {
 /* every on-hit enchantment does its thing to whatever you struck */
 function applyWeaponMagic(e, now) {
   if (!enchanted) return;
+  if (e === G.boss) {   // no freezing, yeeting or exploding THE WARLOCK
+    if (now > (e.resistAt || 0)) { e.resistAt = now + 1400; floatText(e.fx, e.fy - 0.5, 'RESISTED!', '#b06dff'); }
+    return;
+  }
   const h = G.hero;
   const icyLv = enchLv('icy');
   if (icyLv && !e.dead && Math.random() < 0.10 * icyLv) {   // Icy Blade: an actual ice cube
@@ -1567,6 +1697,26 @@ function killiusBeam() {
 }
 function hurtEnemy(e, dmg, from) {
   const now = performance.now();
+  if (e === G.boss) {
+    // THE WARLOCK: only your weapon touches him, one swing's worth at a time —
+    // no bomb, beam, burn or lucky crit shortcuts the forty-hit promise
+    if (from !== G.hero) {
+      if (now > (e.drankAt || 0)) { e.drankAt = now + 900; floatText(e.fx, e.fy - 0.4, 'his magic DRINKS the blast!', '#b06dff'); }
+      return;
+    }
+    dmg = Math.min(dmg, heroDmg);
+    e.hp = Math.max(0, e.hp - dmg);
+    e.hurtUntil = now + 180;
+    sfx.hitFor(heroShape);
+    floatText(e.fx, e.fy, '-' + dmg, '#d9b8ff');
+    $('#bossfill').style.width = Math.max(0, e.hp / e.maxHp * 100) + '%';
+    // at a TWENTIETH of his health, the battle stops — he has something to say
+    if (!e.spoke && e.hp <= e.maxHp / 20) {
+      e.spoke = true;
+      startCutscene();
+    }
+    return;
+  }
   e.hp -= dmg;
   e.hurtUntil = now + 180;
   if (from === G.hero) sfx.hitFor(heroShape); else sfx.hit();
@@ -1606,7 +1756,7 @@ function heroJump() {
 }
 function placeBomb() {
   const h = G.hero, now = performance.now();
-  if (G.over || h.dead || ringOpen) return;
+  if (G.over || h.dead || ringOpen || cutsceneOn) return;
   const sel = h.sel, T = BOMB_TYPES[sel];
   if ((h.belt[sel] || 0) <= 0) { banner('NO ' + T.name.toUpperCase() + 'S! Find a crate.', 1200); return; }
   sfx.init(); sfx.fuseFor(sel);
@@ -1665,7 +1815,7 @@ function explode(b) {
   G.enemies.forEach(e => {
     if (!e.dead && dist(e.fx, e.fy, b.fx, b.fy) <= R + 0.3) {
       hurtEnemy(e, bombDmg, b);
-      if (stunLv && !e.dead) {
+      if (stunLv && !e.dead && e !== G.boss) {
         e.stunUntil = now + 1000 * stunLv;
         sfx.zap();
         floatText(e.fx, e.fy - 0.3, 'STUNNED!', '#ffd23f');
@@ -1729,6 +1879,15 @@ function heroDie() {
 }
 function reachStairs() {
   if (G.over) return;
+  // on Floor 50, THE WARLOCK bars the way until he has been dealt with
+  if (G.boss && !G.boss.dead && !G.boss.fled) {
+    const now = performance.now();
+    if (now > (G.boss.barredAt || 0)) {
+      G.boss.barredAt = now + 1600;
+      banner('THE WARLOCK BARS THE WAY!', 1200);
+    }
+    return;
+  }
   G.over = true; G.won = true;
   try { MUSIC.stop(); } catch (e) {}
   sfx.stairs();
@@ -1746,6 +1905,59 @@ function reachStairs() {
   updateHUD();
   setTimeout(goBase, 4200);
 }
+/* ---------- THE CUTSCENE: at a twentieth of his health, the Warlock speaks ---------- */
+const WARLOCK_LINE = 'I’ve watched you a long time, and you think you have the power to defeat me, but you’re wrong. I will prevail.';
+let cutsceneOn = false, cutTimer = null, cutDone = false;
+function startCutscene() {
+  cutsceneOn = true; cutDone = false;
+  G.bombs = [];   // his magic snuffs every lit fuse
+  try { MUSIC.setMood('calm'); } catch (e) {}
+  sfx.armed();
+  const line = $('#cutline'), go = $('#cutgo');
+  line.textContent = '';
+  go.classList.remove('ready');
+  $('#cutscene').classList.add('show');
+  let i = 0;
+  const type = () => {
+    if (!cutsceneOn) return;
+    if (i >= WARLOCK_LINE.length) { cutDone = true; go.classList.add('ready'); return; }
+    line.textContent = WARLOCK_LINE.slice(0, ++i);
+    if (i % 3 === 0) sfx.tick();
+    cutTimer = setTimeout(type, WARLOCK_LINE[i - 1] === '.' || WARLOCK_LINE[i - 1] === ',' ? 300 : 42);
+  };
+  cutTimer = setTimeout(type, 700);
+}
+function finishTyping() {   // a tap skips to the whole line
+  if (cutDone || !cutsceneOn) return;
+  clearTimeout(cutTimer);
+  $('#cutline').textContent = WARLOCK_LINE;
+  cutDone = true;
+  $('#cutgo').classList.add('ready');
+}
+function endCutscene() {
+  if (!cutsceneOn || !cutDone) return;
+  cutsceneOn = false;
+  $('#cutscene').classList.remove('show');
+  // ...and with a swirl of purple smoke, he is GONE. He said he'd prevail —
+  // but the floor is yours, and his angriest ambush is already marching.
+  const b = G.boss;
+  if (b) {
+    b.fled = true; b.dead = true; b.deadAt = performance.now();
+    for (let i = 0; i < 16; i++) G.sparkles.push({ fx: b.fx + (Math.random() - 0.5) * 1.4, fy: b.fy + (Math.random() - 0.5) * 1.4, at: performance.now() });
+    sfx.boomFor('bomb'); shake();
+  }
+  $('#bossbar').classList.remove('show');
+  G.hero.iframesUntil = performance.now() + 4000;   // nobody cheap-shots the hero mid-triumph
+  banner('THE WARLOCK VANISHES!', 1600);
+  try { MUSIC.setMood('tower'); } catch (e) {}
+  setTimeout(() => { if (G && !G.over) reachStairs(); }, 1700);
+}
+$('#cutscene').addEventListener('pointerdown', e => {
+  if (e.target && e.target.id === 'cutgo') return;
+  finishTyping();
+});
+$('#cutgo').addEventListener('click', endCutscene);
+
 let wentHome = false;
 function goHome() {
   if (wentHome) return; wentHome = true;
@@ -1916,7 +2128,7 @@ function update(dt, now) {
       if (dh < 0.95 && now >= e.swipeReadyAt) {
         e.swipeReadyAt = now + e.swipeCool;
         e.swingUntil = now + 200;
-        hurtHero(0.5);
+        hurtHero(e.swipeDmg || 0.5);   // the Warlock swipes for a FULL heart
       }
     } else {
       // lazy wander near home
@@ -1937,6 +2149,27 @@ function update(dt, now) {
   // an enchanted weapon sheds faint purple sparkles as you carry it
   if (enchanted && !h.dead && Math.random() < dt * 3) {
     G.sparkles.push({ fx: h.fx + (Math.random() - 0.5) * 0.8, fy: h.fy + (Math.random() - 0.5) * 0.8, at: now });
+  }
+
+  // THE WARLOCK does not chase far — he simply APPEARS beside you
+  if (G.boss && !G.boss.dead && !G.boss.fled && !h.dead && now >= G.boss.teleportAt) {
+    G.boss.teleportAt = now + 8000;
+    const b = G.boss;
+    if (dist(b.fx, b.fy, h.fx, h.fy) > 4.5) {
+      for (let tries = 0; tries < 24; tries++) {
+        const a = Math.random() * Math.PI * 2;
+        const tx = h.fx + Math.cos(a) * 2.2, ty = h.fy + Math.sin(a) * 2.2;
+        const t = tileAt(tx, ty);
+        if (t && !isSolidKind(t.kind) && t.kind !== 'plat') {
+          for (let i = 0; i < 8; i++) G.sparkles.push({ fx: b.fx + (Math.random() - 0.5), fy: b.fy + (Math.random() - 0.5), at: now });
+          b.fx = tx; b.fy = ty; b.homeX = tx; b.homeY = ty;
+          for (let i = 0; i < 8; i++) G.sparkles.push({ fx: tx + (Math.random() - 0.5), fy: ty + (Math.random() - 0.5), at: now });
+          floatText(tx, ty, 'HE APPEARS!', '#b06dff');
+          sfx.zap(); shake();
+          break;
+        }
+      }
+    }
   }
 
   // camera follows
@@ -2406,7 +2639,60 @@ function drawHero(ox, oy, h, now) {
   }
   ctx.restore();
 }
+/* THE WARLOCK: a head taller than everything, floating, robe full of night */
+function drawWarlock(ox, oy, e, now) {
+  if (e.dead && now - e.deadAt > 700) return;
+  const sx = ox + isoX(e.fx, e.fy), sy = oy + isoY(e.fx, e.fy);
+  if (e.dead) {   // he doesn't fall — he DISPERSES
+    const p = (now - e.deadAt) / 700;
+    ctx.globalAlpha = 1 - p;
+    ctx.fillStyle = '#b06dff';
+    for (let i = 0; i < 7; i++) {
+      ctx.beginPath(); ctx.arc(sx + (rand(i + 3) - 0.5) * 46 * p * 2, sy - 20 - p * 34, 5 * (1 - p), 0, 7); ctx.fill();
+    }
+    ctx.globalAlpha = 1;
+    return;
+  }
+  const bob = Math.sin(now / 260) * 3;
+  drawShadow(sx, sy, 15, 0.25);
+  ctx.save();
+  ctx.translate(sx, sy - 26 + bob);
+  if (now < e.hurtUntil) ctx.globalAlpha = 0.6;
+  // aura
+  ctx.fillStyle = 'rgba(124,58,237,.16)';
+  ctx.beginPath(); ctx.ellipse(0, 4, 24, 30, 0, 0, 7); ctx.fill();
+  // robe
+  ctx.fillStyle = e.body; ctx.strokeStyle = '#1c1130'; ctx.lineWidth = 3;
+  ctx.beginPath();
+  ctx.moveTo(0, -26); ctx.quadraticCurveTo(-16, -14, -14, 16); ctx.lineTo(-6, 12); ctx.lineTo(0, 18); ctx.lineTo(6, 12); ctx.lineTo(14, 16);
+  ctx.quadraticCurveTo(16, -14, 0, -26);
+  ctx.closePath(); ctx.fill(); ctx.stroke();
+  // hood + the dark inside
+  ctx.fillStyle = e.cloth;
+  ctx.beginPath(); ctx.arc(0, -24, 11, Math.PI * 0.9, Math.PI * 0.1); ctx.quadraticCurveTo(11, -12, 0, -12); ctx.quadraticCurveTo(-11, -12, -11, -22); ctx.closePath(); ctx.fill(); ctx.stroke();
+  ctx.fillStyle = '#0d0716';
+  ctx.beginPath(); ctx.ellipse(0, -20, 7.5, 8.5, 0, 0, 7); ctx.fill();
+  // the glowing eyes
+  const F = e.facing;
+  ctx.fillStyle = e.eye;
+  ctx.beginPath(); ctx.arc(2.5 * F, -21, 1.9, 0, 7); ctx.fill();
+  ctx.beginPath(); ctx.arc(6 * F, -21, 1.9, 0, 7); ctx.fill();
+  // staff with orb
+  const swinging = now < (e.swingUntil || 0);
+  ctx.save();
+  ctx.translate(10 * F, -6);
+  ctx.rotate((swinging ? -0.7 : 0.15) * F);
+  ctx.strokeStyle = '#241844'; ctx.lineWidth = 3.4; ctx.lineCap = 'round';
+  ctx.beginPath(); ctx.moveTo(0, 16); ctx.lineTo(4 * F, -18); ctx.stroke();
+  ctx.fillStyle = '#b06dff';
+  ctx.beginPath(); ctx.arc(4.5 * F, -21, 4.4, 0, 7); ctx.fill();
+  ctx.fillStyle = 'rgba(233,214,255,.85)';
+  ctx.beginPath(); ctx.arc(3.2 * F, -22.4, 1.5, 0, 7); ctx.fill();
+  ctx.restore();
+  ctx.restore();
+}
 function drawEnemy(ox, oy, e, now) {
+  if (e.kind === 'warlock') return drawWarlock(ox, oy, e, now);
   if (e.dead && now - e.deadAt > 500) return;
   const sx = ox + isoX(e.fx, e.fy), sy = oy + isoY(e.fx, e.fy);
   if (e.dead) {
@@ -2476,6 +2762,10 @@ function drawEnemy(ox, oy, e, now) {
 /* ---------- input ---------- */
 addEventListener('keydown', e => {
   const k = e.key.toLowerCase();
+  if (cutsceneOn) {   // the Warlock has the floor
+    if (k === 'enter' || k === ' ') { e.preventDefault(); if (cutDone) endCutscene(); else finishTyping(); }
+    return;
+  }
   if (ringOpen) {   // the ring has the keyboard: pick a number, or wave it away
     if (k === 'v' || k === 'tab' || k === 'escape') { e.preventDefault(); closeRing(null); }
     const rn = parseInt(k, 10);
@@ -2554,7 +2844,7 @@ let last = performance.now();
 function frame(now) {
   const dt = Math.min(0.05, (now - last) / 1000);
   last = now;
-  if (!ringOpen) update(dt, now);   // the world freezes while you pick a bomb
+  if (!ringOpen && !cutsceneOn) update(dt, now);   // frozen while you pick a bomb — or while HE speaks
   render(now);
   requestAnimationFrame(frame);
 }
@@ -2622,6 +2912,11 @@ window.__tower = {
   get mats() { return mats; },
   get needs() { return G.needs; },
   bombNeeds,
+  get boss() { return G.boss; },
+  get cutscene() { return cutsceneOn; },
+  get warlockLine() { return WARLOCK_LINE; },
+  endCutscene,
+  finishTyping,
   get ench() { return _ench; },
   get ringOpen() { return ringOpen; },
   get killStreak() { return (G && G.killStreak) || 0; },
