@@ -285,6 +285,50 @@ body {
 #cutgo.ready { visibility: visible; animation: cutgopop .4s ease; }
 @keyframes cutgopop { 0% { transform: scale(.6); } 70% { transform: scale(1.12); } }
 
+/* ---- cutscene phase two: the RAINBOW BOMB getaway ---- */
+#cutscape { display: none; }
+#cutscene.esc svg.cface, #cutscene.esc #cutline { display: none; }
+#cutscene.esc #cutscape { display: block; }
+#cutscape svg {
+  width: min(88vw, 32rem); height: auto;
+  border-radius: 14px; border: 3px solid #5b2fa8;
+  box-shadow: 0 0 30px rgba(176,109,255,.35);
+}
+#cutcap {
+  margin-top: .6rem; min-height: 4.4em;
+  font-size: clamp(.95rem, 3.2vw, 1.15rem); line-height: 1.45;
+  color: #efe6ff; text-shadow: 0 2px 0 rgba(0,0,0,.6);
+}
+#rburst { opacity: 0; transform-origin: 48px 95px; }
+#cutscape.go #rburst { animation: rburst 1.1s ease-out .15s; }
+@keyframes rburst {
+  0% { opacity: 0; transform: scale(.15); }
+  18% { opacity: 1; }
+  60% { opacity: 1; transform: scale(1.5) rotate(40deg); }
+  100% { opacity: 0; transform: scale(2.2) rotate(70deg); }
+}
+#rtrail { stroke-dasharray: 100; stroke-dashoffset: 100; opacity: .9; }
+#cutscape.go #rtrail { animation: rtrail 2.6s ease-in-out .55s forwards; }
+@keyframes rtrail { to { stroke-dashoffset: 0; } }
+#flywarl { opacity: 0; }
+#cutscape.go #flywarl { animation: rfly 2.6s ease-in-out .55s forwards; }
+@keyframes rfly {
+  0% { opacity: 1; transform: translate(48px, 95px) rotate(15deg); }
+  25% { transform: translate(147px, 46px) rotate(30deg); }
+  50% { transform: translate(246px, 24px) rotate(40deg); }
+  75% { transform: translate(346px, 30px) rotate(50deg); }
+  99% { opacity: 1; }
+  100% { opacity: 0; transform: translate(445px, 62px) rotate(65deg); }
+}
+#towin { opacity: .22; }
+#cutscape.go #towin { animation: towin .7s ease 3.1s forwards; }
+@keyframes towin { to { opacity: 1; } }
+/* a skip (or the flight's end) pins everything at its final state */
+#cutscape.done #rburst { animation: none; opacity: 0; }
+#cutscape.done #rtrail { animation: none; stroke-dashoffset: 0; }
+#cutscape.done #flywarl { animation: none; opacity: 0; transform: translate(445px, 62px); }
+#cutscape.done #towin { animation: none; opacity: 1; }
+
 /* ---------- the bomb ring: SWAP shows every bomb in a circle ---------- */
 #ringwrap {
   position: fixed; inset: 0;
@@ -410,16 +454,121 @@ body {
     <svg class="cface" viewBox="0 0 200 200" aria-hidden="true">
       <path d="M100 18 C56 18 40 62 40 104 L34 178 L74 160 L100 176 L126 160 L166 178 L160 104 C160 62 144 18 100 18 Z" fill="#3a2c5e" stroke="#1c1130" stroke-width="7" stroke-linejoin="round"/>
       <path d="M100 30 C66 30 54 66 54 102 L54 128 L146 128 L146 102 C146 66 134 30 100 30 Z" fill="#0d0716"/>
-      <path d="M67 92 q14 -12 26 0" fill="none" stroke="#b06dff" stroke-width="8" stroke-linecap="round"/>
-      <path d="M107 92 q14 -12 26 0" fill="none" stroke="#b06dff" stroke-width="8" stroke-linecap="round"/>
-      <path d="M67 92 q14 -12 26 0 M107 92 q14 -12 26 0" fill="none" stroke="#e8d6ff" stroke-width="3" stroke-linecap="round"/>
-      <path d="M84 122 q16 8 32 0" fill="none" stroke="#4b3a7a" stroke-width="5" stroke-linecap="round"/>
+      <path d="M62 74 L96 88 M138 74 L104 88" fill="none" stroke="#3a2c5e" stroke-width="8" stroke-linecap="round"/>
+      <path d="M66 82 L94 97" fill="none" stroke="#b06dff" stroke-width="9" stroke-linecap="round"/>
+      <path d="M134 82 L106 97" fill="none" stroke="#b06dff" stroke-width="9" stroke-linecap="round"/>
+      <path d="M66 82 L94 97 M134 82 L106 97" fill="none" stroke="#e8d6ff" stroke-width="3.5" stroke-linecap="round"/>
+      <path d="M82 124 q18 -11 36 0" fill="none" stroke="#4b3a7a" stroke-width="5" stroke-linecap="round"/>
       <path d="M100 18 L92 2 M100 18 L112 4" stroke="#1c1130" stroke-width="7" stroke-linecap="round"/>
       <path d="M30 70 l4 8 l8 4 l-8 4 l-4 8 l-4 -8 l-8 -4 l8 -4 Z" fill="#d9b8ff" opacity=".9"/>
       <path d="M170 52 l3 6 l6 3 l-6 3 l-3 6 l-3 -6 l-6 -3 l6 -3 Z" fill="#b06dff" opacity=".8"/>
     </svg>
     <div id="cutname">THE WARLOCK</div>
     <div id="cutline"></div>
+    <div id="cutscape" aria-hidden="true">
+      <svg viewBox="0 0 520 240">
+        <defs>
+          <linearGradient id="cskyg" x1="0" y1="0" x2="0" y2="1">
+            <stop offset="0" stop-color="#191233"/>
+            <stop offset=".7" stop-color="#25301f"/>
+            <stop offset="1" stop-color="#2a3a26"/>
+          </linearGradient>
+          <linearGradient id="cwaterg" x1="0" y1="0" x2="0" y2="1">
+            <stop offset="0" stop-color="#2c4a34"/>
+            <stop offset="1" stop-color="#16241a"/>
+          </linearGradient>
+          <linearGradient id="craing" x1="0" y1="0" x2="1" y2="0">
+            <stop offset="0" stop-color="#ff5c7a"/>
+            <stop offset=".2" stop-color="#ff8c1a"/>
+            <stop offset=".4" stop-color="#ffd23f"/>
+            <stop offset=".6" stop-color="#7dffa5"/>
+            <stop offset=".8" stop-color="#6db3ff"/>
+            <stop offset="1" stop-color="#b06dff"/>
+          </linearGradient>
+        </defs>
+        <rect width="520" height="240" fill="url(#cskyg)"/>
+        <circle cx="220" cy="42" r="26" fill="#e8e4d0" opacity=".1"/>
+        <circle cx="220" cy="42" r="15" fill="#e8e4d0" opacity=".75"/>
+        <rect y="170" width="520" height="70" fill="url(#cwaterg)"/>
+        <path d="M0 172 q60 -8 120 -2 q80 8 170 0 q90 -8 160 2 q40 5 70 2 L520 178 L0 178 Z" fill="#1c2a1e"/>
+        <g stroke="#241f2b" stroke-width="5" stroke-linecap="round" fill="none">
+          <path d="M150 178 L146 120 M146 132 L128 108 M146 124 L166 98 M148 150 L132 142"/>
+          <path d="M305 180 L309 130 M308 140 L292 118 M308 134 L326 112"/>
+        </g>
+        <g stroke="#3e6b35" stroke-width="2.5" stroke-linecap="round" fill="none">
+          <path d="M96 196 l-3 -18 M104 198 l0 -16 M112 197 l3 -14"/>
+          <path d="M352 200 l-3 -16 M360 202 l1 -18 M368 200 l4 -13"/>
+        </g>
+        <g fill="none" stroke="#9fd0aa" opacity=".35">
+          <circle cx="205" cy="205" r="4"/><circle cx="222" cy="214" r="2.6"/><circle cx="262" cy="208" r="3.4"/>
+        </g>
+        <ellipse cx="160" cy="184" rx="70" ry="8" fill="#cfe0d0" opacity=".08"/>
+        <ellipse cx="300" cy="192" rx="90" ry="9" fill="#cfe0d0" opacity=".1"/>
+        <g>
+          <rect x="398" y="34" width="106" height="206" fill="#57604b"/>
+          <rect x="398" y="34" width="12" height="206" fill="#49523f"/>
+          <g fill="#57604b">
+            <rect x="396" y="18" width="18" height="22"/><rect x="422" y="14" width="18" height="26"/>
+            <rect x="448" y="17" width="18" height="23"/><rect x="474" y="13" width="18" height="27"/><rect x="496" y="19" width="10" height="21"/>
+          </g>
+          <g stroke="#3f4836" stroke-width="1.6" opacity=".8" fill="none">
+            <path d="M398 70 h106 M398 112 h106 M398 154 h106 M398 196 h106"/>
+            <path d="M430 34 v36 M468 70 v42 M446 112 v42 M486 154 v42 M424 196 v44"/>
+          </g>
+          <g fill="#2f5d33">
+            <ellipse cx="404" cy="60" rx="12" ry="26"/>
+            <ellipse cx="500" cy="120" rx="12" ry="34"/>
+            <ellipse cx="420" cy="226" rx="26" ry="16"/>
+            <ellipse cx="482" cy="230" rx="30" ry="14"/>
+          </g>
+          <g fill="#3a7040">
+            <ellipse cx="410" cy="96" rx="8" ry="18"/>
+            <ellipse cx="494" cy="70" rx="7" ry="14"/>
+            <ellipse cx="450" cy="232" rx="34" ry="10"/>
+          </g>
+          <g stroke="#3a7040" stroke-width="3" fill="none" stroke-linecap="round">
+            <path d="M436 40 q-5 24 3 44 q6 18 -2 34"/>
+            <path d="M476 44 q6 28 -3 48 q-6 20 4 40"/>
+          </g>
+          <path d="M416 150 l10 26 M492 96 l-8 22" stroke="#39412f" stroke-width="2" fill="none"/>
+          <g id="towin">
+            <circle cx="447" cy="62" r="15" fill="#ffd23f" opacity=".28"/>
+            <path d="M440 70 L440 58 Q447 50 454 58 L454 70 Z" fill="#ffd23f"/>
+          </g>
+          <path d="M438 240 L438 216 Q450 204 462 216 L462 240 Z" fill="#20261a"/>
+        </g>
+        <g>
+          <rect width="74" height="240" fill="#4a4152"/>
+          <g stroke="#3a3342" stroke-width="2" fill="none">
+            <path d="M0 40 h74 M0 84 h74 M0 128 h74 M0 172 h74 M0 214 h74"/>
+            <path d="M28 0 v40 M52 40 v44 M20 84 v44 M46 128 v44 M30 172 v42"/>
+          </g>
+          <path d="M20 130 L20 78 Q40 52 60 78 L60 130 Z" fill="#140d22" stroke="#241f2b" stroke-width="5"/>
+          <rect x="14" y="128" width="52" height="8" fill="#3a3342"/>
+        </g>
+        <path id="rtrail" d="M48 95 Q246 -30 445 62" pathLength="100" fill="none" stroke="url(#craing)" stroke-width="6" stroke-linecap="round"/>
+        <g id="rburst">
+          <circle cx="48" cy="95" r="7" fill="#fff6e3"/>
+          <g stroke-width="5" stroke-linecap="round" fill="none">
+            <path d="M48 78 L48 64" stroke="#ff5c7a"/>
+            <path d="M60 83 L70 73" stroke="#ff8c1a"/>
+            <path d="M65 95 L79 95" stroke="#ffd23f"/>
+            <path d="M60 107 L70 117" stroke="#7dffa5"/>
+            <path d="M48 112 L48 126" stroke="#6db3ff"/>
+            <path d="M36 107 L26 117" stroke="#b06dff"/>
+            <path d="M31 95 L17 95" stroke="#e8d6ff"/>
+            <path d="M36 83 L26 73" stroke="#ffd23f"/>
+          </g>
+        </g>
+        <g id="flywarl">
+          <path d="M0 -14 C-8 -8 -8 4 -7 9 L-3 6 L0 10 L3 6 L7 9 C8 4 8 -8 0 -14 Z" fill="#3a2c5e" stroke="#1c1130" stroke-width="2.5"/>
+          <circle cx="0" cy="-10" r="5" fill="#241844"/>
+          <path d="M-2.5 -10.5 L-.8 -11.5 M1 -11.5 L2.7 -10.4" stroke="#b06dff" stroke-width="1.6" stroke-linecap="round"/>
+          <path d="M-7 2 L-13 8 M7 2 L12 9" stroke="#241844" stroke-width="2.4" stroke-linecap="round"/>
+        </g>
+      </svg>
+      <div id="cutcap"></div>
+    </div>
     <button id="cutgo">&#9876;&#65039; WE&rsquo;LL SEE ABOUT THAT!</button>
   </div>
 </div>
@@ -1095,6 +1244,8 @@ const sfx = {
   boost() { this.mark('boost'); this.env('sine', 250, 720, .32, .2); },
   stairs() { this.mark('stairs'); [523, 659, 784, 1047].forEach((f, i) => this.env('sine', f, f, .25, .18, i * .13)); },
   die() { this.mark('die'); this.env('sawtooth', 220, 40, .8, .25); },
+  // the ODD RAINBOW BOMB — a whole scale at once, going UP and away
+  rainbow() { this.mark('rainbow'); [523, 659, 784, 1047, 1319, 1568].forEach((f, i) => this.env('triangle', f, f * 1.06, .18, .16, i * .07)); },
 };
 
 /* ============================================================
@@ -1293,6 +1444,7 @@ function parseFloor(def) {
       else if (ch === '%') kind = 'crack';
       else if (ch === 'c') kind = 'carpet';
       else if (ch === 'P') kind = 'plat';
+      else if (ch === 'L') kind = 'lava';
       else if (ch === '^') kind = 'spike';
       else if (ch === 'X') { kind = 'stairs'; stairs = { x: x + 0.5, y: y + 0.5 }; }
       else if (ch === 'S') { start = { x: x + 0.5, y: y + 0.5 }; }
@@ -1318,7 +1470,13 @@ function parseFloor(def) {
     if (isSolidKind(tiles[y][x].kind)) continue;
     if (rand(x * 13 + y * 29 + 5) < 0.05) chains.push({ x: x + 0.5, y: y + 0.5, len: 60 + rand(x + y) * 60, phase: rand(x * 3 + y) * 6.28, seed: x + y * 31 });
   }
-  return { W, H, tiles, start, stairs, enemySpawns: enemies, crateSpawns: crates, torches, chains };
+  // lava lights the room from below (every other tile carries a glow, so the
+  // lighting pass stays cheap even over a big pool)
+  const lavas = [];
+  for (let y = 0; y < H; y++) for (let x = 0; x < W; x++) {
+    if (tiles[y][x].kind === 'lava' && (x + y) % 2 === 0) lavas.push({ x: x + 0.5, y: y + 0.5, seed: x * 5 + y * 3 });
+  }
+  return { W, H, tiles, start, stairs, enemySpawns: enemies, crateSpawns: crates, torches, chains, lavas };
 }
 function isSolidKind(k) { return k === 'wall' || k === 'crack'; }
 
@@ -1367,29 +1525,12 @@ function startFloor() {
   if (load('bbt-heartjar', false)) {
     G.hero.maxHearts += 2; G.hero.hearts += 2;
   }
-  /* FLOOR 50: THE WARLOCK HIMSELF guards the staircase.
-     Only your WEAPON can hurt him — his magic drinks every blast — and his
-     health is 42 of your swings deep, so he takes AT LEAST forty hits.
-     At a twentieth of his health, he has something to say. */
+  /* FLOOR 50: the Warlock is NOT on the main floor. At the end of it, where
+     the staircase would be, a GLOWING DOORWAY waits — click it to step
+     through into his arena. */
+  $('#bossbar').classList.remove('show');
   if (floorNum === 50) {
-    const bhp = heroDmg * 42;
-    G.boss = {
-      kind: 'warlock', name: 'THE WARLOCK',
-      fx: G.stairs.x, fy: G.stairs.y - 0.2, homeX: G.stairs.x, homeY: G.stairs.y,
-      hp: bhp, maxHp: bhp,
-      speed: 1.15, aggro: 7.5, dmg: 1, swipeCool: 1500, swipeDmg: 1, gems: 0,
-      body: '#3a2c5e', cloth: '#241844', eye: '#b06dff',
-      facing: 1, swipeReadyAt: 0, swingUntil: 0, hurtUntil: 0,
-      dead: false, deadAt: 0, seed: 50, wanderAt: 0, wx: G.stairs.x, wy: G.stairs.y,
-      teleportAt: performance.now() + 8000, spoke: false, fled: false,
-    };
-    G.enemies.push(G.boss);
-    $('#bossbar').classList.add('show');
-    $('#bossfill').style.width = '100%';
-    def.tip = 'HE IS HERE. Your weapon is the only thing he fears — his magic drinks the blasts!';
-    try { MUSIC.setMood('battle'); } catch (e) {}
-  } else {
-    $('#bossbar').classList.remove('show');
+    def.tip = 'A GLOWING DOORWAY waits in the last room. Click it… if you dare.';
   }
   // the Workbench repaired your armor: +1 heart for this whole visit
   if (repairBonus) {
@@ -1412,6 +1553,95 @@ function startFloor() {
     const names = Object.keys(_ench).filter(k => _ench[k] > 0).map(k => (ENCH_NAMES[k] || k) + ' ' + rom(_ench[k]));
     setTimeout(() => { if (G && !G.over) banner('✨ YOUR WEAPON SHIMMERS: ' + names.join(' · '), 2200); }, packBits.length ? 6600 : 4300);
   }
+}
+
+/* ============================================================
+   THE WARLOCK'S ARENA — through the glowing doorway on Floor 50.
+   A vast old chamber with LAVA POOLS and flames, and HIM in the
+   middle: larger, angrier, and forty-two swings deep.
+   ============================================================ */
+function arenaDef() {
+  const W = 25, H = 17;
+  const g = [];
+  for (let y = 0; y < H; y++) {
+    let row = '';
+    for (let x = 0; x < W; x++) row += (x === 0 || y === 0 || x === W - 1 || y === H - 1) ? '#' : '.';
+    g.push(row);
+  }
+  const put = (x, y, ch) => { g[y] = g[y].slice(0, x) + ch + g[y].slice(x + 1); };
+  // lava pools in the four corners of the fight, and two side channels
+  [[3, 3], [19, 3], [3, 11], [19, 11]].forEach(([px, py]) => {
+    for (let y = py; y < py + 3; y++) for (let x = px; x < px + 3; x++) put(x, y, 'L');
+  });
+  for (let y = 6; y <= 10; y++) { put(1, y, 'L'); put(23, y, 'L'); }
+  // a carpet ring around the middle, where he waits
+  for (let x = 9; x <= 15; x++) { put(x, 6, 'c'); put(x, 10, 'c'); }
+  for (let y = 7; y <= 9; y++) { put(9, y, 'c'); put(15, y, 'c'); }
+  put(12, 15, 'S');
+  return {
+    name: "FLOOR 50 — THE WARLOCK'S ARENA",
+    tip: 'HE IS HERE. Your weapon is the only thing he fears — his magic drinks the blasts!',
+    grid: g,
+  };
+}
+function enterArena() {
+  if (G.inArena) return;
+  const def = arenaDef();
+  const map = parseFloor(def);
+  const belt = Object.assign({}, G.hero.belt);   // your bombs walk through with you
+  G = {
+    def, ...map,
+    hero: {
+      fx: map.start.x, fy: map.start.y, elev: 0,
+      hearts: 6, maxHearts: 6,
+      belt, sel: G.hero.sel,
+      facing: 1, faceAngle: -Math.PI / 2,
+      moving: false, step: 0,
+      swingUntil: 0, attackReadyAt: 0,
+      jumpZ: 0, jumpUntil: 0, boosting: false, boostUntil: 0, boostFrom: 0,
+      hurtUntil: 0, iframesUntil: 0, spikeHurtAt: 0,
+      dead: false,
+    },
+    enemies: [],
+    crates: [],
+    bombs: [], booms: [], floats: [], rubble: [], sparkles: [], firetrail: [], beams: [], slams: [],
+    killStreak: 0,
+    keys: {}, joy: { active: false, dx: 0, dy: 0 },
+    timerSetting: 3000,
+    cam: { x: map.start.x, y: map.start.y },
+    shakeUntil: 0, over: false, won: false, inArena: true,
+    t0: performance.now(),
+  };
+  G.stairs = { x: -99, y: -99 };   // no staircase here — only HIM
+  if (load('bbt-heartjar', false)) { G.hero.maxHearts += 2; G.hero.hearts += 2; }
+  if (repairBonus) { G.hero.maxHearts += 2; G.hero.hearts += 2; }
+  const cx = 12.5, cy = 8.5;
+  const bhp = heroDmg * 42;
+  G.boss = {
+    kind: 'warlock', name: 'THE WARLOCK', big: true,
+    fx: cx, fy: cy, homeX: cx, homeY: cy,
+    hp: bhp, maxHp: bhp,
+    speed: 1.2, aggro: 9, dmg: 1, swipeCool: 1500, swipeDmg: 1, gems: 0,
+    body: '#3a2c5e', cloth: '#241844', eye: '#b06dff',
+    facing: 1, swipeReadyAt: 0, swingUntil: 0, hurtUntil: 0,
+    dead: false, deadAt: 0, seed: 50, wanderAt: 0, wx: cx, wy: cy,
+    teleportAt: performance.now() + 8000, spoke: false, fled: false,
+  };
+  G.enemies.push(G.boss);
+  // standing flames dance over each lava pool and channel
+  G.flames = [
+    { fx: 4.5, fy: 4.5 }, { fx: 20.5, fy: 4.5 }, { fx: 4.5, fy: 12.5 }, { fx: 20.5, fy: 12.5 },
+    { fx: 1.5, fy: 8.5 }, { fx: 23.5, fy: 8.5 },
+  ].map((p, i) => ({ ...p, seed: i * 17 + 3 }));
+  G.needs = { bombs: 0, dynamite: 0 };
+  $('#bossbar').classList.add('show');
+  $('#bossfill').style.width = '100%';
+  $('#floorname').textContent = def.name;
+  updateHUD();
+  sfx.init(); sfx.stairs(); shake();
+  banner("THE WARLOCK'S ARENA", 1900);
+  setTimeout(() => { if (G && !G.over) banner(def.tip, 1700); }, 2100);
+  try { MUSIC.setMood('battle'); } catch (e) {}
 }
 
 /* ---------- HUD ---------- */
@@ -1471,7 +1701,7 @@ function closeRing(pick) {
   const d = performance.now() - ringOpenedAt;
   G.bombs.forEach(b => { b.at += d; if (b.armAt) b.armAt += d; });
   const h = G.hero;
-  ['jumpUntil', 'boostUntil', 'boostFrom', 'dashUntil', 'hurtUntil', 'iframesUntil', 'attackReadyAt', 'swingUntil', 'spikeHurtAt'].forEach(k => { if (h[k]) h[k] += d; });
+  ['jumpUntil', 'boostUntil', 'boostFrom', 'dashUntil', 'hurtUntil', 'iframesUntil', 'attackReadyAt', 'swingUntil', 'spikeHurtAt', 'lavaHurtAt'].forEach(k => { if (h[k]) h[k] += d; });
   G.enemies.forEach(e => ['swipeReadyAt', 'swingUntil', 'hurtUntil', 'wanderAt', 'deadAt', 'frozenUntil', 'stunUntil', 'trailNext', 'burnShow', 'teleportAt', 'drankAt', 'resistAt', 'barredAt'].forEach(k => { if (e[k]) e[k] += d; }));
   G.firetrail.forEach(p => { p.until += d; });
   G.beams.forEach(z => { z.at += d; });
@@ -1874,12 +2104,23 @@ function heroDie() {
   $('#death').classList.add('show');
   setTimeout(() => {
     $('#death').classList.remove('show');
-    startFloor();
+    if (G.inArena) { G.inArena = false; enterArena(); }   // fall in the arena, retry the ARENA
+    else startFloor();
   }, 1600);
 }
 function reachStairs() {
   if (G.over) return;
-  // on Floor 50, THE WARLOCK bars the way until he has been dealt with
+  // Floor 50: where the stairs should be stands the GLOWING DOORWAY.
+  // Walking into it does nothing — you must CLICK it to step through.
+  if (floorNum === 50 && !G.inArena) {
+    const now = performance.now();
+    if (now > (G.doorHintAt || 0)) {
+      G.doorHintAt = now + 1500;
+      floatText(G.stairs.x, G.stairs.y, 'CLICK THE DOOR!', '#dcbcff');
+    }
+    return;
+  }
+  // in the arena, THE WARLOCK bars the way until he has been dealt with
   if (G.boss && !G.boss.dead && !G.boss.fled) {
     const now = performance.now();
     if (now > (G.boss.barredAt || 0)) {
@@ -1905,22 +2146,31 @@ function reachStairs() {
   updateHUD();
   setTimeout(goBase, 4200);
 }
-/* ---------- THE CUTSCENE: at a twentieth of his health, the Warlock speaks ---------- */
+/* ---------- THE CUTSCENE: at a twentieth of his health, the Warlock speaks —
+   and then, IMMEDIATELY after his line, he lights an ODD RAINBOW BOMB and
+   blasts himself out the tower window: over the murky swamp, into the huge
+   old mossy tower at its back. ---------- */
 const WARLOCK_LINE = 'I’ve watched you a long time, and you think you have the power to defeat me, but you’re wrong. I will prevail.';
+const ESCAPE_CAP = 'With an ODD RAINBOW BOMB he blasts himself out the window — over the murky swamp — into the huge old MOSSY TOWER at its back!';
 let cutsceneOn = false, cutTimer = null, cutDone = false;
+let cutPhase = 1, escDone = false, escTimers = [], capTimer = null;
 function startCutscene() {
-  cutsceneOn = true; cutDone = false;
+  cutsceneOn = true; cutDone = false; cutPhase = 1; escDone = false;
+  escTimers.forEach(clearTimeout); escTimers = []; clearTimeout(capTimer);
   G.bombs = [];   // his magic snuffs every lit fuse
   try { MUSIC.setMood('calm'); } catch (e) {}
   sfx.armed();
   const line = $('#cutline'), go = $('#cutgo');
   line.textContent = '';
+  $('#cutcap').textContent = '';
   go.classList.remove('ready');
+  $('#cutscene').classList.remove('esc');
+  $('#cutscape').classList.remove('go', 'done');
   $('#cutscene').classList.add('show');
   let i = 0;
   const type = () => {
     if (!cutsceneOn) return;
-    if (i >= WARLOCK_LINE.length) { cutDone = true; go.classList.add('ready'); return; }
+    if (i >= WARLOCK_LINE.length) { cutDone = true; escTimers.push(setTimeout(startEscape, 950)); return; }
     line.textContent = WARLOCK_LINE.slice(0, ++i);
     if (i % 3 === 0) sfx.tick();
     cutTimer = setTimeout(type, WARLOCK_LINE[i - 1] === '.' || WARLOCK_LINE[i - 1] === ',' ? 300 : 42);
@@ -1932,13 +2182,46 @@ function finishTyping() {   // a tap skips to the whole line
   clearTimeout(cutTimer);
   $('#cutline').textContent = WARLOCK_LINE;
   cutDone = true;
+  escTimers.push(setTimeout(startEscape, 500));
+}
+/* phase two: the GETAWAY */
+function startEscape() {
+  if (!cutsceneOn || cutPhase === 2) return;
+  cutPhase = 2;
+  $('#cutscene').classList.add('esc');
+  const sc = $('#cutscape');
+  escTimers.push(setTimeout(() => {
+    if (!cutsceneOn || escDone) return;
+    sc.classList.add('go');   // the burst, the flight, the trail — all CSS from here
+    sfx.rainbow(); sfx.boomFor('bomb'); shake();
+  }, 450));
+  escTimers.push(setTimeout(typeCaption, 1150));
+  escTimers.push(setTimeout(finishEscape, 4700));
+}
+function typeCaption() {
+  if (!cutsceneOn || escDone) return;
+  const cap = $('#cutcap');
+  let i = 0;
+  const t = () => {
+    if (!cutsceneOn || escDone || i >= ESCAPE_CAP.length) return;
+    cap.textContent = ESCAPE_CAP.slice(0, ++i);
+    capTimer = setTimeout(t, 26);
+  };
+  t();
+}
+function finishEscape() {   // the flight lands (or an impatient tap skips it)
+  if (!cutsceneOn || cutPhase !== 2 || escDone) return;
+  escDone = true;
+  escTimers.forEach(clearTimeout); escTimers = []; clearTimeout(capTimer);
+  $('#cutscape').classList.add('go', 'done');
+  $('#cutcap').textContent = ESCAPE_CAP;
   $('#cutgo').classList.add('ready');
 }
 function endCutscene() {
-  if (!cutsceneOn || !cutDone) return;
+  if (!cutsceneOn || !escDone) return;
   cutsceneOn = false;
-  $('#cutscene').classList.remove('show');
-  // ...and with a swirl of purple smoke, he is GONE. He said he'd prevail —
+  $('#cutscene').classList.remove('show', 'esc');
+  // he is GONE — rainbow-blasted to his swamp tower. He said he'd prevail,
   // but the floor is yours, and his angriest ambush is already marching.
   const b = G.boss;
   if (b) {
@@ -1948,13 +2231,15 @@ function endCutscene() {
   }
   $('#bossbar').classList.remove('show');
   G.hero.iframesUntil = performance.now() + 4000;   // nobody cheap-shots the hero mid-triumph
-  banner('THE WARLOCK VANISHES!', 1600);
+  banner('THE WARLOCK ESCAPED — for now!', 1600);
   try { MUSIC.setMood('tower'); } catch (e) {}
   setTimeout(() => { if (G && !G.over) reachStairs(); }, 1700);
 }
 $('#cutscene').addEventListener('pointerdown', e => {
   if (e.target && e.target.id === 'cutgo') return;
-  finishTyping();
+  if (!cutDone) finishTyping();
+  else if (cutPhase === 1) { escTimers.forEach(clearTimeout); escTimers = []; startEscape(); }
+  else finishEscape();
 });
 $('#cutgo').addEventListener('click', endCutscene);
 
@@ -2052,6 +2337,12 @@ function update(dt, now) {
         floatText(h.fx, h.fy, 'SPIKES!', '#ff5c7a');
         hurtHero(0.5);
       }
+    }
+    // LAVA (the Warlock's arena): stand in it and you COOK — jump across instead
+    if (t && t.kind === 'lava' && h.elev === 0 && h.jumpZ < 12 && now > (h.lavaHurtAt || 0)) {
+      h.lavaHurtAt = now + 800;
+      floatText(h.fx, h.fy, 'LAVA!', '#ff8c1a');
+      hurtHero(0.5);
     }
 
     // bomb crates: the rescue ration — one boost and one blast, never a feast
@@ -2231,6 +2522,21 @@ function render(now) {
     ctx.beginPath(); ctx.ellipse(sx, sy - 3, 3.2, 5.5 * f, 0, 0, 7); ctx.fill();
   });
 
+  // the arena's standing FLAMES, dancing over the lava pools
+  (G.flames || []).forEach(p => {
+    const sx = ox + isoX(p.fx, p.fy), sy = oy + isoY(p.fx, p.fy);
+    const f = 0.7 + Math.sin(now / 90 + p.seed) * 0.3;
+    ctx.fillStyle = 'rgba(255,120,20,' + (0.85 * f).toFixed(2) + ')';
+    ctx.beginPath();
+    ctx.moveTo(sx, sy - 40 * f); ctx.quadraticCurveTo(sx + 15, sy - 13 * f, sx + 10, sy);
+    ctx.quadraticCurveTo(sx + 6, sy + 5, sx, sy + 5);
+    ctx.quadraticCurveTo(sx - 13, sy + 5, sx - 10, sy - 4);
+    ctx.quadraticCurveTo(sx - 13, sy - 18 * f, sx, sy - 40 * f);
+    ctx.fill();
+    ctx.fillStyle = 'rgba(255,220,80,' + (0.9 * f).toFixed(2) + ')';
+    ctx.beginPath(); ctx.ellipse(sx, sy - 7, 6, 13 * f, 0, 0, 7); ctx.fill();
+  });
+
   // ---- sorted world pass ----
   const draws = [];
   for (let y = 0; y < G.H; y++) for (let x = 0; x < G.W; x++) {
@@ -2244,7 +2550,8 @@ function render(now) {
   G.bombs.forEach(b => draws.push({ d: b.fx + b.fy, f: () => drawBomb(ox, oy, b, now) }));
   G.enemies.forEach(e => draws.push({ d: e.fx + e.fy, f: () => drawEnemy(ox, oy, e, now) }));
   draws.push({ d: h.fx + h.fy + (h.elev ? 2 : 0), f: () => drawHero(ox, oy, h, now) });
-  draws.push({ d: G.stairs.x + G.stairs.y - 0.6, f: () => drawStairs(ox, oy, now) });
+  if (floorNum === 50 && !G.inArena) draws.push({ d: G.stairs.x + G.stairs.y - 0.6, f: () => drawDoorway(ox, oy, now) });
+  else draws.push({ d: G.stairs.x + G.stairs.y - 0.6, f: () => drawStairs(ox, oy, now) });
   G.chains.forEach(c => draws.push({ d: c.x + c.y + 0.6, f: () => drawChain(ox, oy, c, now) }));
   draws.sort((a, b) => a.d - b.d);
   draws.forEach(it => it.f());
@@ -2319,6 +2626,10 @@ function render(now) {
     const f = 0.85 + Math.sin(now / 90 + tc.seed) * 0.12;
     hole(ox + isoX(tc.x, tc.y), oy + isoY(tc.x, tc.y) - 30, 130 * f, 0.95);
   });
+  (G.lavas || []).forEach(lv => {
+    const f = 0.8 + Math.sin(now / 150 + lv.seed) * 0.14;
+    hole(ox + isoX(lv.x, lv.y), oy + isoY(lv.x, lv.y), 85 * f, 0.8);
+  });
   hole(ox + isoX(h.fx, h.fy), oy + isoY(h.fx, h.fy) - 20, 185, 1);
   hole(ox + isoX(G.stairs.x, G.stairs.y), oy + isoY(G.stairs.x, G.stairs.y) - 20, 120, 0.9);
   G.booms.forEach(b => hole(ox + isoX(b.fx, b.fy), oy + isoY(b.fx, b.fy), 300 * (1 - (now - b.at) / 480), 1));
@@ -2335,6 +2646,16 @@ function render(now) {
     g.addColorStop(1, 'rgba(255,150,50,0)');
     ctx.fillStyle = g;
     ctx.beginPath(); ctx.arc(gx, gy, 95 * f, 0, 7); ctx.fill();
+  });
+  // ...and the deep red breath of the lava
+  (G.lavas || []).forEach(lv => {
+    const f = 0.75 + Math.sin(now / 160 + lv.seed) * 0.2;
+    const gx = ox + isoX(lv.x, lv.y), gy = oy + isoY(lv.x, lv.y);
+    const g = ctx.createRadialGradient(gx, gy, 0, gx, gy, 70 * f);
+    g.addColorStop(0, 'rgba(255,90,20,0.13)');
+    g.addColorStop(1, 'rgba(255,90,20,0)');
+    ctx.fillStyle = g;
+    ctx.beginPath(); ctx.arc(gx, gy, 70 * f, 0, 7); ctx.fill();
   });
   ctx.globalCompositeOperation = 'source-over';
 
@@ -2368,6 +2689,20 @@ function drawTileDiamond(sx, sy, t, x, y, now) {
       ctx.beginPath();
       ctx.moveTo(sx + i * 13 - 5, sy + 3); ctx.lineTo(sx + i * 13, sy + 3 - hgt2); ctx.lineTo(sx + i * 13 + 5, sy + 3);
       ctx.closePath(); ctx.fill();
+    }
+  } else if (t.kind === 'lava') {
+    diamondPath(sx, sy, 0);
+    ctx.fillStyle = '#8f2410'; ctx.fill();
+    const gl = 0.6 + Math.sin(now / 340 + (x * 5 + y * 3)) * 0.25;
+    diamondPath(sx, sy, 2);
+    ctx.fillStyle = 'rgba(255,110,20,' + (0.55 + gl * 0.35).toFixed(2) + ')'; ctx.fill();
+    // slow molten bubbles, swelling and popping
+    for (let i = 0; i < 2; i++) {
+      const ph = ((now / 1300) + ((x * 7 + y * 13 + i * 37) % 10) / 10 + i * 0.45) % 1;
+      const bx = sx + Math.sin((x * 3 + y + i * 2) * 5) * 9;
+      const by = sy + Math.cos((x + y * 2 + i) * 4) * 4;
+      ctx.fillStyle = 'rgba(255,215,70,' + (0.8 * (1 - ph)).toFixed(2) + ')';
+      ctx.beginPath(); ctx.arc(bx, by, 1 + ph * 3.2, 0, 7); ctx.fill();
     }
   } else if (t.kind === 'stairs') {
     diamondPath(sx, sy, 0);
@@ -2577,6 +2912,52 @@ function drawStairs(ox, oy, now) {
   ctx.fillText('UP', sx, sy - 46);
   ctx.globalAlpha = 1;
 }
+/* Floor 50's exit: not stairs but a GLOWING DOORWAY into the Warlock's arena.
+   It remembers where it was drawn (doorRect, CSS pixels) so a click can find it. */
+let doorRect = null;
+function drawDoorway(ox, oy, now) {
+  const sx = ox + isoX(G.stairs.x, G.stairs.y), sy = oy + isoY(G.stairs.x, G.stairs.y);
+  const pulse = 0.7 + Math.sin(now / 260) * 0.3;
+  doorRect = { x: sx - 32, y: sy - 100, w: 64, h: 110 };
+  // spilled light on the floor
+  ctx.fillStyle = 'rgba(176,109,255,' + (0.22 * pulse).toFixed(3) + ')';
+  ctx.beginPath(); ctx.ellipse(sx, sy + 2, 46, 22, 0, 0, 7); ctx.fill();
+  // stone arch frame
+  ctx.fillStyle = '#4a4152'; ctx.strokeStyle = '#241f2b'; ctx.lineWidth = 2.5;
+  ctx.beginPath();
+  ctx.moveTo(sx - 26, sy + 4); ctx.lineTo(sx - 26, sy - 52);
+  ctx.quadraticCurveTo(sx, sy - 86, sx + 26, sy - 52);
+  ctx.lineTo(sx + 26, sy + 4);
+  ctx.lineTo(sx + 17, sy + 4); ctx.lineTo(sx + 17, sy - 48);
+  ctx.quadraticCurveTo(sx, sy - 72, sx - 17, sy - 48);
+  ctx.lineTo(sx - 17, sy + 4);
+  ctx.closePath(); ctx.fill(); ctx.stroke();
+  // the shimmering portal inside
+  const g = ctx.createRadialGradient(sx, sy - 30, 4, sx, sy - 30, 46);
+  g.addColorStop(0, 'rgba(255,246,227,' + (0.95 * pulse).toFixed(3) + ')');
+  g.addColorStop(0.45, 'rgba(207,169,255,' + (0.85 * pulse).toFixed(3) + ')');
+  g.addColorStop(1, 'rgba(90,40,140,0.92)');
+  ctx.fillStyle = g;
+  ctx.beginPath();
+  ctx.moveTo(sx - 17, sy + 4); ctx.lineTo(sx - 17, sy - 48);
+  ctx.quadraticCurveTo(sx, sy - 72, sx + 17, sy - 48);
+  ctx.lineTo(sx + 17, sy + 4);
+  ctx.closePath(); ctx.fill();
+  // runes drifting up through the light
+  ctx.textAlign = 'center';
+  for (let i = 0; i < 3; i++) {
+    const ph = (now / 1400 + i / 3) % 1;
+    ctx.globalAlpha = (1 - ph) * 0.8;
+    ctx.fillStyle = '#fff6e3';
+    ctx.font = '10px sans-serif';
+    ctx.fillText(['✦', '✧', '◆'][i], sx + Math.sin((ph * 4 + i) * 3) * 9, sy - 8 - ph * 52);
+  }
+  ctx.globalAlpha = pulse;
+  ctx.fillStyle = '#dcbcff';
+  ctx.font = "15px 'Luckiest Guy', cursive";
+  ctx.fillText('CLICK', sx, sy - 96);
+  ctx.globalAlpha = 1;
+}
 
 /* ---------- characters ---------- */
 function drawShadow(sx, sy, r, lift) {
@@ -2654,12 +3035,13 @@ function drawWarlock(ox, oy, e, now) {
     return;
   }
   const bob = Math.sin(now / 260) * 3;
-  drawShadow(sx, sy, 15, 0.25);
+  drawShadow(sx, sy, e.big ? 22 : 15, 0.25);
   ctx.save();
-  ctx.translate(sx, sy - 26 + bob);
+  ctx.translate(sx, sy - (e.big ? 34 : 26) + bob);
+  if (e.big) ctx.scale(1.5, 1.5);   // in his arena he looms LARGER
   if (now < e.hurtUntil) ctx.globalAlpha = 0.6;
-  // aura
-  ctx.fillStyle = 'rgba(124,58,237,.16)';
+  // aura — angrier and redder when he's big
+  ctx.fillStyle = e.big ? 'rgba(168,40,100,.20)' : 'rgba(124,58,237,.16)';
   ctx.beginPath(); ctx.ellipse(0, 4, 24, 30, 0, 0, 7); ctx.fill();
   // robe
   ctx.fillStyle = e.body; ctx.strokeStyle = '#1c1130'; ctx.lineWidth = 3;
@@ -2672,11 +3054,13 @@ function drawWarlock(ox, oy, e, now) {
   ctx.beginPath(); ctx.arc(0, -24, 11, Math.PI * 0.9, Math.PI * 0.1); ctx.quadraticCurveTo(11, -12, 0, -12); ctx.quadraticCurveTo(-11, -12, -11, -22); ctx.closePath(); ctx.fill(); ctx.stroke();
   ctx.fillStyle = '#0d0716';
   ctx.beginPath(); ctx.ellipse(0, -20, 7.5, 8.5, 0, 0, 7); ctx.fill();
-  // the glowing eyes
+  // the glowing eyes — narrowed to FURIOUS slits, glaring up and out
   const F = e.facing;
-  ctx.fillStyle = e.eye;
-  ctx.beginPath(); ctx.arc(2.5 * F, -21, 1.9, 0, 7); ctx.fill();
-  ctx.beginPath(); ctx.arc(6 * F, -21, 1.9, 0, 7); ctx.fill();
+  ctx.strokeStyle = e.eye; ctx.lineWidth = 2.8; ctx.lineCap = 'round';
+  ctx.beginPath();
+  ctx.moveTo(0.6 * F, -19.4); ctx.lineTo(4 * F, -21.7);
+  ctx.moveTo(5 * F, -20.1); ctx.lineTo(8.4 * F, -22.4);
+  ctx.stroke();
   // staff with orb
   const swinging = now < (e.swingUntil || 0);
   ctx.save();
@@ -2763,7 +3147,13 @@ function drawEnemy(ox, oy, e, now) {
 addEventListener('keydown', e => {
   const k = e.key.toLowerCase();
   if (cutsceneOn) {   // the Warlock has the floor
-    if (k === 'enter' || k === ' ') { e.preventDefault(); if (cutDone) endCutscene(); else finishTyping(); }
+    if (k === 'enter' || k === ' ') {
+      e.preventDefault();
+      if (!cutDone) finishTyping();
+      else if (cutPhase === 1) startEscape();
+      else if (!escDone) finishEscape();
+      else endCutscene();
+    }
     return;
   }
   if (ringOpen) {   // the ring has the keyboard: pick a number, or wave it away
@@ -2781,6 +3171,7 @@ addEventListener('keydown', e => {
   if (k === 'k' || k === 'j') heroAttack();
   if (k === 'b') placeBomb();
   if (k === 'v' || k === 'tab') { e.preventDefault(); toggleRing(); }
+  if ((k === 'e' || k === 'enter') && nearDoor()) { enterArena(); return; }
   if (k === 'r') detonateRemotes();
   if (k === 't') cycleTimer();
   const n = parseInt(k, 10);
@@ -2790,7 +3181,30 @@ addEventListener('keydown', e => {
   }
 });
 addEventListener('keyup', e => { G.keys[e.key.toLowerCase()] = false; });
-canvas.addEventListener('mousedown', () => heroAttack());
+/* the GLOWING DOORWAY on Floor 50 must be CLICKED (or tapped) to pass through */
+function nearDoor() {
+  return floorNum === 50 && !G.inArena && !G.over && !G.hero.dead &&
+    dist(G.stairs.x, G.stairs.y, G.hero.fx, G.hero.fy) < 2.3;
+}
+function tryEnterDoor(cx, cy) {
+  if (!doorRect || floorNum !== 50 || G.inArena || G.over || cutsceneOn || ringOpen) return false;
+  const r = canvas.getBoundingClientRect();
+  const px = cx - r.left, py = cy - r.top;
+  if (px < doorRect.x || px > doorRect.x + doorRect.w || py < doorRect.y || py > doorRect.y + doorRect.h) return false;
+  if (dist(G.stairs.x, G.stairs.y, G.hero.fx, G.hero.fy) > 2.4) {
+    // the door only opens for someone standing before it
+    const now = performance.now();
+    if (now > (G.doorFarAt || 0)) { G.doorFarAt = now + 1200; banner('WALK UP TO THE DOORWAY FIRST!', 1000); }
+    return true;   // swallow the tap either way — nobody swings a sword at a door
+  }
+  enterArena();
+  return true;
+}
+canvas.addEventListener('mousedown', e => { if (tryEnterDoor(e.clientX, e.clientY)) return; heroAttack(); });
+canvas.addEventListener('touchstart', e => {
+  const t = e.changedTouches[0];
+  if (t && tryEnterDoor(t.clientX, t.clientY)) e.preventDefault();
+}, { passive: false });
 
 const isTouch = matchMedia('(pointer: coarse)').matches;
 if (isTouch) document.body.classList.add('touch');
@@ -2914,9 +3328,14 @@ window.__tower = {
   bombNeeds,
   get boss() { return G.boss; },
   get cutscene() { return cutsceneOn; },
+  get cutPhase() { return cutPhase; },
   get warlockLine() { return WARLOCK_LINE; },
   endCutscene,
   finishTyping,
+  finishEscape,
+  enterArena,
+  get inArena() { return !!G.inArena; },
+  get doorRect() { return doorRect; },
   get ench() { return _ench; },
   get ringOpen() { return ringOpen; },
   get killStreak() { return (G && G.killStreak) || 0; },
@@ -2924,7 +3343,15 @@ window.__tower = {
   swordDmg,
   heroDmg,
   goto(x, y) { G.hero.fx = x; G.hero.fy = y; },
-  win() { G.hero.fx = G.stairs.x; G.hero.fy = G.stairs.y; },
+  win() {
+    if (floorNum === 50) {   // fast-forward THROUGH the doorway and the whole boss fight
+      if (!G.inArena) enterArena();
+      if (G.boss) { G.boss.fled = true; G.boss.dead = true; }
+      reachStairs();
+      return;
+    }
+    G.hero.fx = G.stairs.x; G.hero.fy = G.stairs.y;
+  },
   hurt(n) { hurtHero(n); },
   god() { G.hero.iframesUntil = Infinity; },
 };

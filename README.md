@@ -73,20 +73,32 @@ python3 -m http.server
   skeletons, extra monster health past Floor 11, and a bigger victory prize
   every floor (+25 on Floor 1, +172 on Floor 50).
 
-  **And on Floor 50, THE WARLOCK HIMSELF is waiting.** He floats between
-  you and the staircase with his own boss health bar, swipes for a **full
-  heart**, and *appears beside you* in a burst of purple sparks if you try
-  to keep your distance. He is extremely hard to kill: his health is
-  **forty-two of your sword swings deep**, and only your **weapon** can
+  **And Floor 50 ends at a GLOWING DOORWAY.** The Warlock is nowhere on the
+  main floor — but where the staircase should be, a purple arch stands
+  shimmering, runes drifting up through the light. Walking into it does
+  nothing. You have to **CLICK it** (it says so, right above the arch)…
+  if you dare.
+
+  **Through the doorway: THE WARLOCK'S ARENA.** A vast old chamber ringed
+  with **pools of bubbling lava** and standing flames — step in the lava and
+  it costs you half a heart, so jump across, don't wade. **HE waits in the
+  middle**, looming half again larger than any creature in the tower, eyes
+  narrowed to furious glowing slits, with his own boss health bar. He swipes
+  for a **full heart** and *appears beside you* in a burst of purple sparks
+  if you try to keep your distance. He is extremely hard to kill: his health
+  is **forty-two of your sword swings deep**, and only your **weapon** can
   hurt him — his magic *drinks* every bomb blast, shrugs off every
   enchantment, and even a critical hit lands as one ordinary swing, so he
-  truly takes **at least forty hits**. And when you finally carve him down
-  to a **twentieth of his health**, the battle freezes into a cutscene: the
-  Warlock speaks — *"I've watched you a long time, and you think you have
-  the power to defeat me, but you're wrong. I will prevail."* — and
-  vanishes in a swirl of purple smoke before your final blow can land.
-  The floor is yours (+172 💎)… but he keeps his word about prevailing:
-  his angriest ambush is already marching on your Base.
+  truly takes **at least forty hits** (fall, and you restart the arena, not
+  the hallway). When you finally carve him down to a **twentieth of his
+  health**, the battle freezes into a cutscene: the Warlock speaks —
+  *"I've watched you a long time, and you think you have the power to defeat
+  me, but you're wrong. I will prevail."* — and then, the moment his line
+  ends, he lights an **ODD RAINBOW BOMB** and *blasts himself out the tower
+  window*: a rainbow arc over the **murky swamp** below, all the way to the
+  **huge, very old, mossy tower at the back of the swamp**, where a window
+  lights up as he lands. The floor is yours (+172 💎)… but he keeps his word
+  about prevailing: his angriest ambush is already marching on your Base.
 
   Every floor is a proper trek (about 66 tiles of walking, over 100 near the
   top): rooms are strung out across the whole floor and you snake through all
@@ -268,6 +280,8 @@ python3 -m http.server
 Once a homepage is picked, it becomes the real `index.html`. Still to build:
 
 - **More tower floors**
+- **THE SWAMP TOWER** — the Warlock rainbow-blasted himself to that huge
+  old mossy tower at the back of the murky swamp. Someday, we follow him.
 - **The Build list** (spotted in the corner of the enchantment sheet):
   a Cursed Axe, Heavy Metal Armor, a Goblin Bow (the empty Bow slot
   waits!), an Iron Amulet, a Gong, and a Mushroom
