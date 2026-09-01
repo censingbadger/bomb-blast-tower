@@ -315,6 +315,26 @@ python3 -m http.server
   button in the header of the Market, the Forge and Inventory & Stats — so
   your fort is one click away from wherever you are.
 
+## Two editions (the business plan)
+
+The game ships two ways, because Jing & Ash Games has a pricing strategy:
+
+- **PREVIEW EDITION — 50¢** (the `preview/` folder): the **first tower and
+  the first Warlock battle** only. All 50 floors, the glowing doorway, the
+  lava arena, the line, the rainbow getaway — but when he escapes, the
+  victory card says the chase *"waits in the FULL GAME"* instead of
+  traveling. No swamp, no Swamp hex, no mossy tower. A 🔒 badge on the
+  homepage says which edition you're holding.
+- **FULL EDITION — $2** (the repo root): everything — the tower, the whole
+  swamp chase, and the mossy tower when it opens.
+
+The preview is **generated, never hand-edited**: `node tools/make-preview.mjs`
+rebuilds `preview/` from the root files (it just bakes in a
+`window.__EDITION='preview'` flag), so run it after any game change and both
+editions stay identical everywhere except the locked content. To sell them,
+zip `preview/` for the 50¢ version and the root game files for the $2 one
+(a store like itch.io can host both zips with "pay what you want" floors).
+
 ## What's next
 
 Once a homepage is picked, it becomes the real `index.html`. Still to build:
