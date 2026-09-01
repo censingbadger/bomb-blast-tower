@@ -97,8 +97,10 @@ python3 -m http.server
   ends, he lights an **ODD RAINBOW BOMB** and *blasts himself out the tower
   window*: a rainbow arc over the **murky swamp** below, all the way to the
   **huge, very old, mossy tower at the back of the swamp**, where a window
-  lights up as he lands. The floor is yours (+172 💎)… but he keeps his word
-  about prevailing: his angriest ambush is already marching on your Base.
+  lights up as he lands. And then — no victory lap. The screen cuts to
+  **black**, three words hang in the dark — ***Traveling to the mossy
+  swamp…*** — and the CHASE begins (+172 💎 banked on the way out; and his
+  angriest ambush still marches on your Base, waiting for you to come home).
 
   Every floor is a proper trek (about 66 tiles of walking, over 100 near the
   top): rooms are strung out across the whole floor and you snake through all
@@ -156,6 +158,44 @@ python3 -m http.server
   shinks, a cleaver chops, a hammer whoomphs, a scythe whooshes, a Thunder Rod
   crackles, and a fused weapon gets its own magic ring. The 🔊 button in the
   corner mutes everything and remembers your choice.
+
+- **THE SWAMP** (`tower.html?world=swamp`) — the chase. You wake where the
+  travel-blackout drops you: a **green swamp** under **thick, foggy, green
+  air** that drifts across the screen in slow banks. The same game engine
+  runs it, but nothing looks the same — the walls are **decrepit, gnarled
+  trees** with bare twisted branches and moss beards, wisps of **witchlight**
+  float where torches would burn, **vines** hang where chains hung, the
+  carpets are moss, the ground is trodden mud with tufts of marsh grass,
+  and the exit is a glowing **lantern gate**. It's **twenty levels** deep
+  (*The Sunken Path* → *The Mossy Tower Gates*), every level grown from its
+  own seed — never a tower floor wearing moss — and each slightly different:
+  more pools here, a thicket there, deeper and meaner as you go.
+
+  **What's out there bites.** The zombies and skeletons are **MUTATED** —
+  tougher (+2 hearts of health), quicker, one huge bloodshot eye, pustules,
+  moss on the old bones — and worth more gems. **WITCHES** cackle in from
+  level 2: green-faced, pointy-hatted, and smart — crowd one and she backs
+  away, stand off and she **LOBS a potion** that splats into a sizzling
+  **goo puddle**. **Poison pools** bubble across the mud (walk in one:
+  **−½ ❤, "☠ POISONED!", and your legs go wobbly-slow** for a moment — hop
+  over instead), and there are **more spike traps** than the tower ever
+  dared. The bomb-budget puzzle still applies: every level gets its PACK
+  CHECK, its gates, and its counted pack.
+
+  **New loot, new drops.** Beaten witches burst into **🟢 SLIME** (a brand-new
+  crafting material, right in the HUD and your Inventory pockets) and
+  sometimes drop a **HEART FLASK** — walk over it for +1 whole ❤. Mutants
+  ooze slime too. And on a **very rare level** (three of the twenty), a
+  **WITCH'S HUT** hides off the beaten path — stilts, glowing window, green
+  chimney smoke, one witch on guard. Reach its doorstep and the treasure is
+  yours, once: **a pile of gems, +4 slime, every heart refilled, +2💣 +2🧨.**
+
+  Beating a swamp level pays better than a tower floor (+40 and climbing)
+  and leads straight to the next — there's no base to defend out here, so
+  no ambush is owed for swamp victories. Cross level 20 and you stand at
+  the **MOSSY TOWER'S GATES**… sealed shut by the Warlock's magic. For now.
+  (Once the chase has begun, a **Swamp hex** appears on the homepage so you
+  can head back into the bog any time.)
 
 - **Market** (`market.html`) — based on Asher's market drawing. Two shelves
   (Artifacts and Weapons on hanging signs), a floor row, prices in gems, rarity
@@ -280,8 +320,11 @@ python3 -m http.server
 Once a homepage is picked, it becomes the real `index.html`. Still to build:
 
 - **More tower floors**
-- **THE SWAMP TOWER** — the Warlock rainbow-blasted himself to that huge
-  old mossy tower at the back of the murky swamp. Someday, we follow him.
+- **INSIDE THE MOSSY TOWER** — the swamp is crossed, but its gates are
+  sealed by the Warlock's magic. One day they open… and the REMATCH waits
+  at the top.
 - **The Build list** (spotted in the corner of the enchantment sheet):
   a Cursed Axe, Heavy Metal Armor, a Goblin Bow (the empty Bow slot
   waits!), an Iron Amulet, a Gong, and a Mushroom
+- **Something to spend SLIME on** — the witches know what it's for. We'll
+  find out.

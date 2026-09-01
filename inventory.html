@@ -922,7 +922,8 @@ function renderStats() {
     '<span class="plabel">Pockets:</span>' +
     '<span class="pocket"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 16.5 L7.5 9.5 L16.5 9.5 L20 16.5 Z" fill="#aeb6c2" stroke="#5f6874" stroke-width="1.6" stroke-linejoin="round"/></svg>' + mats.metal + ' metal</span>' +
     '<span class="pocket"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M5 17.5 L4 12 L8.5 7.5 L15.5 7 L20 12.5 L17.5 17.5 Z" fill="#a89a82" stroke="#5d5342" stroke-width="1.6" stroke-linejoin="round"/></svg>' + mats.stone + ' stone</span>' +
-    '<span class="pocket"><svg viewBox="0 0 24 24" aria-hidden="true"><rect x="6" y="8.5" width="15" height="7.5" rx="2.6" fill="#b06f34" stroke="#6b3a1a" stroke-width="1.6"/><ellipse cx="6.6" cy="12.25" rx="2.9" ry="3.75" fill="#e0a35c" stroke="#6b3a1a" stroke-width="1.6"/></svg>' + mats.wood + ' wood</span>';
+    '<span class="pocket"><svg viewBox="0 0 24 24" aria-hidden="true"><rect x="6" y="8.5" width="15" height="7.5" rx="2.6" fill="#b06f34" stroke="#6b3a1a" stroke-width="1.6"/><ellipse cx="6.6" cy="12.25" rx="2.9" ry="3.75" fill="#e0a35c" stroke="#6b3a1a" stroke-width="1.6"/></svg>' + mats.wood + ' wood</span>' +
+    '<span class="pocket"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 4 C8 9 5.5 12 5.5 15.5 a6.5 6.5 0 0 0 13 0 C18.5 12 16 9 12 4 Z" fill="#5dc96a" stroke="#1e5a2c" stroke-width="1.6"/><circle cx="9.5" cy="14.5" r="1.6" fill="#c8ffd2"/></svg>' + (mats.slime || 0) + ' slime</span>';
   $('#gems').textContent = gems;
 }
 function renderAll() { renderGrids(); renderDoll(); renderStats(); }

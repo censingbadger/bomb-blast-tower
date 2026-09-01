@@ -363,6 +363,7 @@ body {
 .hexbtn:active { transform: scale(.93); }
 /* the Warlock's ambush is owed — the Base hex sounds the alarm */
 .hexbtn { position: relative; }
+.hexbtn[hidden] { display: none; }
 .siege {
   position: absolute;
   top: -0.6rem; left: 50%;
@@ -725,6 +726,21 @@ footer {
         <span class="lbl">Tower</span>
       </button>
 
+      <button class="hexbtn" data-name="The Swamp" id="swamphex" hidden>
+        <span class="hexwrap"><span class="hexo"><span class="hexi">
+          <svg viewBox="0 0 60 62" aria-hidden="true">
+            <g fill="none" stroke="#d9e2f5" stroke-width="3" stroke-linejoin="round" stroke-linecap="round">
+              <path d="M30 46 L30 18 M30 28 L20 18 M23 21 L19 26 M30 23 L40 14 M36 17 L41 21 M30 36 L22 31"/>
+              <path d="M8 50 q6 -4 11 0 q6 4 11 0 q6 -4 11 0 q6 4 11 0"/>
+              <path d="M12 46 l-2 -8 M46 47 l3 -9" stroke-width="2.4"/>
+              <circle cx="18" cy="43" r="1.6" fill="#d9e2f5" stroke="none"/>
+              <circle cx="43" cy="41" r="2" fill="#d9e2f5" stroke="none"/>
+            </g>
+          </svg>
+        </span></span></span>
+        <span class="lbl">Swamp</span>
+      </button>
+
       <button class="hexbtn" data-name="The Market">
         <span class="hexwrap"><span class="hexo"><span class="hexi">
           <svg viewBox="0 0 60 62" aria-hidden="true">
@@ -961,6 +977,10 @@ footer {
         location.href = 'market.html';
         return;
       }
+      if (/swamp/i.test(btn.dataset.name) && !String(location.href).startsWith('about')) {
+        location.href = 'tower.html?world=swamp';
+        return;
+      }
       if (/tower/i.test(btn.dataset.name) && !String(location.href).startsWith('about')) {
         location.href = 'tower.html';
         return;
@@ -983,6 +1003,14 @@ footer {
     page.classList.remove('kaboom'); void page.offsetWidth; page.classList.add('kaboom');
     audio.crack(.8);
   });
+
+  // chased the Warlock out the Floor 50 window? THE SWAMP opens on the map
+  try {
+    const swampOpen = JSON.parse(localStorage.getItem('bbt-swamp-open') || 'false') ||
+      (JSON.parse(localStorage.getItem('bbt-floor') || '1') || 1) > 50 ||
+      (JSON.parse(localStorage.getItem('bbt-swampfloor') || '0') || 0) >= 1;
+    if (swampOpen) { const s = document.getElementById('swamphex'); if (s) s.hidden = false; }
+  } catch (e) {}
 
   // the Warlock's ambush is owed? the Base hex sounds the alarm
   try {
