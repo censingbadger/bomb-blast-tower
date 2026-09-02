@@ -1538,9 +1538,15 @@ let G = null;                 // current floor run
 /* WHICH EDITION? The game ships two ways:
    PREVIEW — just the first tower and the first Warlock battle.
    FULL    — the tower, the swamp chase, and (one day) the mossy tower.
-   tools/make-preview.mjs bakes window.__EDITION='preview' into the copies
-   in preview/ — this root copy is always the FULL game. */
-const EDITION = window.__EDITION === 'preview' ? 'preview' : 'full';
+   tools/build-editions.mjs bakes window.__EDITION into the copies in
+   preview/ and full/. An UNFLAGGED copy decides by where it runs:
+   on the public web (http/https) it plays it safe and acts as the
+   PREVIEW — so the main site link never gives the full game away —
+   while opened from disk (file://, how we build and test) it is FULL. */
+const EDITION = window.__EDITION === 'preview' ? 'preview'
+  : window.__EDITION === 'full' ? 'full'
+  : (location.protocol === 'http:' || location.protocol === 'https:') ? 'preview'
+  : 'full';
 const FULLGAME = EDITION === 'full';
 /* WHICH WORLD? The same engine runs the TOWER (?world=tower, the default)
    and THE SWAMP (?world=swamp) — the chase that begins when the Warlock
