@@ -319,21 +319,35 @@ python3 -m http.server
 
 The game ships two ways, because Jing & Ash Games has a pricing strategy:
 
-- **PREVIEW EDITION — 50¢** (the `preview/` folder): the **first tower and
-  the first Warlock battle** only. All 50 floors, the glowing doorway, the
-  lava arena, the line, the rainbow getaway — but when he escapes, the
-  victory card says the chase *"waits in the FULL GAME"* instead of
-  traveling. No swamp, no Swamp hex, no mossy tower. A 🔒 badge on the
-  homepage says which edition you're holding.
-- **FULL EDITION — $2** (the repo root): everything — the tower, the whole
-  swamp chase, and the mossy tower when it opens.
+- **PREVIEW EDITION — 50¢**: the **first tower and the first Warlock
+  battle** only. All 50 floors, the glowing doorway, the lava arena, the
+  line, the rainbow getaway — but when he escapes, the victory card says
+  the chase *"waits in the FULL GAME"* instead of traveling. No swamp, no
+  Swamp hex, no mossy tower. A 🔒 badge on the homepage says which edition
+  you're holding.
+- **FULL EDITION — $2**: everything — the tower, the whole swamp chase,
+  and the mossy tower when it opens.
 
-The preview is **generated, never hand-edited**: `node tools/make-preview.mjs`
-rebuilds `preview/` from the root files (it just bakes in a
-`window.__EDITION='preview'` flag), so run it after any game change and both
-editions stay identical everywhere except the locked content. To sell them,
-zip `preview/` for the 50¢ version and the root game files for the $2 one
-(a store like itch.io can host both zips with "pay what you want" floors).
+**On the live site, the main link IS the preview.** An unflagged copy of
+the game decides by where it runs: on the public web it plays it safe and
+acts as the preview (so a shared link never gives the full game away),
+while opened from disk — how we build and test — it's the full game.
+That means:
+
+| Link | What it serves |
+| --- | --- |
+| `…/bomb-blast-tower/` | 🔒 the PREVIEW (safe to share with anyone) |
+| `…/bomb-blast-tower/preview/` | 🔒 also the preview (same thing, explicit) |
+| `…/bomb-blast-tower/full/` | 🗝️ the FULL GAME — the link buyers get |
+
+Both folders are **generated, never hand-edited**:
+`node tools/build-editions.mjs` rebuilds `preview/` and `full/` from the
+root files (each just gets a `window.__EDITION` flag baked in), so run it
+after any game change and every copy stays identical except the locked
+content. To sell downloads, zip `preview/` for the 50¢ version and `full/`
+for the $2 one (a store like itch.io can host both zips). Fair warning:
+this repo is public, so the full game is an honor-system gate, not a
+vault — the real paid delivery is the zip.
 
 ## What's next
 

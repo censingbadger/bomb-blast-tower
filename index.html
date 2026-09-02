@@ -1014,8 +1014,11 @@ footer {
   });
 
   // chased the Warlock out the Floor 50 window? THE SWAMP opens on the map
-  // (in the PREVIEW edition there is no swamp — that's the FULL game's chase)
-  const PREVIEW = window.__EDITION === 'preview';
+  // (in the PREVIEW edition there is no swamp — that's the FULL game's chase).
+  // An unflagged copy on the public web acts as the PREVIEW, so the main
+  // site link never gives the full game away; from disk it's the full game.
+  const PREVIEW = window.__EDITION === 'preview' ||
+    (window.__EDITION !== 'full' && (location.protocol === 'http:' || location.protocol === 'https:'));
   try {
     const swampOpen = !PREVIEW && (JSON.parse(localStorage.getItem('bbt-swamp-open') || 'false') ||
       (JSON.parse(localStorage.getItem('bbt-floor') || '1') || 1) > 50 ||
