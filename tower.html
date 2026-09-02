@@ -1538,14 +1538,18 @@ let G = null;                 // current floor run
 /* WHICH EDITION? The game ships two ways:
    PREVIEW — just the first tower and the first Warlock battle.
    FULL    — the tower, the swamp chase, and (one day) the mossy tower.
-   tools/build-editions.mjs bakes window.__EDITION into the copies in
-   preview/ and full/. An UNFLAGGED copy decides by where it runs:
-   on the public web (http/https) it plays it safe and acts as the
-   PREVIEW — so the main site link never gives the full game away —
-   while opened from disk (file://, how we build and test) it is FULL. */
+   On the public web, YOUR CODE decides: the front door (index.html) asks
+   for it and remembers what it unlocked (bbt-license). No code yet? Back
+   to the door. A full-flagged copy (full/) still demands the full code.
+   From disk (file:// — the family's copies, the zips buyers get, and how
+   we build and test) there is no gate and the flag (or full) decides. */
+const _webProto = location.protocol === 'http:' || location.protocol === 'https:';
+let _lic = null;
+try { const v = JSON.parse(localStorage.getItem('bbt-license') || 'null'); if (v === 'preview' || v === 'full') _lic = v; } catch (e) {}
+if (_webProto && !_lic) location.replace('index.html');
 const EDITION = window.__EDITION === 'preview' ? 'preview'
-  : window.__EDITION === 'full' ? 'full'
-  : (location.protocol === 'http:' || location.protocol === 'https:') ? 'preview'
+  : window.__EDITION === 'full' ? ((_webProto && _lic !== 'full') ? 'preview' : 'full')
+  : _webProto ? (_lic === 'full' ? 'full' : 'preview')
   : 'full';
 const FULLGAME = EDITION === 'full';
 /* WHICH WORLD? The same engine runs the TOWER (?world=tower, the default)

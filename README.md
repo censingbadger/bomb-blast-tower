@@ -328,17 +328,25 @@ The game ships two ways, because Jing & Ash Games has a pricing strategy:
 - **FULL EDITION — $2**: everything — the tower, the whole swamp chase,
   and the mossy tower when it opens.
 
-**On the live site, the main link IS the preview.** An unflagged copy of
-the game decides by where it runs: on the public web it plays it safe and
-acts as the preview (so a shared link never gives the full game away),
-while opened from disk — how we build and test — it's the full game.
-That means:
+**On the live site there's a FRONT DOOR.** Open the main link and the
+game asks: *Would you like to play the PREVIEW version or the FULL
+version?* — and then: *What's your code?* Each version has its own secret
+code (Jing & Ash give them out when you pay; they're not written anywhere
+in this repo, and the page stores only scrambled hashes so peeking at the
+source doesn't reveal them). The right code is remembered on that device
+(`bbt-license`) and decides what the main link plays from then on — a
+wrong code keeps the tower shut. A little **🔑 enter code** button on the
+homepage lets a preview player upgrade later. Trying to jump straight to
+`tower.html` (or any screen) without a code bounces you back to the door.
 
 | Link | What it serves |
 | --- | --- |
-| `…/bomb-blast-tower/` | 🔒 the PREVIEW (safe to share with anyone) |
-| `…/bomb-blast-tower/preview/` | 🔒 also the preview (same thing, explicit) |
-| `…/bomb-blast-tower/full/` | 🗝️ the FULL GAME — the link buyers get |
+| `…/bomb-blast-tower/` | the FRONT DOOR → your code decides: 🔒 preview or 🗝️ full |
+| `…/bomb-blast-tower/preview/` | 🔒 always the preview (still code-gated on the web) |
+| `…/bomb-blast-tower/full/` | 🗝️ the full game — but only for full-code holders |
+
+Opened **from disk (`file://`) there is no gate** — that's the family's
+copies, the zips buyers download, and how we build and test.
 
 Both folders are **generated, never hand-edited**:
 `node tools/build-editions.mjs` rebuilds `preview/` and `full/` from the
@@ -346,7 +354,7 @@ root files (each just gets a `window.__EDITION` flag baked in), so run it
 after any game change and every copy stays identical except the locked
 content. To sell downloads, zip `preview/` for the 50¢ version and `full/`
 for the $2 one (a store like itch.io can host both zips). Fair warning:
-this repo is public, so the full game is an honor-system gate, not a
+this repo is public, so the code gate is an honor-system lock, not a
 vault — the real paid delivery is the zip.
 
 ## What's next

@@ -373,6 +373,69 @@ body {
   color: #ffd23f;
   opacity: .85;
 }
+
+/* ---------- THE FRONT DOOR: preview or full, and WHAT'S YOUR CODE? ---------- */
+#gate {
+  position: fixed; inset: 0; z-index: 90;
+  display: flex; align-items: center; justify-content: center;
+  background: rgba(5,7,14,.9);
+  backdrop-filter: blur(3px);
+  padding: 1rem;
+}
+#gate[hidden] { display: none; }
+#gate [hidden] { display: none !important; }
+.gatecard {
+  width: min(94vw, 30rem);
+  text-align: center;
+  background: linear-gradient(180deg, #171d31, #10141f);
+  border: 3px solid #3a4a77;
+  border-radius: 20px;
+  box-shadow: 0 0 40px rgba(157,184,255,.25), 0 10px 0 rgba(0,0,0,.5);
+  padding: 1.4rem 1.2rem 1.1rem;
+}
+.gatecard.gshake { animation: gshake .4s ease; }
+@keyframes gshake { 20% { transform: translateX(-9px); } 45% { transform: translateX(8px); } 70% { transform: translateX(-5px); } 90% { transform: translateX(3px); } }
+.gtitle {
+  font-family: 'Luckiest Guy', cursive;
+  font-size: clamp(1.4rem, 5.5vw, 2rem);
+  color: #ffd23f;
+  text-shadow: 0 3px 0 rgba(0,0,0,.7), 0 0 24px rgba(255,140,26,.35);
+  letter-spacing: .06em;
+  margin-bottom: .5rem;
+}
+.gq {
+  color: #d9e2f5; font-size: clamp(.95rem, 3.2vw, 1.1rem);
+  line-height: 1.45; margin-bottom: 1rem;
+}
+.gbtns { display: flex; gap: .7rem; justify-content: center; flex-wrap: wrap; }
+.gbtn {
+  font-family: 'Luckiest Guy', cursive;
+  font-size: 1rem; letter-spacing: .05em; line-height: 1.25;
+  color: #101426;
+  background: linear-gradient(180deg, #d9e2f5, #9db8ff);
+  border: 3px solid #3a4a77; border-radius: 14px;
+  padding: .7rem 1.1rem .5rem; cursor: pointer;
+  box-shadow: 0 5px 0 rgba(0,0,0,.5);
+}
+.gbtn:active { transform: translateY(3px); box-shadow: 0 2px 0 rgba(0,0,0,.5); }
+.gbtn span { display: block; font-family: inherit; font-size: .62rem; letter-spacing: .1em; opacity: .75; }
+.gbtn.gfull { background: linear-gradient(180deg, #ffe08a, #ffb63f); border-color: #7a5300; }
+.gbtn.gback { background: linear-gradient(180deg, #6a7280, #4a515c); color: #e8ecf2; border-color: #2c323a; }
+.gask {
+  font-family: 'Luckiest Guy', cursive;
+  color: #9db8ff; font-size: 1.05rem; letter-spacing: .06em; margin-bottom: .6rem;
+}
+#ginput {
+  width: min(80%, 16rem);
+  font: inherit; font-size: 1.05rem; text-align: center;
+  letter-spacing: .18em; text-transform: uppercase;
+  color: #ffd23f; background: #0a0d16;
+  border: 3px solid #3a4a77; border-radius: 12px;
+  padding: .55rem .6rem; margin-bottom: .8rem; outline: none;
+}
+#ginput:focus { border-color: #9db8ff; box-shadow: 0 0 14px rgba(157,184,255,.4); }
+.gerr { min-height: 1.4em; margin-top: .6rem; color: #ff8ba7; font-size: .9rem; letter-spacing: .04em; }
+.gfoot { margin-top: .9rem; font-size: .68rem; letter-spacing: .06em; color: #8a94ad; }
 .siege {
   position: absolute;
   top: -0.6rem; left: 50%;
@@ -812,6 +875,27 @@ footer {
   <div class="toast" id="toast" role="status"></div>
 </div>
 
+<div id="gate" hidden role="dialog" aria-label="Choose your version">
+  <div class="gatecard">
+    <div class="gtitle">💣 BOMB BLAST TOWER</div>
+    <div class="gq" id="gq">Would you like to play the <b>PREVIEW</b> version or the <b>FULL</b> version?</div>
+    <div class="gbtns" id="gpick">
+      <button class="gbtn" id="g-preview">🔒 PREVIEW<span>the first tower</span></button>
+      <button class="gbtn gfull" id="g-full">🗝️ FULL VERSION<span>tower + swamp + more</span></button>
+    </div>
+    <div id="gcode" hidden>
+      <div class="gask" id="gask">What&rsquo;s your code?</div>
+      <input id="ginput" type="text" autocomplete="off" autocapitalize="characters" spellcheck="false" placeholder="SECRET CODE">
+      <div class="gbtns">
+        <button class="gbtn" id="g-enter">✅ ENTER</button>
+        <button class="gbtn gback" id="g-back">&#8617; back</button>
+      </div>
+      <div class="gerr" id="gerr" role="alert"></div>
+    </div>
+    <div class="gfoot">Codes come from Jing &amp; Ash Games — pay up and we&rsquo;ll whisper it to you 🤫</div>
+  </div>
+</div>
+
 <script>window.__EDITION='preview';</script><script>
   // ---------- thunder, wind and whoosh, synthesized live ----------
   const audio = {
@@ -1013,12 +1097,73 @@ footer {
     audio.crack(.8);
   });
 
+  /* ---------- THE FRONT DOOR ----------
+     On the public web the game asks: PREVIEW or FULL — and then WHAT'S
+     YOUR CODE? Codes come from Jing & Ash Games (one per version), they're
+     stored scrambled so the page source doesn't give them away, and the
+     right code is remembered on this device (bbt-license). From disk —
+     the family's copies and the zips buyers get — there is no gate. */
+  const WEBGATE = location.protocol === 'http:' || location.protocol === 'https:';
+  const codeHash = s => { let h = 5381; s = String(s).toUpperCase().replace(/[^A-Z0-9]/g, ''); for (let i = 0; i < s.length; i++) h = ((h * 33) ^ s.charCodeAt(i)) >>> 0; return h.toString(16); };
+  const GATE_CODES = { 'ae99505': 'preview', '77eac309': 'full' };
+  let license = null;
+  try { const v = JSON.parse(localStorage.getItem('bbt-license') || 'null'); if (v === 'preview' || v === 'full') license = v; } catch (e) {}
+  const gate = document.getElementById('gate');
+  function openGate() {
+    gate.hidden = false;
+    document.getElementById('gcode').hidden = true;
+    document.getElementById('gpick').hidden = false;
+    document.getElementById('gerr').textContent = '';
+  }
+  function pickVersion(which) {
+    document.getElementById('gpick').hidden = true;
+    document.getElementById('gcode').hidden = false;
+    document.getElementById('gask').textContent = which === 'full'
+      ? '🗝️ FULL VERSION — what’s your code?'
+      : '🔒 PREVIEW — what’s your code?';
+    document.getElementById('gerr').textContent = '';
+    const inp = document.getElementById('ginput');
+    inp.value = '';
+    try { inp.focus(); } catch (e) {}
+  }
+  function tryCode() {
+    const got = GATE_CODES[codeHash(document.getElementById('ginput').value)];
+    if (!got) {
+      document.getElementById('gerr').textContent = '❌ WRONG CODE — the tower stays shut!';
+      const card = document.querySelector('.gatecard');
+      card.classList.remove('gshake'); void card.offsetWidth; card.classList.add('gshake');
+      return;
+    }
+    // a real code opens the door — and unlocks exactly what it's worth
+    try { localStorage.setItem('bbt-license', JSON.stringify(got)); } catch (e) {}
+    location.reload();
+  }
+  if (WEBGATE) {
+    document.getElementById('g-preview').addEventListener('click', () => pickVersion('preview'));
+    document.getElementById('g-full').addEventListener('click', () => pickVersion('full'));
+    document.getElementById('g-back').addEventListener('click', openGate);
+    document.getElementById('g-enter').addEventListener('click', tryCode);
+    document.getElementById('ginput').addEventListener('keydown', e => { if (e.key === 'Enter') tryCode(); });
+    if (!license) openGate();
+    else {
+      // bought the full game later? the little key reopens the door
+      const kb = document.createElement('button');
+      kb.className = 'replay'; kb.id = 'gatekey';
+      kb.textContent = '🔑 enter code';
+      kb.addEventListener('click', () => {
+        document.getElementById('gq').innerHTML = 'You&rsquo;re playing the <b>' + (license === 'full' ? 'FULL' : 'PREVIEW') + '</b> version. Enter a different code to switch!';
+        openGate();
+      });
+      document.querySelector('footer').appendChild(kb);
+    }
+  }
+
   // chased the Warlock out the Floor 50 window? THE SWAMP opens on the map
   // (in the PREVIEW edition there is no swamp — that's the FULL game's chase).
-  // An unflagged copy on the public web acts as the PREVIEW, so the main
-  // site link never gives the full game away; from disk it's the full game.
+  // On the web your CODE decides the edition; a full-flagged copy still
+  // demands the full code. From disk it's whatever the flag says (or full).
   const PREVIEW = window.__EDITION === 'preview' ||
-    (window.__EDITION !== 'full' && (location.protocol === 'http:' || location.protocol === 'https:'));
+    (WEBGATE && !(license === 'full' && window.__EDITION !== 'preview'));
   try {
     const swampOpen = !PREVIEW && (JSON.parse(localStorage.getItem('bbt-swamp-open') || 'false') ||
       (JSON.parse(localStorage.getItem('bbt-floor') || '1') || 1) > 50 ||
