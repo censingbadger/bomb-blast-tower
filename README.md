@@ -345,21 +345,32 @@ python3 -m http.server
   Slingshot 140, Spikes on Wall 150, and the 600 💎 **Turret** ("how did that
   get here?"). Every time you beat a Tower floor, the **Warlock sends an
   ambush at your base** — a "WAVE N" flag goes up and monsters march on your
-  wall and gate, stronger with every floor you've beaten. **And the ambush
-  cannot be skipped**: beating a floor writes it down as *owed*. Duck out to
-  the home screen and the Base hex flashes **⚔️ UNDER ATTACK!**, the Tower
-  door bounces you straight to the fight until you've defended, the base's
-  Home button refuses to work mid-battle ("the zombies are AT THE GATES"),
-  and win *or* lose, facing the wave is what pays the debt. Practice alarms
-  stay free — leave those whenever you like. Your defenses fight
+  wall and gate, stronger with every floor you've beaten. **And there is no way out of it**:
+  beating a floor writes the ambush down as *owed*, and from that moment
+  **there is no 🏠 Home Screen button anywhere** — not on the tower's victory
+  card (its only button is *Defend the Base!*), not in the corner of the fort,
+  not on the card when your base falls. The Tower door bounces you back to the
+  fight, the home screen's Base hex flashes **⚔️ UNDER ATTACK!**, and **losing
+  does not pay the debt** — the horde is still out there. The fallen card
+  offers **⚔️ Fight them AGAIN!** instead, and you can hit *Rebuild* first to
+  spend your gems on a better wall. Only **holding the base** clears it — and
+  then every way home comes back at once. Practice alarms stay free — leave
+  those whenever you like. Your defenses fight
   on their own and **you can tap the field to throw bombs**. Hold them off:
   gems and salvage. If they smash through: **the base falls** — you lose a
-  chunk of gems and materials and your wall breaks. There's a practice alarm
+  tenth of your gems and a little salvage, and your wall cracks (it comes back
+  at two-thirds strength for the next go). There's a practice alarm
   too, so you can test your fort any time without risking anything.
+  **The waves are built to be BEATEN**, since you can't walk away from one:
+  they grow gently with the floors, shamble in one at a time, runners don't
+  show up until wave 3 and brutes until wave 5 — and *your* thrown bombs are
+  the best weapon on the field (3 damage, a wide blast, and about one a
+  second).
   **When you hold the base**, the victory card offers **Next Floor →** (straight
   back into the Tower, on the floor you just unlocked), **🏠 Home Screen**, and
   **Back to building** if you'd rather spend your winnings on the fort first.
-  If the base falls you get **Rebuild** and **🏠 Home Screen**. Either card
+  If the base falls you get **Rebuild** and — while the ambush still stands —
+  **⚔️ Fight them AGAIN!** in place of the Home button. Either card
   waits a beat before its buttons switch on — so a finger still spam-tapping
   bombs when the wave ends can't accidentally press anything.
   **Getting there:** the **Base** hex on the homepage, or the green *Base*

@@ -2701,6 +2701,7 @@ function reachStairs() {
     return;
   }
   save('bbt-ambush', floorNum);   // the Warlock's ambush is now OWED — dodging only delays it
+  $('#victoryhome').hidden = true;   // …and there is NO way home until your base HOLDS
   /* FLOOR 50 (full game): you SAW where he went. No victory lap, no trip
      home — the screen goes black, and the chase begins. */
   if (floorNum === 50 && FULLGAME) {
