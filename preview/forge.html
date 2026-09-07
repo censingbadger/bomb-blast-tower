@@ -706,6 +706,15 @@ footer {
 <div class="toast" id="toast" role="status"></div>
 
 <script>window.__EDITION='preview';</script><script>
+/* the FRONT DOOR: on the public web you need a code — index.html asks for it */
+try {
+  if (location.protocol === 'http:' || location.protocol === 'https:') {
+    var _lic = JSON.parse(localStorage.getItem('bbt-license') || 'null');
+    if (_lic !== 'preview' && _lic !== 'full') location.replace('index.html');
+  }
+} catch (e) {}
+</script>
+<script>
 /* ---------- tiny forge sounds (best-effort, never required) ---------- */
 const sfx = {
   ctx: null,
