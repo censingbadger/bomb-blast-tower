@@ -217,6 +217,17 @@ python3 -m http.server
   5, **poison seeping up through the floors**, spikes, and the same strict
   bomb-budget puzzle all the way up.
 
+  **The lever-doors.** About **half the floors** (every odd one from MOSS 3
+  up) lock the way to the stairs behind an **old ironwood DOOR** — arched,
+  planked, iron-banded, its lock plate glowing with his magic. Bombs are no
+  use: the door tile is a **true cut** on the map (the generator proves it
+  with a flood-fill — no boost, blast or detour sneaks past), and the only
+  thing that opens it is a **LEVER waiting in a different part of the
+  level**, always reachable on foot and always at least a room away. Find
+  the mossy stone stump with the blinking gold knob, step on the pull —
+  *CLUNK!* — and somewhere across the floor the old door **grinds open**.
+  Shoulder the locked door all you like: *"LOCKED — find the LEVER!"*
+
   **New drops and better things.** Beaten monsters up here can shake loose
   a **RUBY — +15 ◆ on the spot**. The tower's witches carry **GOLDEN
   FLASKS** that refill **every heart** at a touch. And **every fifth

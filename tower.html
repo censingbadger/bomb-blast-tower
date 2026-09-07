@@ -1411,13 +1411,90 @@ function mossFloor(n) {
     break;
   }
 
+  /* THE LEVER-DOORS: about half the floors lock the way to the stairs
+     behind an old ironwood DOOR — and the LEVER that opens it waits in a
+     DIFFERENT part of the level. The door tile is a TRUE cut on the map:
+     no bomb, boost or clever detour gets past it. Only the lever. */
+  let hasDoor = false;
+  if (n >= 3 && n < 100 && n % 2 === 1) {
+    let tx2 = -1, ty2 = -1;
+    for (let y = 0; y < H; y++) for (let x = 0; x < W; x++) if (at(x, y) === 'X') { tx2 = x; ty2 = y; }
+    const taken = {};   // don't drop the door or lever onto furniture or the chest
+    decor.forEach(d => { taken[(d.x - 0.5) + ',' + (d.y - 0.5)] = true; });
+    if (chest) taken[(chest.x - 0.5) + ',' + (chest.y - 0.5)] = true;
+    const bfs = (fx, fy, pass, block) => {
+      const d2 = new Map(), par = new Map(), q = [[fx, fy]];
+      d2.set(fx + ',' + fy, 0);
+      for (let qi = 0; qi < q.length; qi++) {
+        const [x, y] = q[qi];
+        for (const [dx, dy] of [[1, 0], [-1, 0], [0, 1], [0, -1]]) {
+          const nx = x + dx, ny = y + dy, k = nx + ',' + ny;
+          if (nx < 0 || ny < 0 || nx >= W || ny >= H || d2.has(k)) continue;
+          if (block && nx === block[0] && ny === block[1]) continue;
+          if (!pass(at(nx, ny))) continue;
+          d2.set(k, d2.get(x + ',' + y) + 1); par.set(k, x + ',' + y);
+          q.push([nx, ny]);
+        }
+      }
+      return { d2, par };
+    };
+    const full = c => c !== '#';                                        // with every bomb in the world
+    const walk = c => c !== '#' && c !== '%' && c !== 'P' && c !== 'L'; // on foot, spending nothing
+    if (tx2 >= 0) {
+      const base2 = bfs(sx2, sy2, full, null);
+      if (base2.d2.has(tx2 + ',' + ty2)) {
+        // walk the start→stairs path from its MIDDLE outward, hunting a cut
+        const path = [];
+        let cur = tx2 + ',' + ty2;
+        while (cur && cur !== sx2 + ',' + sy2) { path.push(cur); cur = base2.par.get(cur); }
+        path.reverse();
+        const order = [];
+        const mid = Math.floor(path.length / 2);
+        for (let o = 0; o < path.length; o++) {
+          const idx = mid + (o % 2 ? -((o + 1) >> 1) : (o >> 1));
+          if (idx >= 0 && idx < path.length) order.push(path[idx]);
+        }
+        for (const key of order) {
+          const [dx2, dy2] = key.split(',').map(Number);
+          const ch2 = at(dx2, dy2);
+          if (ch2 !== '.' && ch2 !== 'c') continue;
+          if (taken[dx2 + ',' + dy2]) continue;
+          if (Math.abs(dx2 - sx2) + Math.abs(dy2 - sy2) < 3) continue;   // never at your feet
+          const cut = bfs(sx2, sy2, full, [dx2, dy2]);
+          if (cut.d2.has(tx2 + ',' + ty2)) continue;                     // sneakable — not a real lock
+          // the lever: reachable ON FOOT with the door shut, and FAR from it
+          const reach = bfs(sx2, sy2, walk, [dx2, dy2]);
+          let best = null, bestScore = -1;
+          for (const [k2] of reach.d2) {
+            const [lx, ly] = k2.split(',').map(Number);
+            const c2 = at(lx, ly);
+            if (c2 !== '.' && c2 !== 'c') continue;
+            if (taken[lx + ',' + ly]) continue;
+            const dd = Math.abs(lx - dx2) + Math.abs(ly - dy2);
+            const ds = Math.abs(lx - sx2) + Math.abs(ly - sy2);
+            if (dd < 5 || ds < 3) continue;
+            const score = dd * 2 + ds;
+            if (score > bestScore) { bestScore = score; best = [lx, ly]; }
+          }
+          if (!best) continue;
+          g[dy2][dx2] = 'D';
+          g[best[1]][best[0]] = '!';
+          hasDoor = true;
+          break;
+        }
+      }
+    }
+  }
+
   const noun = MOSS_NOUN[theme][Math.floor(rnd(2) * MOSS_NOUN[theme].length)];
   const adj = MOSS_ADJ[Math.floor(rnd(3) * MOSS_ADJ.length)];
+  let tip = n === 1 ? 'HIS tower: one hundred floors of moss and storm. Climb.'
+    : theme === 'balcony' ? 'A BALCONY — the storm outside is NOT on your side.'
+    : MOSS_TIPS[(n * 7) % MOSS_TIPS.length];
+  if (hasDoor && (n === 3 || (n * 13) % 7 < 2)) tip = 'A LOCKED DOOR bars the way. Its LEVER waits in a different part of the level.';
   return {
     name: 'MOSS ' + n + ' — THE ' + (theme === 'balcony' ? noun : adj + ' ' + noun).toUpperCase(),
-    tip: n === 1 ? 'HIS tower: one hundred floors of moss and storm. Climb.'
-      : theme === 'balcony' ? 'A BALCONY — the storm outside is NOT on your side.'
-      : MOSS_TIPS[(n * 7) % MOSS_TIPS.length],
+    tip,
     hpBonus: base.hpBonus + Math.floor(n / 12),
     gates: base.gates,
     loadout: base.loadout,
@@ -1804,6 +1881,7 @@ function parseFloor(def) {
   rows.forEach(r => { if (r.length !== W) console.error('BAD ROW LENGTH', r); });
   const tiles = [], enemies = [], crates = [];
   let start = { x: 1.5, y: 1.5 }, stairs = { x: W - 2, y: 1 };
+  let door = null, lever = null;   // the mossy tower's lock-and-lever floors
   for (let y = 0; y < H; y++) {
     const row = [];
     for (let x = 0; x < W; x++) {
@@ -1816,6 +1894,8 @@ function parseFloor(def) {
       else if (ch === 'L') kind = 'lava';
       else if (ch === 'o') kind = 'poison';
       else if (ch === '^') kind = 'spike';
+      else if (ch === 'D') { kind = 'door'; door = { x: x + 0.5, y: y + 0.5, tx: x, ty: y, open: false }; }
+      else if (ch === '!') { lever = { x: x + 0.5, y: y + 0.5, pulled: false }; }
       else if (ch === 'X') { kind = 'stairs'; stairs = { x: x + 0.5, y: y + 0.5 }; }
       else if (ch === 'S') { start = { x: x + 0.5, y: y + 0.5 }; }
       else if (ch === 'z' || ch === 'k') enemies.push({ kind: ch === 'z' ? 'zombie' : 'skeleton', x: x + 0.5, y: y + 0.5 });
@@ -1848,9 +1928,10 @@ function parseFloor(def) {
     const k = tiles[y][x].kind;
     if ((k === 'lava' || k === 'poison') && (x + y) % 2 === 0) lavas.push({ x: x + 0.5, y: y + 0.5, seed: x * 5 + y * 3, poison: k === 'poison' });
   }
-  return { W, H, tiles, start, stairs, enemySpawns: enemies, crateSpawns: crates, torches, chains, lavas };
+  return { W, H, tiles, start, stairs, enemySpawns: enemies, crateSpawns: crates, torches, chains, lavas, door, lever };
 }
-function isSolidKind(k) { return k === 'wall' || k === 'crack'; }
+/* a closed door blocks like a wall — but no bomb opens it, only its lever */
+function isSolidKind(k) { return k === 'wall' || k === 'crack' || k === 'door'; }
 
 function startFloor() {
   const def = SW ? swampFloor(floorNum)
@@ -2896,6 +2977,26 @@ function update(dt, now) {
       }
     });
 
+    // THE LEVER: half this tower's floors lock their stairs behind an old
+    // door — and the lever is never anywhere near it
+    if (G.lever && !G.lever.pulled && dist(G.lever.x, G.lever.y, h.fx, h.fy) < 0.8) {
+      G.lever.pulled = true;
+      sfx.armed(); sfx.slam(); shake();
+      floatText(G.lever.x, G.lever.y, 'CLUNK!', '#ffd94a');
+      if (G.door && !G.door.open) {
+        G.door.open = true;
+        G.tiles[G.door.ty][G.door.tx].kind = 'floor';
+        for (let i = 0; i < 12; i++) G.sparkles.push({ fx: G.door.x + (Math.random() - 0.5) * 1.2, fy: G.door.y + (Math.random() - 0.5) * 1.2, at: now });
+        banner('🔩 CLUNK! Somewhere, an OLD DOOR grinds open…', 2000);
+      }
+    }
+    // shoulder the locked door all you like — it wants the LEVER
+    if (G.door && !G.door.open && dist(G.door.x, G.door.y, h.fx, h.fy) < 1.25 && now > (G.doorLockHintAt || 0)) {
+      G.doorLockHintAt = now + 1600;
+      floatText(G.door.x, G.door.y - 0.4, 'LOCKED — find the LEVER!', '#dcbcff');
+      sfx.tick();
+    }
+
     // THE WITCH'S HUT: reach its doorstep and the treasure is YOURS
     if (G.hut && !G.hut.opened && dist(G.hut.x, G.hut.y, h.fx, h.fy) < 1.05) {
       G.hut.opened = true;
@@ -3132,10 +3233,10 @@ function render(now) {
   if (now < G.shakeUntil) { ox += (Math.random() - 0.5) * 9; oy += (Math.random() - 0.5) * 7; }
 
   const h = G.hero;
-  // ---- floor pass ----
+  // ---- floor pass ---- (a closed door is solid, but its tile still shows ground)
   for (let y = 0; y < G.H; y++) for (let x = 0; x < G.W; x++) {
     const t = G.tiles[y][x];
-    if (isSolidKind(t.kind)) continue;
+    if (t.kind === 'wall' || t.kind === 'crack') continue;
     const sx = ox + isoX(x + 0.5, y + 0.5), sy = oy + isoY(x + 0.5, y + 0.5);
     if (sx < -80 || sx > w + 80 || sy < -90 || sy > hgt + 90) continue;
     if (t.kind === 'plat') continue;   // drawn raised, in the sorted pass
@@ -3198,6 +3299,8 @@ function render(now) {
   G.crates.forEach(c => { if (!c.taken) draws.push({ d: c.x + c.y, f: () => drawCrate(ox, oy, c) }); });
   if (G.hut) draws.push({ d: G.hut.x + G.hut.y + 0.4, f: () => drawHut(ox, oy, G.hut, now) });
   if (G.chest) draws.push({ d: G.chest.x + G.chest.y, f: () => drawChest(ox, oy, G.chest, now) });
+  if (G.door) draws.push({ d: G.door.x + G.door.y, f: () => drawDoor(ox, oy, G.door, now) });
+  if (G.lever) draws.push({ d: G.lever.x + G.lever.y, f: () => drawLever(ox, oy, G.lever, now) });
   (G.decor || []).forEach(dc => draws.push({ d: dc.x + dc.y, f: () => drawDecor(ox, oy, dc, now) }));
   (G.flasks || []).forEach(fl => { if (!fl.taken) draws.push({ d: fl.x + fl.y, f: () => drawFlask(ox, oy, fl, now) }); });
   (G.rubies || []).forEach(rb => { if (!rb.taken) draws.push({ d: rb.x + rb.y, f: () => drawRuby(ox, oy, rb, now) }); });
@@ -3290,6 +3393,8 @@ function render(now) {
     hole(ox + isoX(lv.x, lv.y), oy + isoY(lv.x, lv.y), (lv.poison ? 62 : 85) * f, lv.poison ? 0.6 : 0.8);
   });
   if (G.hut && !G.hut.opened) hole(ox + isoX(G.hut.x, G.hut.y), oy + isoY(G.hut.x, G.hut.y) - 40, 120, 0.85);
+  if (G.lever && !G.lever.pulled) hole(ox + isoX(G.lever.x, G.lever.y), oy + isoY(G.lever.x, G.lever.y) - 14, 75, 0.55);
+  if (G.door && !G.door.open) hole(ox + isoX(G.door.x, G.door.y), oy + isoY(G.door.x, G.door.y) - 20, 85, 0.5);
   hole(ox + isoX(h.fx, h.fy), oy + isoY(h.fx, h.fy) - 20, 185, 1);
   hole(ox + isoX(G.stairs.x, G.stairs.y), oy + isoY(G.stairs.x, G.stairs.y) - 20, 120, 0.9);
   G.booms.forEach(b => hole(ox + isoX(b.fx, b.fy), oy + isoY(b.fx, b.fy), 300 * (1 - (now - b.at) / 480), 1));
@@ -3790,6 +3895,78 @@ function drawChest(ox, oy, ch, now) {
   ctx.fillStyle = '#3f6f3a';
   ctx.beginPath(); ctx.ellipse(sx - 7, sy - (ch.opened ? 24 : 17.5), 5, 2.4, 0.2, 0, 7); ctx.fill();
   ctx.beginPath(); ctx.ellipse(sx + 8, sy - (ch.opened ? 22 : 15.5), 4, 2, -0.3, 0, 7); ctx.fill();
+}
+/* THE OLD IRONWOOD DOOR: solid as the wall around it, deaf to every bomb —
+   somewhere on this floor a LEVER knows how to open it */
+function drawDoor(ox, oy, dr, now) {
+  const sx = ox + isoX(dr.x, dr.y), sy = oy + isoY(dr.x, dr.y) + 7;
+  const H = 56;
+  ctx.strokeStyle = '#241608'; ctx.lineWidth = 2;
+  // stone posts flank the doorway either way — this is a GATE, not a wall
+  const post = dx => {
+    ctx.fillStyle = '#445046';
+    ctx.fillRect(sx + dx - 4, sy - H - 4, 8, H + 4);
+    ctx.strokeRect(sx + dx - 4, sy - H - 4, 8, H + 4);
+    ctx.fillStyle = '#5a685c';
+    ctx.fillRect(sx + dx - 5.5, sy - H - 8, 11, 5); ctx.strokeRect(sx + dx - 5.5, sy - H - 8, 11, 5);
+    ctx.fillStyle = 'rgba(74,128,68,0.9)';
+    ctx.beginPath(); ctx.ellipse(sx + dx, sy - H - 8, 5, 2.2, dx > 0 ? -0.3 : 0.3, 0, 7); ctx.fill();
+  };
+  post(-19); post(19);
+  if (dr.open) {
+    // both leaves swung back flat against the posts — walk on through
+    ctx.fillStyle = '#3a2a18';
+    ctx.beginPath(); ctx.moveTo(sx - 15, sy - H + 6); ctx.lineTo(sx - 26, sy - H + 16); ctx.lineTo(sx - 26, sy + 5); ctx.lineTo(sx - 15, sy); ctx.closePath(); ctx.fill(); ctx.stroke();
+    ctx.beginPath(); ctx.moveTo(sx + 15, sy - H + 6); ctx.lineTo(sx + 26, sy - H + 16); ctx.lineTo(sx + 26, sy + 5); ctx.lineTo(sx + 15, sy); ctx.closePath(); ctx.fill(); ctx.stroke();
+    ctx.fillStyle = '#4a3520';   // the lintel still spans overhead
+    ctx.fillRect(sx - 19, sy - H - 2, 38, 6); ctx.strokeRect(sx - 19, sy - H - 2, 38, 6);
+    return;
+  }
+  drawShadow(sx, sy + 2, 18, 0.45);
+  // the shut leaves, planked and iron-banded
+  ctx.fillStyle = '#5d422a';
+  ctx.beginPath();
+  ctx.moveTo(sx - 16, sy); ctx.lineTo(sx - 16, sy - H + 14);
+  ctx.quadraticCurveTo(sx - 16, sy - H, sx, sy - H);
+  ctx.quadraticCurveTo(sx + 16, sy - H, sx + 16, sy - H + 14);
+  ctx.lineTo(sx + 16, sy); ctx.closePath(); ctx.fill(); ctx.stroke();
+  ctx.strokeStyle = 'rgba(36,22,8,0.8)'; ctx.lineWidth = 1.4;
+  [-10, -4, 4, 10].forEach(dx => { ctx.beginPath(); ctx.moveTo(sx + dx, sy - 2); ctx.lineTo(sx + dx, sy - H + (Math.abs(dx) > 7 ? 10 : 4)); ctx.stroke(); });
+  ctx.beginPath(); ctx.moveTo(sx, sy - H + 1); ctx.lineTo(sx, sy); ctx.strokeStyle = '#241608'; ctx.lineWidth = 2; ctx.stroke();
+  ctx.fillStyle = '#3c4048';
+  ctx.fillRect(sx - 16, sy - H + 18, 32, 5); ctx.fillRect(sx - 16, sy - 14, 32, 5);
+  // the lock plate glows with HIS magic until the lever says otherwise
+  const gl = 0.5 + Math.sin(now / 300) * 0.3;
+  ctx.fillStyle = '#2c3038';
+  ctx.beginPath(); ctx.arc(sx, sy - H / 2 + 2, 7.5, 0, 7); ctx.fill(); ctx.stroke();
+  ctx.fillStyle = 'rgba(176,109,255,' + gl.toFixed(2) + ')';
+  ctx.beginPath(); ctx.arc(sx, sy - H / 2 + 2, 4, 0, 7); ctx.fill();
+  // and of course, the moss
+  ctx.fillStyle = '#3f6f3a';
+  ctx.beginPath(); ctx.ellipse(sx - 8, sy - H + 4, 5.5, 2.4, 0.3, 0, 7); ctx.fill();
+  ctx.beginPath(); ctx.ellipse(sx + 9, sy - H + 7, 4, 2, -0.4, 0, 7); ctx.fill();
+}
+/* THE LEVER: a mossy stone stump with an iron arm — pull it and listen */
+function drawLever(ox, oy, lv, now) {
+  const sx = ox + isoX(lv.x, lv.y), sy = oy + isoY(lv.x, lv.y);
+  drawShadow(sx, sy + 3, 11, 0.4);
+  if (!lv.pulled) {   // a soft golden ring on the ground says COME PULL ME
+    const gl = 0.4 + Math.sin(now / 320) * 0.25;
+    ctx.strokeStyle = 'rgba(255,217,74,' + gl.toFixed(2) + ')'; ctx.lineWidth = 2;
+    ctx.beginPath(); ctx.ellipse(sx, sy + 1, 17, 8.5, 0, 0, 7); ctx.stroke();
+  }
+  ctx.fillStyle = '#4e5a52'; ctx.strokeStyle = '#1c2420'; ctx.lineWidth = 1.8;
+  ctx.beginPath(); ctx.roundRect(sx - 9, sy - 13, 18, 14, 3); ctx.fill(); ctx.stroke();
+  ctx.fillStyle = '#3f6f3a';
+  ctx.beginPath(); ctx.ellipse(sx + 4, sy - 13, 4.5, 2, -0.3, 0, 7); ctx.fill();
+  const ang = lv.pulled ? 0.85 : -0.85;
+  const ax = sx, ay = sy - 12;
+  ctx.strokeStyle = '#3c4048'; ctx.lineWidth = 4; ctx.lineCap = 'round';
+  ctx.beginPath(); ctx.moveTo(ax, ay); ctx.lineTo(ax + Math.sin(ang) * 19, ay - Math.cos(ang) * 19); ctx.stroke();
+  // the knob blinks gold until somebody does the obvious thing
+  const blink = lv.pulled ? 0.45 : 0.55 + Math.sin(now / 240) * 0.35;
+  ctx.fillStyle = 'rgba(255,217,74,' + blink.toFixed(2) + ')';
+  ctx.beginPath(); ctx.arc(ax + Math.sin(ang) * 21, ay - Math.cos(ang) * 21, 4.4, 0, 7); ctx.fill();
 }
 /* FURNITURE for the tower's lived-in floors: each themed room gets its own
    props, all drawn from one little catalog */
@@ -4565,6 +4742,8 @@ window.__tower = {
   mossFloor,
   startTravel,
   get hut() { return G.hut; },
+  get door() { return G.door; },
+  get lever() { return G.lever; },
   get chest() { return G.chest; },
   get decor() { return G.decor; },
   get storm() { return !!G.storm; },
