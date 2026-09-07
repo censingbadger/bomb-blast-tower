@@ -1291,6 +1291,169 @@ function swampFloor(n) {
   };
 }
 
+/* ============================================================
+   THE MOSSY TOWER — the Warlock's own hundred-floor backup tower
+   at the back of the swamp (FULL version only). Old, green, and
+   lived-in: mossy halls, crooked KITCHENS, LIVING AREAS and
+   BEDROOMS — and every few floors a BALCONY, open to a raging
+   storm outside. His purple-liveried mutants and witches guard
+   it, the loot is better (moss rubies! golden flasks! old
+   chests!), and the REMATCH waits at the very top.
+   ============================================================ */
+const MOSS_THEMES = ['hall', 'kitchen', 'living', 'hall', 'bedroom', 'hall'];
+const MOSS_ADJ = ['Mossy', 'Crooked', 'Dusty', 'Damp', 'Creaky', 'Forgotten', 'Cold', 'Whispering', 'Green', 'Old'];
+const MOSS_NOUN = {
+  hall: ['Hall', 'Landing', 'Gallery', 'Passage', 'Stairwell', 'Corridor'],
+  kitchen: ['Kitchen', 'Pantry', 'Scullery', 'Cook-Room'],
+  living: ['Living Area', 'Parlor', 'Sitting Room', 'Den'],
+  bedroom: ['Bedroom', 'Bunk Room', 'Sleeping Quarters', 'Guest Room'],
+  balcony: ['Storm Balcony', 'Rain Balcony', 'Thunder Terrace', 'Open Balcony'],
+};
+const MOSS_TIPS = [
+  'His tower. His rules. Your bombs.',
+  'Moss rubies gleam on beaten monsters — grab them!',
+  'The servants wear HIS purple. They fight like it too.',
+  'Golden flasks refill EVERY heart. Witches carry them.',
+  'Every fifth floor hides an OLD CHEST somewhere…',
+  'The storm outside never stops. Neither does he.',
+  'One hundred floors. He is counting on you giving up.',
+];
+function mossFloor(n) {
+  // difficulty climbs at half speed so a hundred floors stays a fair climb
+  const hard = 4 + Math.min(46, Math.floor((n - 1) / 2));
+  let bestTry = null;
+  for (let attempt = 80; attempt < 96; attempt++) {
+    const got = buildFloor(hard, attempt + n * 37);   // a WIDE seed stride: every floor its own bones
+    if (!got) continue;
+    if (!bestTry || got.pathLen > bestTry.pathLen) bestTry = got;
+    if (bestTry.pathLen >= (bestTry.def.grid[0].length + bestTry.def.grid.length) * 1.25) break;
+  }
+  const base = bestTry ? bestTry.def : linearFloor(hard);
+  const g = base.grid.map(r => r.split(''));
+  const H = g.length, W = g[0].length;
+  const at = (x, y) => (g[y] && g[y][x]) || '#';
+  const put = (x, y, ch) => { if (x > 0 && y > 0 && x < W - 1 && y < H - 1 && at(x, y) !== 'S' && at(x, y) !== 'X') g[y][x] = ch; };
+  const rnd = k => rand(n * 977 + k * 53 + 29);
+  let sx2 = 1, sy2 = 1;
+  for (let y = 0; y < H; y++) for (let x = 0; x < W; x++) if (at(x, y) === 'S') { sx2 = x; sy2 = y; }
+  const nearStart = (x, y, r) => Math.abs(x - sx2) + Math.abs(y - sy2) < r;
+
+  // THE THEME: every ~4th floor is a storm balcony; the rest rotate rooms
+  const theme = n % 4 === 2 ? 'balcony' : MOSS_THEMES[Math.floor(rnd(1) * MOSS_THEMES.length)];
+
+  // HIS poison seeps up through some floors
+  if (n % 3 === 1 && n > 2) {
+    for (let i = 0, placed = 0; i < 80 && placed < 1 + Math.floor(n / 34); i++) {
+      const px = 2 + Math.floor(rnd(i * 3 + 7) * (W - 4)), py = 2 + Math.floor(rnd(i * 5 + 9) * (H - 4));
+      if (nearStart(px, py, 6)) continue;
+      let open = 0;
+      for (let dy = 0; dy < 2; dy++) for (let dx = 0; dx < 2; dx++) { const c = at(px + dx, py + dy); if (c === '.' || c === 'c') open++; }
+      if (open < 3) continue;
+      for (let dy = 0; dy < 2; dy++) for (let dx = 0; dx < 2; dx++) { const c = at(px + dx, py + dy); if (c === '.' || c === 'c') put(px + dx, py + dy, 'o'); }
+      placed++;
+    }
+  }
+  // WITCHES serve here from floor 5 up
+  const witchCount = n >= 5 ? Math.min(3, 1 + Math.floor(n / 25)) : 0;
+  if (witchCount) {
+    const lurkers = [];
+    for (let y = 0; y < H; y++) for (let x = 0; x < W; x++) {
+      if (at(x, y) === 'z' || at(x, y) === 'k') lurkers.push({ x, y, d: Math.abs(x - sx2) + Math.abs(y - sy2) });
+    }
+    lurkers.sort((a, b) => b.d - a.d);
+    lurkers.slice(0, witchCount).forEach(p => { g[p.y][p.x] = 'w'; });
+  }
+  // an OLD CHEST hides on every fifth floor
+  let chest = null;
+  if (n % 5 === 0 && n < 100) {
+    for (let i = 0; i < 300 && !chest; i++) {
+      const px = 2 + Math.floor(rnd(i * 11 + 61) * (W - 4)), py = 2 + Math.floor(rnd(i * 13 + 67) * (H - 4));
+      if ((at(px, py) !== '.' && at(px, py) !== 'c') || nearStart(px, py, Math.floor((W + H) / 4))) continue;
+      let open = 0;
+      [[1, 0], [-1, 0], [0, 1], [0, -1]].forEach(([dx, dy]) => { const c = at(px + dx, py + dy); if (c === '.' || c === 'c' || c === 'o') open++; });
+      if (open >= 2) chest = { x: px + 0.5, y: py + 0.5 };
+    }
+  }
+  // themed FURNITURE tucked into nooks (drawn, walkable — the tower is old
+  // and nobody minds you clambering over a bed)
+  const DECOR_KINDS = {
+    kitchen: ['table', 'cauldron', 'barrel', 'table', 'cauldron'],
+    living: ['chair', 'shelf', 'plant', 'chair', 'shelf'],
+    bedroom: ['bed', 'candle', 'wardrobe', 'bed', 'candle'],
+    balcony: ['plant', 'candle'],
+    hall: ['plant', 'barrel'],
+  };
+  const decor = [];
+  const kinds = DECOR_KINDS[theme] || [];
+  for (let i = 0, placed = 0; i < 240 && placed < kinds.length; i++) {
+    const px = 2 + Math.floor(rnd(i * 17 + 91) * (W - 4)), py = 2 + Math.floor(rnd(i * 19 + 93) * (H - 4));
+    const c = at(px, py);
+    if ((c !== '.' && c !== 'c') || nearStart(px, py, 4)) continue;
+    let wallsNear = 0;
+    [[1, 0], [-1, 0], [0, 1], [0, -1]].forEach(([dx, dy]) => { if (at(px + dx, py + dy) === '#') wallsNear++; });
+    if (wallsNear < 1) continue;                                  // furniture hugs the walls
+    if (decor.some(d => Math.abs(d.x - px) + Math.abs(d.y - py) < 3)) continue;
+    if (chest && Math.abs(chest.x - px) + Math.abs(chest.y - py) < 2) continue;
+    decor.push({ x: px + 0.5, y: py + 0.5, kind: kinds[placed] });
+    placed++;
+  }
+
+  // ONE alcove, carved somewhere new on every floor: small maps can come out
+  // of the builder as twins, and no two floors of a hundred may feel like
+  // reruns. (Opening a wall only ever ADDS routes — budgets stay honest.)
+  for (let i = 0; i < 200; i++) {
+    const px = 2 + Math.floor(rnd(i * 29 + 401) * (W - 4)), py = 2 + Math.floor(rnd(i * 31 + 403) * (H - 4));
+    if (at(px, py) !== '#') continue;
+    let open = 0;
+    [[1, 0], [-1, 0], [0, 1], [0, -1]].forEach(([dx, dy]) => { if (at(px + dx, py + dy) !== '#') open++; });
+    if (!open) continue;                       // a hidden pocket helps nobody
+    g[py][px] = '.';
+    break;
+  }
+
+  const noun = MOSS_NOUN[theme][Math.floor(rnd(2) * MOSS_NOUN[theme].length)];
+  const adj = MOSS_ADJ[Math.floor(rnd(3) * MOSS_ADJ.length)];
+  return {
+    name: 'MOSS ' + n + ' — THE ' + (theme === 'balcony' ? noun : adj + ' ' + noun).toUpperCase(),
+    tip: n === 1 ? 'HIS tower: one hundred floors of moss and storm. Climb.'
+      : theme === 'balcony' ? 'A BALCONY — the storm outside is NOT on your side.'
+      : MOSS_TIPS[(n * 7) % MOSS_TIPS.length],
+    hpBonus: base.hpBonus + Math.floor(n / 12),
+    gates: base.gates,
+    loadout: base.loadout,
+    theme, chest, decor,
+    grid: g.map(r => r.join('')),
+  };
+}
+/* MOSS 100: THE THRONE ROOM. No stairs, no doorway — just HIM, larger
+   than ever, with THREE TIMES the health he had in the arena. */
+function mossThrone() {
+  const W = 27, H = 19;
+  const g = [];
+  for (let y = 0; y < H; y++) {
+    let row = '';
+    for (let x = 0; x < W; x++) row += (x === 0 || y === 0 || x === W - 1 || y === H - 1) ? '#' : '.';
+    g.push(row);
+  }
+  const put = (x, y, ch) => { g[y] = g[y].slice(0, x) + ch + g[y].slice(x + 1); };
+  // poison pools in the corners and along the sides — his swamp came upstairs
+  [[3, 3], [21, 3], [3, 13], [21, 13]].forEach(([px, py]) => {
+    for (let y = py; y < py + 3; y++) for (let x = px; x < px + 3; x++) put(x, y, 'o');
+  });
+  for (let y = 7; y <= 11; y++) { put(1, y, 'o'); put(25, y, 'o'); }
+  // a mossy carpet runs from the doors to the throne
+  for (let y = 5; y <= 16; y++) { put(13, y, 'c'); }
+  for (let x = 10; x <= 16; x++) { put(x, 8, 'c'); put(x, 10, 'c'); }
+  put(13, 16, 'S');
+  return {
+    name: "MOSS 100 — THE WARLOCK'S THRONE ROOM",
+    tip: 'THREE TIMES the health. The SAME one weakness: your weapon.',
+    theme: 'throne',
+    decor: [{ x: 13.5, y: 4.5, kind: 'throne' }],
+    grid: g,
+  };
+}
+
 /* ---------- sound (best-effort, never blocks the game) ----------
    Every bomb has its own fuse and its own bang, and every weapon has its
    own swing, so you can tell what you're holding with your eyes shut. */
@@ -1411,6 +1574,7 @@ const sfx = {
   hurt() { this.mark('hurt'); this.env('sawtooth', 180, 60, .3, .2); },
   cackle() { this.mark('cackle'); [880, 740, 620, 990].forEach((f, i) => this.env('square', f, f * 0.85, .06, .09, i * .07)); },
   splat() { this.mark('splat'); this.noise(.18, .3, 700); this.env('sine', 300, 90, .2, .16); },
+  thunder() { this.mark('thunder'); this.noise(1.0, .28, 240); this.env('sine', 76, 30, .8, .24, .05); },
   pickup() { this.mark('pickup'); this.env('sine', 660, 990, .14, .15); },
   gem() { this.mark('gem'); this.env('sine', 990, 1320, .12, .12); },
   boost() { this.mark('boost'); this.env('sine', 250, 720, .32, .2); },
@@ -1552,14 +1716,20 @@ const EDITION = window.__EDITION === 'preview' ? 'preview'
   : _webProto ? (_lic === 'full' ? 'full' : 'preview')
   : 'full';
 const FULLGAME = EDITION === 'full';
-/* WHICH WORLD? The same engine runs the TOWER (?world=tower, the default)
-   and THE SWAMP (?world=swamp) — the chase that begins when the Warlock
-   rainbow-blasts out of the Floor 50 window. (Preview edition: tower only.) */
+/* WHICH WORLD? The same engine runs THREE of them:
+   the TOWER (?world=tower, the default), THE SWAMP (?world=swamp) — the
+   chase that begins when the Warlock rainbow-blasts out of the Floor 50
+   window — and THE MOSSY TOWER (?world=moss): his own hundred-floor
+   backup tower at the back of the swamp, with the REMATCH at the top.
+   (Preview edition: the first tower only.) */
 const _qs = new URLSearchParams(location.search);
-const WORLD = (FULLGAME && (_qs.get('world') === 'swamp' || (!_qs.get('world') && window.__WORLD === 'swamp'))) ? 'swamp' : 'tower';
+const _wantWorld = _qs.get('world') || window.__WORLD || 'tower';
+const WORLD = (FULLGAME && (_wantWorld === 'swamp' || _wantWorld === 'moss')) ? _wantWorld : 'tower';
 const SW = WORLD === 'swamp';
-const MAX_FLOOR = SW ? 20 : FLOORS.length;
-const FLOOR_KEY = SW ? 'bbt-swampfloor' : 'bbt-floor';
+const MOSS = WORLD === 'moss';
+const MAIN = WORLD === 'tower';
+const MAX_FLOOR = SW ? 20 : MOSS ? 100 : FLOORS.length;
+const FLOOR_KEY = SW ? 'bbt-swampfloor' : MOSS ? 'bbt-mossfloor' : 'bbt-floor';
 const floorParam = _qs.get('floor');
 const savedFloor = load(FLOOR_KEY, 1);
 const floorNum = clamp(parseInt(floorParam || savedFloor, 10) || 1, 1, MAX_FLOOR);
@@ -1567,7 +1737,7 @@ const floorNum = clamp(parseInt(floorParam || savedFloor, 10) || 1, 1, MAX_FLOOR
    TOWER door won't open until you've defended your base — off you go.
    (The swamp is enemy country, far from home: no door to bar out there.) */
 const _owedAmbush = load('bbt-ambush', 0) || 0;
-if (!SW && _owedAmbush >= 1 && !String(location.href).startsWith('about')) {
+if (WORLD === 'tower' && _owedAmbush >= 1 && !String(location.href).startsWith('about')) {
   location.replace('base.html?ambush=' + _owedAmbush);
 }
 let gems = load('bbt-gems', 0);   // everyone starts broke — beat monsters and floors to earn
@@ -1683,7 +1853,9 @@ function parseFloor(def) {
 function isSolidKind(k) { return k === 'wall' || k === 'crack'; }
 
 function startFloor() {
-  const def = SW ? swampFloor(floorNum) : FLOORS[floorNum - 1];
+  const def = SW ? swampFloor(floorNum)
+    : MOSS ? (floorNum === 100 ? mossThrone() : mossFloor(floorNum))
+    : FLOORS[floorNum - 1];
   const map = parseFloor(def);
   G = {
     def, ...map,
@@ -1712,7 +1884,7 @@ function startFloor() {
     })),
     crates: map.crateSpawns.map(c => ({ ...c, taken: false })),
     bombs: [], booms: [], floats: [], rubble: [], sparkles: [], firetrail: [], beams: [], slams: [],
-    goo: [], potions: [], flasks: [],   // the swamp's own: witch splashes and heart flasks
+    goo: [], potions: [], flasks: [], rubies: [],   // witch splashes, heart flasks, moss rubies
     killStreak: 0,   // Killius Maximus counts every 5th beaten enemy
     keys: {}, joy: { active: false, dx: 0, dy: 0 },
     timerSetting: 3000,
@@ -1720,20 +1892,27 @@ function startFloor() {
     shakeUntil: 0, over: false, won: false,
     t0: performance.now(),
   };
-  /* THE SWAMP: everything out here is MUTATED — tougher, meaner, shinier loot */
-  if (SW) {
+  /* THE SWAMP: everything out here is MUTATED — tougher, meaner, shinier loot.
+     THE MOSSY TOWER: his own servants, moss-grown and in HIS purple livery,
+     tougher still — and the loot climbs with them. */
+  if (SW || MOSS) {
     G.enemies.forEach(e => {
       if (e.kind !== 'zombie' && e.kind !== 'skeleton') return;
-      e.mut = true; e.hp += 2; e.maxHp += 2; e.gems += 3; e.speed *= 1.08;
-      if (e.kind === 'zombie') { e.body = '#9acb4b'; e.cloth = '#3f6b2a'; e.eye = '#e8ffb0'; }
-      else { e.body = '#c9d6a8'; e.cloth = '#6b7a5a'; e.eye = '#7dffa5'; }
+      e.mut = true;
+      const extra = MOSS ? 3 : 2;
+      e.hp += extra; e.maxHp += extra; e.gems += MOSS ? 6 : 3; e.speed *= 1.08;
+      if (e.kind === 'zombie') { e.body = '#9acb4b'; e.cloth = MOSS ? '#4a3a6e' : '#3f6b2a'; e.eye = '#e8ffb0'; }
+      else { e.body = '#c9d6a8'; e.cloth = MOSS ? '#5a4a7e' : '#6b7a5a'; e.eye = MOSS ? '#b06dff' : '#7dffa5'; }
     });
     if (def.hut) G.hut = { x: def.hut.x, y: def.hut.y, opened: false };
-    // waking up in the bog: the world swims into focus
+    if (def.chest) G.chest = { x: def.chest.x, y: def.chest.y, opened: false };
+    if (def.decor) G.decor = def.decor;
+    G.storm = MOSS && def.theme === 'balcony';   // an open balcony: rain, wind, LIGHTNING
+    // waking up here: the world swims into focus
     const wk = $('#wakeup');
     if (wk) { wk.classList.remove('go'); void wk.offsetWidth; wk.classList.add('go'); }
-    // the very first time you arrive, the swamp explains itself — big and bold
-    if (floorNum === 1 && !load('bbt-swamp-greeted', false)) {
+    // the very first time you arrive in the SWAMP, it explains itself — big and bold
+    if (SW && floorNum === 1 && !load('bbt-swamp-greeted', false)) {
       save('bbt-swamp-greeted', true);
       setTimeout(() => {
         if (!G || G.over) return;
@@ -1741,6 +1920,31 @@ function startFloor() {
         sfx.armed();
       }, 1200);
     }
+  }
+  /* MOSS 100 — THE THRONE ROOM: no stairs up here, only HIM. Larger than
+     ever, with THREE TIMES the arena's health, and nothing left to say. */
+  if (MOSS && floorNum === 100) {
+    G.stairs = { x: -99, y: -99 };
+    const cx = 13.5, cy = 7.5;
+    const bhp = heroDmg * 126;   // 3 × the forty-two-swing arena pool
+    G.boss = {
+      kind: 'warlock', name: 'THE WARLOCK', big2: true,
+      fx: cx, fy: cy, homeX: cx, homeY: cy,
+      hp: bhp, maxHp: bhp,
+      speed: 1.35, aggro: 11, dmg: 1, swipeCool: 1100, swipeDmg: 1, gems: 100,
+      body: '#3a2c5e', cloth: '#241844', eye: '#ff5c7a',
+      facing: 1, swipeReadyAt: 0, swingUntil: 0, hurtUntil: 0,
+      dead: false, deadAt: 0, seed: 100, wanderAt: 0, wx: cx, wy: cy,
+      teleportAt: performance.now() + 6000, throwReadyAt: performance.now() + 2500,
+      spoke: true, fled: false, rematch: true,
+    };
+    G.enemies.push(G.boss);
+    G.flames = [
+      { fx: 4.5, fy: 4.5 }, { fx: 22.5, fy: 4.5 }, { fx: 4.5, fy: 14.5 }, { fx: 22.5, fy: 14.5 },
+    ].map((p, i) => ({ ...p, seed: i * 13 + 5, green: true }));
+    $('#bossbar').classList.add('show');
+    $('#bossfill').style.width = '100%';
+    try { MUSIC.setMood('battle'); } catch (e) {}
   }
   // owning the Market's Box-o-Bombs adds +3 bombs every floor
   try { if ((load('bbt-owned', []) || []).includes('bombs')) G.hero.belt.bomb = (G.hero.belt.bomb || 0) + 3; } catch (e) {}
@@ -1753,8 +1957,8 @@ function startFloor() {
   /* FLOOR 50: the Warlock is NOT on the main floor. At the end of it, where
      the staircase would be, a GLOWING DOORWAY waits — click it to step
      through into his arena. */
-  $('#bossbar').classList.remove('show');
-  if (floorNum === 50) {
+  if (!(MOSS && floorNum === 100)) $('#bossbar').classList.remove('show');
+  if (MAIN && floorNum === 50) {
     def.tip = 'A GLOWING DOORWAY waits in the last room. Click it… if you dare.';
   }
   // the Workbench repaired your armor: +1 heart for this whole visit
@@ -1830,7 +2034,7 @@ function enterArena() {
     enemies: [],
     crates: [],
     bombs: [], booms: [], floats: [], rubble: [], sparkles: [], firetrail: [], beams: [], slams: [],
-    goo: [], potions: [], flasks: [],
+    goo: [], potions: [], flasks: [], rubies: [],
     killStreak: 0,
     keys: {}, joy: { active: false, dx: 0, dy: 0 },
     timerSetting: 3000,
@@ -2169,6 +2373,21 @@ function hurtEnemy(e, dmg, from) {
     sfx.hitFor(heroShape);
     floatText(e.fx, e.fy, '-' + dmg, '#d9b8ff');
     $('#bossfill').style.width = Math.max(0, e.hp / e.maxHp * 100) + '%';
+    // THE REMATCH (moss 100): no speech left in him — this one goes to ZERO
+    if (e.rematch && e.hp <= 0 && !e.dead) {
+      e.dead = true; e.deadAt = now;
+      $('#bossbar').classList.remove('show');
+      const prize = e.gems || 100;
+      gems += prize; save('bbt-gems', gems);
+      floatText(e.fx, e.fy, '+' + prize + ' ◆', '#3ec6ff');
+      for (let i = 0; i < 22; i++) G.sparkles.push({ fx: e.fx + (Math.random() - 0.5) * 2, fy: e.fy + (Math.random() - 0.5) * 2, at: now });
+      sfx.boomFor('timebomb'); sfx.stairs(); shake();
+      G.hero.iframesUntil = now + 4000;
+      banner('THE WARLOCK IS DEFEATED!', 2400);
+      try { MUSIC.setMood('calm'); } catch (err) {}
+      setTimeout(() => { if (G && !G.over) reachStairs(); }, 2100);
+      return;
+    }
     // at a TWENTIETH of his health, the battle stops — he has something to say
     if (!e.spoke && e.hp <= e.maxHp / 20) {
       e.spoke = true;
@@ -2203,10 +2422,13 @@ function hurtEnemy(e, dmg, from) {
     // mutated things ooze a little slime of their own
     if (e.kind === 'witch') {
       setTimeout(() => { try { gainMat('slime', 2, mx, my); } catch (err) {} }, 520);
-      if (Math.random() < 0.4) G.flasks.push({ x: mx, y: my, taken: false });
+      // in the MOSSY TOWER the witches carry GOLDEN flasks — a full heal
+      if (Math.random() < 0.4) G.flasks.push({ x: mx, y: my, taken: false, gold: MOSS });
     } else if (e.mut && Math.random() < 0.3) {
       setTimeout(() => { try { gainMat('slime', 1, mx, my); } catch (err) {} }, 520);
     }
+    // MOSSY TOWER LOOT: anything up here might shake loose a RUBY
+    if (MOSS && Math.random() < 0.12) G.rubies.push({ x: mx, y: my, taken: false });
     // KILLIUS MAXIMUS: every 5th beaten enemy charges THE BEAM
     G.killStreak = (G.killStreak || 0) + 1;
     if (enchLv('killius') && G.killStreak >= 5 && !G.beamFiring) {
@@ -2349,7 +2571,7 @@ function reachStairs() {
   if (G.over) return;
   // Floor 50: where the stairs should be stands the GLOWING DOORWAY.
   // Walking into it does nothing — you must CLICK it to step through.
-  if (floorNum === 50 && !G.inArena) {
+  if (MAIN && floorNum === 50 && !G.inArena) {
     const now = performance.now();
     if (now > (G.doorHintAt || 0)) {
       G.doorHintAt = now + 1500;
@@ -2369,23 +2591,32 @@ function reachStairs() {
   G.over = true; G.won = true;
   try { MUSIC.stop(); } catch (e) {}
   sfx.stairs();
-  const bonus = (SW ? 40 : 25) + (floorNum - 1) * 3;   // the deeper you go, the better the prize
+  // the deeper (and higher) you go, the better the prize
+  const bonus = (SW ? 40 : MOSS ? 50 : 25) + (floorNum - 1) * (MOSS ? 4 : 3);
   gems += bonus; save('bbt-gems', gems);
   const next = floorNum + 1;
   save(FLOOR_KEY, Math.min(next, MAX_FLOOR + 1));
   updateHUD();
-  /* THE SWAMP: no base out here to march an ambush at — only deeper bog */
-  if (SW) {
-    $('#victorymsg').innerHTML = 'You crossed <b>Swamp ' + floorNum + '</b>! &nbsp;+' + bonus + ' ◆';
-    if (next <= MAX_FLOOR) {
-      $('#victorysub').textContent = 'The fog only thickens ahead…';
-      $('#gohome').textContent = '🌿 Push deeper!';
+  /* THE SWAMP & THE MOSSY TOWER: no base out here to ambush — only ONWARD */
+  if (SW || MOSS) {
+    $('#victorymsg').innerHTML = 'You ' + (SW ? 'crossed' : 'climbed') + ' <b>' + (SW ? 'Swamp' : 'Moss') + ' ' + floorNum + '</b>! &nbsp;+' + bonus + ' ◆';
+    if (MOSS && floorNum === 100) {
+      $('#victorymsg').innerHTML = '🏆 <b>THE WARLOCK IS DEFEATED!</b> &nbsp;+' + bonus + ' ◆';
+      $('#victorysub').textContent = 'One tower, one swamp, one hundred mossy floors — and he FALLS. The towers are free… for now.';
+      $('#gohome').textContent = '🏠 Home Screen';
+    } else if (next <= MAX_FLOOR) {
+      $('#victorysub').textContent = SW ? 'The fog only thickens ahead…' : 'The tower groans above you — keep climbing…';
+      $('#gohome').textContent = SW ? '🌿 Push deeper!' : '🧗 Climb higher!';
+    } else if (SW && FULLGAME) {
+      save('bbt-moss-open', true);   // the MOSSY TOWER hex appears on the home screen
+      $('#victorysub').textContent = 'THE MOSSY TOWER’S GATES groan OPEN — he is at the TOP, one hundred floors up.';
+      $('#gohome').textContent = '🏰 Enter the Mossy Tower!';
     } else {
       $('#victorysub').textContent = 'THE MOSSY TOWER stands before you — its door SEALED by the Warlock’s magic… for now.';
       $('#gohome').textContent = '🏠 Home Screen';
     }
     $('#victory').classList.add('show');
-    setTimeout(goNextSwamp, 4200);
+    setTimeout(goNextWorld, 4200);
     return;
   }
   save('bbt-ambush', floorNum);   // the Warlock's ambush is now OWED — dodging only delays it
@@ -2420,12 +2651,16 @@ function goSwamp() {
   if (String(location.href).startsWith('about')) { location.reload(); return; }
   location.href = 'tower.html?world=swamp&floor=' + at2;
 }
-function goNextSwamp() {
+function goNextWorld() {
   if (wentHome) return; wentHome = true;
-  const nx = load('bbt-swampfloor', 1);
+  const nx = load(FLOOR_KEY, 1);
   if (String(location.href).startsWith('about')) { location.reload(); return; }
-  if (nx > MAX_FLOOR) { location.href = 'index.html'; return; }
-  location.href = 'tower.html?world=swamp&floor=' + Math.min(nx, MAX_FLOOR);
+  if (nx > MAX_FLOOR) {
+    // the swamp is crossed — and in the FULL game, the mossy tower's gates stand open
+    if (SW && FULLGAME) { location.href = 'tower.html?world=moss&floor=' + Math.min(Math.max(1, load('bbt-mossfloor', 1)), 100); return; }
+    location.href = 'index.html'; return;
+  }
+  location.href = 'tower.html?world=' + WORLD + '&floor=' + Math.min(nx, MAX_FLOOR);
 }
 /* ---------- THE CUTSCENE: at a twentieth of his health, the Warlock speaks —
    and then, IMMEDIATELY after his line, he lights an ODD RAINBOW BOMB and
@@ -2536,7 +2771,7 @@ function goBase() {
   if (String(location.href).startsWith('about')) { location.reload(); return; }
   location.href = 'base.html?ambush=' + floorNum;
 }
-$('#gohome').addEventListener('click', () => { (G && G.won) ? (SW ? goNextSwamp() : goBase()) : goHome(); });
+$('#gohome').addEventListener('click', () => { (G && G.won) ? ((SW || MOSS) ? goNextWorld() : goBase()) : goHome(); });
 $('#victoryhome').addEventListener('click', () => {
   if (String(location.href).startsWith('about')) { location.reload(); return; }
   location.href = 'index.html';
@@ -2636,11 +2871,27 @@ function update(dt, now) {
     }
 
     // heart flasks a witch dropped: walk over one and feel better at once
+    // (the mossy tower's GOLDEN flasks refill EVERY heart)
     (G.flasks || []).forEach(fl => {
       if (!fl.taken && dist(fl.x, fl.y, h.fx, h.fy) < 0.7) {
         fl.taken = true; sfx.gem();
-        h.hearts = Math.min(h.maxHearts, h.hearts + 2);
-        floatText(fl.x, fl.y, '+1 ❤', '#ff8ba7');
+        if (fl.gold) {
+          h.hearts = h.maxHearts;
+          floatText(fl.x, fl.y, 'FULL ❤!', '#ffd94a');
+        } else {
+          h.hearts = Math.min(h.maxHearts, h.hearts + 2);
+          floatText(fl.x, fl.y, '+1 ❤', '#ff8ba7');
+        }
+        updateHUD();
+      }
+    });
+
+    // rubies pried loose from the mossy stones: worth a fat pile of gems
+    (G.rubies || []).forEach(rb => {
+      if (!rb.taken && dist(rb.x, rb.y, h.fx, h.fy) < 0.7) {
+        rb.taken = true; sfx.gem();
+        gems += 15; save('bbt-gems', gems);
+        floatText(rb.x, rb.y, '+15 ◆ RUBY!', '#ff5c7a');
         updateHUD();
       }
     });
@@ -2657,6 +2908,21 @@ function update(dt, now) {
       for (let i = 0; i < 14; i++) G.sparkles.push({ fx: G.hut.x + (Math.random() - 0.5) * 1.6, fy: G.hut.y + (Math.random() - 0.5) * 1.6, at: now });
       sfx.gem(); sfx.stairs(); shake();
       banner('🏚️ THE WITCH’S TREASURE! +' + loot + ' ◆ · +4 SLIME · HEARTS FULL · +2💣 +2🧨', 2600);
+      updateHUD();
+    }
+
+    // THE OLD MOSSY CHEST: every 5th floor of the tower keeps one, stuffed
+    // with whatever the Warlock forgot he owned
+    if (G.chest && !G.chest.opened && dist(G.chest.x, G.chest.y, h.fx, h.fy) < 0.95) {
+      G.chest.opened = true;
+      const loot = 40 + floorNum;
+      gems += loot; save('bbt-gems', gems);
+      gainMat('slime', 2, G.chest.x, G.chest.y);
+      h.belt.bomb = (h.belt.bomb || 0) + 1;
+      h.belt.dynamite = (h.belt.dynamite || 0) + 1;
+      for (let i = 0; i < 12; i++) G.sparkles.push({ fx: G.chest.x + (Math.random() - 0.5) * 1.4, fy: G.chest.y + (Math.random() - 0.5) * 1.4, at: now });
+      sfx.gem(); sfx.stairs(); shake();
+      banner('🧰 THE OLD MOSSY CHEST! +' + loot + ' ◆ · +2 SLIME · +1💣 +1🧨', 2400);
       updateHUD();
     }
 
@@ -2818,6 +3084,15 @@ function update(dt, now) {
       }
     }
   }
+  /* THE REMATCH: he crossed the swamp too — and he learned the witches'
+     trick. From range he lobs poison potions of his own. */
+  if (G.boss && G.boss.rematch && !G.boss.dead && !G.boss.fled && !h.dead &&
+      dist(G.boss.fx, G.boss.fy, h.fx, h.fy) > 2.2 && now >= (G.boss.throwReadyAt || 0)) {
+    G.boss.throwReadyAt = now + 3000;
+    G.boss.swingUntil = now + 220;
+    G.potions.push({ fx: G.boss.fx, fy: G.boss.fy, tx: h.fx, ty: h.fy, at: now, dur: 650 });
+    sfx.zap();
+  }
 
   // camera follows
   G.cam.x += (h.fx - G.cam.x) * Math.min(1, 5 * dt);
@@ -2843,9 +3118,12 @@ const lctx = light.getContext('2d');
 function render(now) {
   const w = view.w, hgt = view.h;
   ctx.setTransform(view.dpr, 0, 0, view.dpr, 0, 0);
-  // dank backdrop (the swamp's sky hangs green and heavy)
+  // dank backdrop (the swamp's sky hangs green and heavy; a BALCONY floor
+  // opens straight into the storm — the sky itself is the wall)
   const bg = ctx.createLinearGradient(0, 0, 0, hgt);
-  if (SW) { bg.addColorStop(0, '#101b10'); bg.addColorStop(1, '#070d08'); }
+  if (G.storm) { bg.addColorStop(0, '#1c2940'); bg.addColorStop(1, '#0b101c'); }
+  else if (MOSS) { bg.addColorStop(0, '#131a15'); bg.addColorStop(1, '#0a0e0b'); }
+  else if (SW) { bg.addColorStop(0, '#101b10'); bg.addColorStop(1, '#070d08'); }
   else { bg.addColorStop(0, '#120d1c'); bg.addColorStop(1, '#0a0710'); }
   ctx.fillStyle = bg; ctx.fillRect(0, 0, w, hgt);
 
@@ -2892,18 +3170,19 @@ function render(now) {
     }
   });
 
-  // the arena's standing FLAMES, dancing over the lava pools
+  // the arena's standing FLAMES — orange over lava, GREEN over the throne
+  // room's poison (the Warlock redecorated)
   (G.flames || []).forEach(p => {
     const sx = ox + isoX(p.fx, p.fy), sy = oy + isoY(p.fx, p.fy);
     const f = 0.7 + Math.sin(now / 90 + p.seed) * 0.3;
-    ctx.fillStyle = 'rgba(255,120,20,' + (0.85 * f).toFixed(2) + ')';
+    ctx.fillStyle = p.green ? 'rgba(90,230,120,' + (0.8 * f).toFixed(2) + ')' : 'rgba(255,120,20,' + (0.85 * f).toFixed(2) + ')';
     ctx.beginPath();
     ctx.moveTo(sx, sy - 40 * f); ctx.quadraticCurveTo(sx + 15, sy - 13 * f, sx + 10, sy);
     ctx.quadraticCurveTo(sx + 6, sy + 5, sx, sy + 5);
     ctx.quadraticCurveTo(sx - 13, sy + 5, sx - 10, sy - 4);
     ctx.quadraticCurveTo(sx - 13, sy - 18 * f, sx, sy - 40 * f);
     ctx.fill();
-    ctx.fillStyle = 'rgba(255,220,80,' + (0.9 * f).toFixed(2) + ')';
+    ctx.fillStyle = p.green ? 'rgba(200,255,190,' + (0.85 * f).toFixed(2) + ')' : 'rgba(255,220,80,' + (0.9 * f).toFixed(2) + ')';
     ctx.beginPath(); ctx.ellipse(sx, sy - 7, 6, 13 * f, 0, 0, 7); ctx.fill();
   });
 
@@ -2918,7 +3197,10 @@ function render(now) {
   G.rubble.forEach(r => draws.push({ d: r.fx + r.fy - 0.4, f: () => drawRubble(ox, oy, r) }));
   G.crates.forEach(c => { if (!c.taken) draws.push({ d: c.x + c.y, f: () => drawCrate(ox, oy, c) }); });
   if (G.hut) draws.push({ d: G.hut.x + G.hut.y + 0.4, f: () => drawHut(ox, oy, G.hut, now) });
+  if (G.chest) draws.push({ d: G.chest.x + G.chest.y, f: () => drawChest(ox, oy, G.chest, now) });
+  (G.decor || []).forEach(dc => draws.push({ d: dc.x + dc.y, f: () => drawDecor(ox, oy, dc, now) }));
   (G.flasks || []).forEach(fl => { if (!fl.taken) draws.push({ d: fl.x + fl.y, f: () => drawFlask(ox, oy, fl, now) }); });
+  (G.rubies || []).forEach(rb => { if (!rb.taken) draws.push({ d: rb.x + rb.y, f: () => drawRuby(ox, oy, rb, now) }); });
   (G.potions || []).forEach(p => {
     const q = Math.min(1, (now - p.at) / p.dur);
     const px = p.fx + (p.tx - p.fx) * q, py = p.fy + (p.ty - p.fy) * q;
@@ -2927,7 +3209,7 @@ function render(now) {
   G.bombs.forEach(b => draws.push({ d: b.fx + b.fy, f: () => drawBomb(ox, oy, b, now) }));
   G.enemies.forEach(e => draws.push({ d: e.fx + e.fy, f: () => drawEnemy(ox, oy, e, now) }));
   draws.push({ d: h.fx + h.fy + (h.elev ? 2 : 0), f: () => drawHero(ox, oy, h, now) });
-  if (floorNum === 50 && !G.inArena) draws.push({ d: G.stairs.x + G.stairs.y - 0.6, f: () => drawDoorway(ox, oy, now) });
+  if (MAIN && floorNum === 50 && !G.inArena) draws.push({ d: G.stairs.x + G.stairs.y - 0.6, f: () => drawDoorway(ox, oy, now) });
   else draws.push({ d: G.stairs.x + G.stairs.y - 0.6, f: () => drawStairs(ox, oy, now) });
   G.chains.forEach(c => draws.push({ d: c.x + c.y + 0.6, f: () => drawChain(ox, oy, c, now) }));
   draws.sort((a, b) => a.d - b.d);
@@ -2989,7 +3271,7 @@ function render(now) {
   if (light.width !== canvas.width) { light.width = canvas.width; light.height = canvas.height; }
   lctx.setTransform(view.dpr, 0, 0, view.dpr, 0, 0);
   lctx.clearRect(0, 0, w, hgt);
-  lctx.fillStyle = SW ? 'rgba(4,12,6,0.52)' : 'rgba(4,2,10,0.60)';
+  lctx.fillStyle = G.storm ? 'rgba(8,12,20,0.46)' : MOSS ? 'rgba(6,12,8,0.56)' : SW ? 'rgba(4,12,6,0.52)' : 'rgba(4,2,10,0.60)';
   lctx.fillRect(0, 0, w, hgt);
   lctx.globalCompositeOperation = 'destination-out';
   const hole = (x, y, r, a) => {
@@ -3012,7 +3294,8 @@ function render(now) {
   hole(ox + isoX(G.stairs.x, G.stairs.y), oy + isoY(G.stairs.x, G.stairs.y) - 20, 120, 0.9);
   G.booms.forEach(b => hole(ox + isoX(b.fx, b.fy), oy + isoY(b.fx, b.fy), 300 * (1 - (now - b.at) / 480), 1));
   lctx.globalCompositeOperation = 'source-over';
-  ctx.drawImage(light, 0, 0, w, hgt);
+  // (a hidden iframe can boot us at 0×0 — a zero-size blit throws)
+  if (light.width > 0 && light.height > 0) ctx.drawImage(light, 0, 0, w, hgt);
 
   // warm torch glow tint (witchlight burns cold and green in the swamp)
   ctx.globalCompositeOperation = 'lighter';
@@ -3020,8 +3303,8 @@ function render(now) {
     const f = 0.8 + Math.sin(now / 95 + tc.seed) * 0.2;
     const gx = ox + isoX(tc.x, tc.y), gy = oy + isoY(tc.x, tc.y) - 30;
     const g = ctx.createRadialGradient(gx, gy, 0, gx, gy, 95 * f);
-    g.addColorStop(0, SW ? 'rgba(120,255,150,0.10)' : 'rgba(255,150,50,0.16)');
-    g.addColorStop(1, SW ? 'rgba(120,255,150,0)' : 'rgba(255,150,50,0)');
+    g.addColorStop(0, (SW || MOSS) ? 'rgba(120,255,150,0.10)' : 'rgba(255,150,50,0.16)');
+    g.addColorStop(1, (SW || MOSS) ? 'rgba(120,255,150,0)' : 'rgba(255,150,50,0)');
     ctx.fillStyle = g;
     ctx.beginPath(); ctx.arc(gx, gy, 95 * f, 0, 7); ctx.fill();
   });
@@ -3059,6 +3342,29 @@ function render(now) {
     }
     ctx.globalCompositeOperation = 'source-over';
   }
+
+  /* THE BALCONY STORM: rain slashes across the open floor, and every few
+     breaths the whole sky goes WHITE and the thunder rolls through */
+  if (G.storm) {
+    if (!G.nextBoltAt || now > G.nextBoltAt) {
+      if (G.nextBoltAt && !G.over) { G.boltAt = now; try { sfx.thunder(); } catch (e) {} }
+      G.nextBoltAt = now + 3500 + Math.random() * 5000;
+    }
+    ctx.strokeStyle = 'rgba(170,200,255,0.30)'; ctx.lineWidth = 1.3; ctx.lineCap = 'round';
+    ctx.beginPath();
+    for (let i = 0; i < 70; i++) {
+      const seed = i * 127.31;
+      const rx = ((((seed * 79.19 - now * (0.16 + (i % 5) * 0.03)) % (w + 220)) + w + 220) % (w + 220)) - 110;
+      const ry = ((((seed * 104.729 + now * (0.5 + (i % 7) * 0.06)) % (hgt + 160)) + hgt + 160) % (hgt + 160)) - 80;
+      ctx.moveTo(rx, ry); ctx.lineTo(rx - 6, ry + 17);
+    }
+    ctx.stroke();
+    const fl = Math.max(0, 1 - (now - (G.boltAt || -1e9)) / 320);
+    if (fl > 0) {
+      ctx.fillStyle = 'rgba(220,235,255,' + (fl * 0.4).toFixed(2) + ')';
+      ctx.fillRect(0, 0, w, hgt);
+    }
+  }
 }
 
 /* ---------- tile & prop drawing ---------- */
@@ -3072,16 +3378,17 @@ function drawTileDiamond(sx, sy, t, x, y, now) {
   const alt = (x + y) % 2 === 0;
   if (t.kind === 'carpet') {
     // in the tower: red carpet. In the swamp: a soft moss patch.
+    // In the MOSSY TOWER: the Warlock's own worn purple runners.
     diamondPath(sx, sy, 0);
-    ctx.fillStyle = SW ? (alt ? '#2e5a32' : '#2a5430') : (alt ? '#8e1f28' : '#821b24'); ctx.fill();
+    ctx.fillStyle = SW ? (alt ? '#2e5a32' : '#2a5430') : MOSS ? (alt ? '#46285e' : '#402455') : (alt ? '#8e1f28' : '#821b24'); ctx.fill();
     diamondPath(sx, sy, 5);
-    ctx.strokeStyle = SW ? 'rgba(150,255,160,0.30)' : 'rgba(255,200,90,0.5)'; ctx.lineWidth = 1.6; ctx.stroke();
+    ctx.strokeStyle = SW ? 'rgba(150,255,160,0.30)' : MOSS ? 'rgba(205,170,255,0.35)' : 'rgba(255,200,90,0.5)'; ctx.lineWidth = 1.6; ctx.stroke();
   } else if (t.kind === 'spike') {
     diamondPath(sx, sy, 0);
-    ctx.fillStyle = SW ? '#252e1d' : '#2c2733'; ctx.fill();
+    ctx.fillStyle = SW ? '#252e1d' : MOSS ? '#262c27' : '#2c2733'; ctx.fill();
     const up = ((now / 1000 + t.spikePhase) % 1.8) < 0.7;
     const hgt2 = up ? 13 : 3;
-    ctx.fillStyle = SW ? (up ? '#cfd6a8' : '#4e5a3e') : (up ? '#c9ced6' : '#565060');
+    ctx.fillStyle = SW ? (up ? '#cfd6a8' : '#4e5a3e') : MOSS ? (up ? '#cfd6c4' : '#4e5a50') : (up ? '#c9ced6' : '#565060');
     for (let i = -1; i <= 1; i++) {
       ctx.beginPath();
       ctx.moveTo(sx + i * 13 - 5, sy + 3); ctx.lineTo(sx + i * 13, sy + 3 - hgt2); ctx.lineTo(sx + i * 13 + 5, sy + 3);
@@ -3117,11 +3424,12 @@ function drawTileDiamond(sx, sy, t, x, y, now) {
     }
   } else if (t.kind === 'stairs') {
     diamondPath(sx, sy, 0);
-    ctx.fillStyle = SW ? '#33402a' : '#3a3540'; ctx.fill();
+    ctx.fillStyle = SW ? '#33402a' : MOSS ? '#2f3c31' : '#3a3540'; ctx.fill();
   } else {
-    // plain ground: tower flagstones, or the swamp's dirty trodden mud
+    // plain ground: tower flagstones, the swamp's trodden mud, or the mossy
+    // tower's old green-furred stones
     diamondPath(sx, sy, 0);
-    ctx.fillStyle = SW ? (alt ? '#33402c' : '#2f3b29') : (alt ? '#3a3540' : '#363139'); ctx.fill();
+    ctx.fillStyle = SW ? (alt ? '#33402c' : '#2f3b29') : MOSS ? (alt ? '#3a463c' : '#364238') : (alt ? '#3a3540' : '#363139'); ctx.fill();
     diamondPath(sx, sy, 1);
     ctx.strokeStyle = 'rgba(0,0,0,0.28)'; ctx.lineWidth = 1; ctx.stroke();
     if (SW && (x * 13 + y * 29) % 11 === 0) {   // stray tufts of marsh grass
@@ -3132,6 +3440,11 @@ function drawTileDiamond(sx, sy, t, x, y, now) {
       ctx.moveTo(sx + 3, sy + 2); ctx.lineTo(sx + 6, sy - 4);
       ctx.stroke();
     }
+    if (MOSS && (x * 17 + y * 23) % 9 === 0) {   // moss creeping between the flagstones
+      ctx.fillStyle = 'rgba(74,128,68,0.5)';
+      ctx.beginPath(); ctx.ellipse(sx + ((x * 7 + y) % 9) - 4, sy + ((x + y * 5) % 5) - 2, 5.5, 2.6, 0.3, 0, 7); ctx.fill();
+      ctx.beginPath(); ctx.ellipse(sx - ((x + y * 3) % 8) + 2, sy - ((x * 3 + y) % 4) + 1, 3.5, 1.8, -0.4, 0, 7); ctx.fill();
+    }
   }
 }
 function drawWallBlock(ox, oy, x, y, t, now) {
@@ -3140,25 +3453,37 @@ function drawWallBlock(ox, oy, x, y, t, now) {
   if (SW) return drawSwampTree(sx, sy, x, y, t, now);   // the swamp's walls are its TREES
   const hw = ISO.TW / 2, hh = ISO.TH / 2, H = WALL_H;
   const cracked = t.kind === 'crack';
+  // the MOSSY TOWER keeps the tower's bones but its stones went green long ago
+  const cTop = MOSS ? (cracked ? '#48544a' : '#445046') : (cracked ? '#4e4356' : '#4a4152');
+  const cL = MOSS ? (cracked ? '#333d35' : '#2f3931') : (cracked ? '#38303f' : '#332c3a');
+  const cR = MOSS ? (cracked ? '#28302a' : '#242c26') : (cracked ? '#2c2533' : '#28222e');
   // top
   ctx.beginPath();
   ctx.moveTo(sx, sy - hh - H); ctx.lineTo(sx + hw, sy - H); ctx.lineTo(sx, sy + hh - H); ctx.lineTo(sx - hw, sy - H);
   ctx.closePath();
-  ctx.fillStyle = cracked ? '#4e4356' : '#4a4152'; ctx.fill();
+  ctx.fillStyle = cTop; ctx.fill();
   ctx.strokeStyle = 'rgba(0,0,0,0.4)'; ctx.lineWidth = 1; ctx.stroke();
   // left face
   ctx.beginPath();
   ctx.moveTo(sx - hw, sy - H); ctx.lineTo(sx, sy + hh - H); ctx.lineTo(sx, sy + hh); ctx.lineTo(sx - hw, sy);
   ctx.closePath();
-  ctx.fillStyle = cracked ? '#38303f' : '#332c3a'; ctx.fill();
+  ctx.fillStyle = cL; ctx.fill();
   // right face
   ctx.beginPath();
   ctx.moveTo(sx + hw, sy - H); ctx.lineTo(sx, sy + hh - H); ctx.lineTo(sx, sy + hh); ctx.lineTo(sx + hw, sy);
   ctx.closePath();
-  ctx.fillStyle = cracked ? '#2c2533' : '#28222e'; ctx.fill();
+  ctx.fillStyle = cR; ctx.fill();
   // mortar hint on faces
   ctx.strokeStyle = 'rgba(0,0,0,0.3)'; ctx.lineWidth = 1;
   ctx.beginPath(); ctx.moveTo(sx - hw, sy - H / 2); ctx.lineTo(sx, sy + hh - H / 2); ctx.moveTo(sx, sy + hh - H / 2); ctx.lineTo(sx + hw, sy - H / 2); ctx.stroke();
+  if (MOSS) {   // moss caps every stone and drips down the shady side
+    const ms = rand(x * 47 + y * 71);
+    ctx.fillStyle = 'rgba(74,128,68,0.85)';
+    ctx.beginPath(); ctx.ellipse(sx - hw * 0.3, sy - H - hh * 0.15, 7 + ms * 5, 3.5, 0.4, 0, 7); ctx.fill();
+    ctx.beginPath(); ctx.ellipse(sx + hw * 0.35, sy - H + hh * 0.25, 6 + ms * 4, 3, -0.3, 0, 7); ctx.fill();
+    ctx.fillStyle = 'rgba(63,111,58,0.7)';
+    ctx.beginPath(); ctx.ellipse(sx - hw * 0.5, sy - H * 0.5, 3, 8 + ms * 6, 0.12, 0, 7); ctx.fill();
+  }
   if (cracked) {
     ctx.strokeStyle = '#d9b25a'; ctx.lineWidth = 2;
     ctx.beginPath();
@@ -3174,16 +3499,20 @@ function drawPlatform(ox, oy, x, y) {
   // skirt (in the swamp, a fat mossy STUMP holds the platform up)
   ctx.beginPath();
   ctx.moveTo(sx - hw, sy - H); ctx.lineTo(sx, sy + hh - H); ctx.lineTo(sx, sy + hh); ctx.lineTo(sx - hw, sy); ctx.closePath();
-  ctx.fillStyle = SW ? '#4a3b28' : '#443c4e'; ctx.fill();
+  ctx.fillStyle = SW ? '#4a3b28' : MOSS ? '#3a4440' : '#443c4e'; ctx.fill();
   ctx.beginPath();
   ctx.moveTo(sx + hw, sy - H); ctx.lineTo(sx, sy + hh - H); ctx.lineTo(sx, sy + hh); ctx.lineTo(sx + hw, sy); ctx.closePath();
-  ctx.fillStyle = SW ? '#3c2f1f' : '#332c3c'; ctx.fill();
+  ctx.fillStyle = SW ? '#3c2f1f' : MOSS ? '#2c3430' : '#332c3c'; ctx.fill();
   // top slab
   ctx.beginPath();
   ctx.moveTo(sx, sy - hh - H); ctx.lineTo(sx + hw, sy - H); ctx.lineTo(sx, sy + hh - H); ctx.lineTo(sx - hw, sy - H);
   ctx.closePath();
-  ctx.fillStyle = SW ? '#6b5a3a' : '#5b5166'; ctx.fill();
-  ctx.strokeStyle = SW ? 'rgba(140,255,150,0.30)' : 'rgba(255,220,120,0.25)'; ctx.lineWidth = 1.4; ctx.stroke();
+  ctx.fillStyle = SW ? '#6b5a3a' : MOSS ? '#5a685c' : '#5b5166'; ctx.fill();
+  ctx.strokeStyle = SW ? 'rgba(140,255,150,0.30)' : MOSS ? 'rgba(150,255,170,0.25)' : 'rgba(255,220,120,0.25)'; ctx.lineWidth = 1.4; ctx.stroke();
+  if (MOSS) {   // a soft green toupee for every old stone ledge
+    ctx.fillStyle = 'rgba(74,128,68,0.8)';
+    ctx.beginPath(); ctx.ellipse(sx + hw * 0.25, sy - H - hh * 0.2, 6, 2.8, -0.3, 0, 7); ctx.fill();
+  }
   if (SW) {   // tree rings on the cut face
     ctx.strokeStyle = 'rgba(60,47,31,0.7)'; ctx.lineWidth = 1.2;
     ctx.beginPath(); ctx.ellipse(sx, sy - H, hw * 0.55, hh * 0.55, 0, 0, 7); ctx.stroke();
@@ -3269,15 +3598,16 @@ function drawTorch(ox, oy, tc, now) {
     ctx.beginPath(); ctx.arc(sx - 6, yy + 9, 1.3, 0, 7); ctx.fill();
     return;
   }
-  ctx.strokeStyle = '#6b4a24'; ctx.lineWidth = 4; ctx.lineCap = 'round';
+  // the mossy tower's brackets rusted green — and its fire burns WITCH-GREEN
+  ctx.strokeStyle = MOSS ? '#4a5a48' : '#6b4a24'; ctx.lineWidth = 4; ctx.lineCap = 'round';
   ctx.beginPath(); ctx.moveTo(sx, sy - 26); ctx.lineTo(sx, sy - 46); ctx.stroke();
   const f = Math.sin(now / 85 + tc.seed) * 2.5;
-  ctx.fillStyle = '#ff8c1a';
+  ctx.fillStyle = MOSS ? '#49c96a' : '#ff8c1a';
   ctx.beginPath();
   ctx.moveTo(sx - 6, sy - 46); ctx.quadraticCurveTo(sx - 7 + f, sy - 60, sx + f * 0.6, sy - 68);
   ctx.quadraticCurveTo(sx + 7 + f, sy - 58, sx + 6, sy - 46);
   ctx.closePath(); ctx.fill();
-  ctx.fillStyle = '#ffd93b';
+  ctx.fillStyle = MOSS ? '#c8ffd6' : '#ffd93b';
   ctx.beginPath(); ctx.arc(sx + f * 0.4, sy - 52, 4.5, 0, 7); ctx.fill();
 }
 function drawChain(ox, oy, c, now) {
@@ -3296,7 +3626,7 @@ function drawChain(ox, oy, c, now) {
     }
     return;
   }
-  ctx.strokeStyle = '#575061'; ctx.lineWidth = 3; ctx.lineCap = 'round';
+  ctx.strokeStyle = MOSS ? '#5a6252' : '#575061'; ctx.lineWidth = 3; ctx.lineCap = 'round';
   const links = Math.floor(c.len / 11);
   let px = sx, py = syTop;
   for (let i = 0; i < links; i++) {
@@ -3305,8 +3635,12 @@ function drawChain(ox, oy, c, now) {
     ctx.beginPath(); ctx.ellipse((px + nx) / 2, (py + ny) / 2, 3, 5.5, Math.atan2(ny - py, nx - px), 0, 7); ctx.stroke();
     px = nx; py = ny;
   }
-  ctx.fillStyle = '#6b6275';
+  ctx.fillStyle = MOSS ? '#6d7a5e' : '#6b6275';
   ctx.beginPath(); ctx.arc(px, py + 3, 4, 0, 7); ctx.fill();
+  if (MOSS) {   // even the chains grow their own little gardens
+    ctx.fillStyle = 'rgba(74,128,68,0.85)';
+    ctx.beginPath(); ctx.ellipse(sx + sway * 0.2 + 2, syTop + c.len * 0.45, 3.6, 1.9, 0.6, 0, 7); ctx.fill();
+  }
 }
 function drawRubble(ox, oy, r) {
   const sx = ox + isoX(r.fx, r.fy), sy = oy + isoY(r.fx, r.fy);
@@ -3385,19 +3719,178 @@ function drawHut(ox, oy, hut, now) {
     ctx.globalAlpha = 1;
   }
 }
-/* a dropped heart flask — pink, fizzing, and exactly what it looks like */
+/* a dropped heart flask — pink, fizzing, and exactly what it looks like.
+   The mossy tower's GOLDEN flasks gleam brighter: those refill EVERYTHING */
 function drawFlask(ox, oy, fl, now) {
   const sx = ox + isoX(fl.x, fl.y), sy = oy + isoY(fl.x, fl.y) - 8 + Math.sin(now / 300 + fl.x * 3) * 3;
   drawShadow(sx, sy + 8, 6, 0.4);
-  ctx.fillStyle = '#ffdce6'; ctx.strokeStyle = '#8a3050'; ctx.lineWidth = 1.8;
+  if (fl.gold) {
+    const g = 0.5 + Math.sin(now / 240 + fl.y * 5) * 0.3;
+    ctx.fillStyle = 'rgba(255,217,74,' + (g * 0.35).toFixed(2) + ')';
+    ctx.beginPath(); ctx.arc(sx, sy, 13, 0, 7); ctx.fill();
+  }
+  ctx.fillStyle = fl.gold ? '#fff2c0' : '#ffdce6'; ctx.strokeStyle = fl.gold ? '#8a6a10' : '#8a3050'; ctx.lineWidth = 1.8;
   ctx.beginPath(); ctx.arc(sx, sy, 7, 0, 7); ctx.fill(); ctx.stroke();
-  ctx.fillStyle = '#ff5c7a';
+  ctx.fillStyle = fl.gold ? '#ffc93b' : '#ff5c7a';
   ctx.beginPath(); ctx.arc(sx, sy + 1.5, 5, 0, 7); ctx.fill();
   ctx.fillStyle = '#a9743c';
   ctx.fillRect(sx - 2.4, sy - 12, 4.8, 5);
-  ctx.fillStyle = '#ff8ba7';
+  ctx.fillStyle = fl.gold ? '#fff6d8' : '#ff8ba7';
   ctx.font = '8px sans-serif'; ctx.textAlign = 'center';
   ctx.fillText('❤', sx, sy + 3.2);
+}
+/* a RUBY shaken loose from the mossy stones — red, cut, and worth plenty */
+function drawRuby(ox, oy, rb, now) {
+  const sx = ox + isoX(rb.x, rb.y), sy = oy + isoY(rb.x, rb.y) - 7 + Math.sin(now / 260 + rb.x * 5) * 3;
+  drawShadow(sx, sy + 7, 6, 0.4);
+  const tw = 0.6 + Math.sin(now / 150 + rb.y * 7) * 0.4;
+  ctx.fillStyle = '#d8103c'; ctx.strokeStyle = '#5a0418'; ctx.lineWidth = 1.6;
+  ctx.beginPath();
+  ctx.moveTo(sx, sy - 8); ctx.lineTo(sx + 7, sy - 2); ctx.lineTo(sx + 4, sy + 6);
+  ctx.lineTo(sx - 4, sy + 6); ctx.lineTo(sx - 7, sy - 2); ctx.closePath();
+  ctx.fill(); ctx.stroke();
+  ctx.fillStyle = '#ff5c7a';
+  ctx.beginPath(); ctx.moveTo(sx, sy - 6); ctx.lineTo(sx + 4.5, sy - 1.5); ctx.lineTo(sx, sy + 1); ctx.lineTo(sx - 4.5, sy - 1.5); ctx.closePath(); ctx.fill();
+  ctx.fillStyle = 'rgba(255,255,255,' + (tw * 0.9).toFixed(2) + ')';
+  ctx.beginPath(); ctx.arc(sx - 2.5, sy - 3.5, 1.3, 0, 7); ctx.fill();
+}
+/* THE OLD MOSSY CHEST: iron-banded, moss-capped, lid thrown back once looted */
+function drawChest(ox, oy, ch, now) {
+  const sx = ox + isoX(ch.x, ch.y), sy = oy + isoY(ch.x, ch.y);
+  drawShadow(sx, sy + 4, 15, 0.45);
+  const glow = ch.opened ? 0 : 0.4 + Math.sin(now / 400) * 0.25;
+  if (glow) {   // a promise of treasure leaking out through the seam
+    ctx.fillStyle = 'rgba(255,217,74,' + (glow * 0.3).toFixed(2) + ')';
+    ctx.beginPath(); ctx.ellipse(sx, sy - 8, 24, 16, 0, 0, 7); ctx.fill();
+  }
+  // body
+  ctx.fillStyle = '#5d422a'; ctx.strokeStyle = '#241608'; ctx.lineWidth = 2;
+  ctx.beginPath(); ctx.roundRect(sx - 13, sy - 12, 26, 15, 2.5); ctx.fill(); ctx.stroke();
+  ctx.fillStyle = '#6d5236';
+  ctx.fillRect(sx - 13, sy - 12, 26, 3.5);
+  // iron bands
+  ctx.fillStyle = '#3c4048';
+  ctx.fillRect(sx - 9, sy - 12, 3, 15); ctx.fillRect(sx + 6, sy - 12, 3, 15);
+  if (ch.opened) {
+    // the lid stands open and EMPTY — you cleaned it out
+    ctx.fillStyle = '#4a3520'; ctx.strokeStyle = '#241608';
+    ctx.beginPath(); ctx.roundRect(sx - 13, sy - 24, 26, 8, 2.5); ctx.fill(); ctx.stroke();
+    ctx.fillStyle = '#120c06';
+    ctx.fillRect(sx - 11, sy - 11, 22, 4);
+  } else {
+    // closed lid + a fat padlock begging to be popped
+    ctx.fillStyle = '#6d5236'; ctx.strokeStyle = '#241608';
+    ctx.beginPath(); ctx.roundRect(sx - 14, sy - 17, 28, 7, 3); ctx.fill(); ctx.stroke();
+    ctx.fillStyle = '#ffd94a'; ctx.strokeStyle = '#7a5a10'; ctx.lineWidth = 1.5;
+    ctx.beginPath(); ctx.roundRect(sx - 3.5, sy - 12, 7, 8, 1.5); ctx.fill(); ctx.stroke();
+    ctx.strokeStyle = '#7a5a10'; ctx.lineWidth = 2;
+    ctx.beginPath(); ctx.arc(sx, sy - 12, 3, Math.PI, 0); ctx.stroke();
+  }
+  // the moss cap that gave it its name
+  ctx.fillStyle = '#3f6f3a';
+  ctx.beginPath(); ctx.ellipse(sx - 7, sy - (ch.opened ? 24 : 17.5), 5, 2.4, 0.2, 0, 7); ctx.fill();
+  ctx.beginPath(); ctx.ellipse(sx + 8, sy - (ch.opened ? 22 : 15.5), 4, 2, -0.3, 0, 7); ctx.fill();
+}
+/* FURNITURE for the tower's lived-in floors: each themed room gets its own
+   props, all drawn from one little catalog */
+function drawDecor(ox, oy, dc, now) {
+  const sx = ox + isoX(dc.x, dc.y), sy = oy + isoY(dc.x, dc.y);
+  const K = dc.kind;
+  drawShadow(sx, sy + 3, K === 'bed' || K === 'table' ? 17 : 11, 0.4);
+  ctx.strokeStyle = '#241608'; ctx.lineWidth = 1.8;
+  if (K === 'table') {
+    ctx.fillStyle = '#4a3520';
+    ctx.fillRect(sx - 12, sy - 6, 3.5, 9); ctx.fillRect(sx + 8.5, sy - 6, 3.5, 9);
+    ctx.fillStyle = '#6d5236';
+    ctx.beginPath(); ctx.ellipse(sx, sy - 9, 17, 8, 0, 0, 7); ctx.fill(); ctx.stroke();
+    ctx.fillStyle = '#8a6a42';
+    ctx.beginPath(); ctx.ellipse(sx, sy - 10.5, 14, 6, 0, 0, 7); ctx.fill();
+    // dinner long gone cold
+    ctx.fillStyle = '#b8b2a6'; ctx.beginPath(); ctx.ellipse(sx - 4, sy - 11, 4, 2, 0, 0, 7); ctx.fill();
+    ctx.fillStyle = '#7d8a90'; ctx.beginPath(); ctx.ellipse(sx + 5, sy - 12, 2, 1.2, 0, 0, 7); ctx.fill();
+  } else if (K === 'cauldron') {
+    ctx.fillStyle = '#2c3038';
+    ctx.beginPath(); ctx.ellipse(sx, sy - 6, 11, 8, 0, 0, 7); ctx.fill(); ctx.stroke();
+    ctx.fillStyle = '#101318';
+    ctx.beginPath(); ctx.ellipse(sx, sy - 11, 9.5, 4, 0, 0, 7); ctx.fill();
+    ctx.fillStyle = '#49c96a';
+    ctx.beginPath(); ctx.ellipse(sx, sy - 11, 8, 3.2, 0, 0, 7); ctx.fill();
+    for (let i = 0; i < 3; i++) {   // the stew never stops bubbling
+      const ph = ((now / 800) + i * 0.37) % 1;
+      ctx.fillStyle = 'rgba(160,255,170,' + (0.7 - ph * 0.6).toFixed(2) + ')';
+      ctx.beginPath(); ctx.arc(sx + Math.sin(i * 5) * 4, sy - 12 - ph * 8, 1.5 + ph, 0, 7); ctx.fill();
+    }
+  } else if (K === 'barrel') {
+    ctx.fillStyle = '#6d5236';
+    ctx.beginPath(); ctx.roundRect(sx - 8, sy - 20, 16, 22, 5); ctx.fill(); ctx.stroke();
+    ctx.fillStyle = '#3c4048';
+    ctx.fillRect(sx - 8, sy - 16, 16, 2.5); ctx.fillRect(sx - 8, sy - 6, 16, 2.5);
+    ctx.fillStyle = '#4a3520';
+    ctx.beginPath(); ctx.ellipse(sx, sy - 20, 8, 3, 0, 0, 7); ctx.fill(); ctx.stroke();
+  } else if (K === 'chair') {
+    ctx.fillStyle = '#5d422a';
+    ctx.fillRect(sx - 7, sy - 8, 14, 3.5);
+    ctx.fillRect(sx - 7, sy - 20, 3.5, 15); // back
+    ctx.fillRect(sx - 6, sy - 5, 2.5, 6); ctx.fillRect(sx + 4, sy - 5, 2.5, 6);
+    ctx.strokeRect(sx - 7, sy - 8, 14, 3.5);
+  } else if (K === 'shelf') {
+    ctx.fillStyle = '#4a3520';
+    ctx.fillRect(sx - 12, sy - 30, 24, 30); ctx.strokeRect(sx - 12, sy - 30, 24, 30);
+    ctx.fillStyle = '#241608';
+    ctx.fillRect(sx - 10, sy - 26, 20, 8); ctx.fillRect(sx - 10, sy - 15, 20, 8);
+    // a few books nobody dusts
+    ['#8a3050', '#2c5a8a', '#3f6f3a', '#8a6a10'].forEach((c2, i) => {
+      ctx.fillStyle = c2;
+      ctx.fillRect(sx - 9 + i * 4.5, sy - (i % 2 ? 25 : 14), 3.4, i % 2 ? 7 : 6.5);
+    });
+  } else if (K === 'plant') {
+    ctx.fillStyle = '#8a5a30';
+    ctx.beginPath(); ctx.moveTo(sx - 6, sy - 8); ctx.lineTo(sx + 6, sy - 8); ctx.lineTo(sx + 4, sy); ctx.lineTo(sx - 4, sy); ctx.closePath(); ctx.fill(); ctx.stroke();
+    ctx.fillStyle = '#3f6f3a';
+    for (let i = 0; i < 5; i++) {
+      const a = -Math.PI / 2 + (i - 2) * 0.5, ln = 12 + (i % 3) * 3;
+      ctx.beginPath(); ctx.ellipse(sx + Math.cos(a) * ln * 0.6, sy - 10 + Math.sin(a) * ln * 0.6, 6, 2.4, a, 0, 7); ctx.fill();
+    }
+  } else if (K === 'bed') {
+    ctx.fillStyle = '#4a3520';
+    ctx.fillRect(sx - 16, sy - 14, 4, 16);   // headboard
+    ctx.fillStyle = '#5d422a';
+    ctx.beginPath(); ctx.roundRect(sx - 14, sy - 8, 32, 10, 2); ctx.fill(); ctx.stroke();
+    ctx.fillStyle = '#7a8a4a';                // a mossy-green quilt, naturally
+    ctx.beginPath(); ctx.roundRect(sx - 6, sy - 10, 23, 9, 2); ctx.fill(); ctx.stroke();
+    ctx.fillStyle = '#e8e0cc';
+    ctx.beginPath(); ctx.ellipse(sx - 9, sy - 10, 5, 3, -0.2, 0, 7); ctx.fill(); ctx.stroke();
+  } else if (K === 'candle') {
+    ctx.fillStyle = '#3c4048';
+    ctx.fillRect(sx - 1.5, sy - 14, 3, 14);
+    ctx.beginPath(); ctx.ellipse(sx, sy, 6, 2.5, 0, 0, 7); ctx.fill();
+    ctx.fillStyle = '#e8e0cc';
+    ctx.fillRect(sx - 2.5, sy - 22, 5, 8);
+    const f = 0.7 + Math.sin(now / 110 + dc.x * 9) * 0.3;
+    ctx.fillStyle = 'rgba(255,200,80,' + (0.9 * f).toFixed(2) + ')';
+    ctx.beginPath(); ctx.ellipse(sx, sy - 26, 2.2, 4.5 * f, 0, 0, 7); ctx.fill();
+  } else if (K === 'wardrobe') {
+    ctx.fillStyle = '#5d422a';
+    ctx.fillRect(sx - 11, sy - 34, 22, 34); ctx.strokeRect(sx - 11, sy - 34, 22, 34);
+    ctx.strokeStyle = '#241608'; ctx.beginPath(); ctx.moveTo(sx, sy - 32); ctx.lineTo(sx, sy - 2); ctx.stroke();
+    ctx.fillStyle = '#ffd94a';
+    ctx.beginPath(); ctx.arc(sx - 2.5, sy - 17, 1.4, 0, 7); ctx.fill();
+    ctx.beginPath(); ctx.arc(sx + 2.5, sy - 17, 1.4, 0, 7); ctx.fill();
+  } else if (K === 'throne') {
+    // HIS chair — too big, too spiky, exactly his taste
+    ctx.fillStyle = '#241844';
+    ctx.beginPath();
+    ctx.moveTo(sx - 14, sy); ctx.lineTo(sx - 14, sy - 34); ctx.lineTo(sx - 8, sy - 26);
+    ctx.lineTo(sx, sy - 40); ctx.lineTo(sx + 8, sy - 26); ctx.lineTo(sx + 14, sy - 34);
+    ctx.lineTo(sx + 14, sy); ctx.closePath();
+    ctx.fill(); ctx.stroke();
+    ctx.fillStyle = '#3a2c5e';
+    ctx.fillRect(sx - 10, sy - 22, 20, 18);
+    ctx.fillStyle = '#ff5c7a';   // a gem winking at the crest, like an eye
+    ctx.beginPath(); ctx.arc(sx, sy - 33, 2.4, 0, 7); ctx.fill();
+    ctx.fillStyle = '#3f6f3a';
+    ctx.beginPath(); ctx.ellipse(sx - 12, sy - 30, 4, 2, 0.4, 0, 7); ctx.fill();
+  }
 }
 /* a witch's potion, tumbling through the air */
 function drawPotion(ox, oy, fx, fy, q, now) {
@@ -3654,22 +4147,24 @@ function drawWarlock(ox, oy, e, now) {
   const sx = ox + isoX(e.fx, e.fy), sy = oy + isoY(e.fx, e.fy);
   if (e.dead) {   // he doesn't fall — he DISPERSES
     const p = (now - e.deadAt) / 700;
+    const sc = e.big2 ? 1.6 : 1;
     ctx.globalAlpha = 1 - p;
     ctx.fillStyle = '#b06dff';
     for (let i = 0; i < 7; i++) {
-      ctx.beginPath(); ctx.arc(sx + (rand(i + 3) - 0.5) * 46 * p * 2, sy - 20 - p * 34, 5 * (1 - p), 0, 7); ctx.fill();
+      ctx.beginPath(); ctx.arc(sx + (rand(i + 3) - 0.5) * 46 * p * 2 * sc, sy - 20 - p * 34 * sc, 5 * sc * (1 - p), 0, 7); ctx.fill();
     }
     ctx.globalAlpha = 1;
     return;
   }
   const bob = Math.sin(now / 260) * 3;
-  drawShadow(sx, sy, e.big ? 22 : 15, 0.25);
+  drawShadow(sx, sy, e.big2 ? 27 : e.big ? 22 : 15, 0.25);
   ctx.save();
-  ctx.translate(sx, sy - (e.big ? 34 : 26) + bob);
-  if (e.big) ctx.scale(1.5, 1.5);   // in his arena he looms LARGER
+  ctx.translate(sx, sy - (e.big2 ? 40 : e.big ? 34 : 26) + bob);
+  if (e.big2) ctx.scale(1.8, 1.8);        // atop HIS tower he is LARGEST of all
+  else if (e.big) ctx.scale(1.5, 1.5);    // in his arena he looms LARGER
   if (now < e.hurtUntil) ctx.globalAlpha = 0.6;
-  // aura — angrier and redder when he's big
-  ctx.fillStyle = e.big ? 'rgba(168,40,100,.20)' : 'rgba(124,58,237,.16)';
+  // aura — angrier and redder the bigger he gets
+  ctx.fillStyle = e.big2 ? 'rgba(210,30,80,.24)' : e.big ? 'rgba(168,40,100,.20)' : 'rgba(124,58,237,.16)';
   ctx.beginPath(); ctx.ellipse(0, 4, 24, 30, 0, 0, 7); ctx.fill();
   // robe
   ctx.fillStyle = e.body; ctx.strokeStyle = '#1c1130'; ctx.lineWidth = 3;
@@ -3911,11 +4406,11 @@ addEventListener('keydown', e => {
 addEventListener('keyup', e => { G.keys[e.key.toLowerCase()] = false; });
 /* the GLOWING DOORWAY on Floor 50 must be CLICKED (or tapped) to pass through */
 function nearDoor() {
-  return floorNum === 50 && !G.inArena && !G.over && !G.hero.dead &&
+  return MAIN && floorNum === 50 && !G.inArena && !G.over && !G.hero.dead &&
     dist(G.stairs.x, G.stairs.y, G.hero.fx, G.hero.fy) < 2.3;
 }
 function tryEnterDoor(cx, cy) {
-  if (!doorRect || floorNum !== 50 || G.inArena || G.over || cutsceneOn || ringOpen) return false;
+  if (!doorRect || !MAIN || floorNum !== 50 || G.inArena || G.over || cutsceneOn || ringOpen) return false;
   const r = canvas.getBoundingClientRect();
   const px = cx - r.left, py = cy - r.top;
   if (px < doorRect.x || px > doorRect.x + doorRect.w || py < doorRect.y || py > doorRect.y + doorRect.h) return false;
@@ -3987,7 +4482,7 @@ function frame(now) {
   const dt = Math.min(0.05, (now - last) / 1000);
   last = now;
   if (!ringOpen && !cutsceneOn) update(dt, now);   // frozen while you pick a bomb — or while HE speaks
-  render(now);
+  try { render(now); } catch (e) {}   // one bad frame must never stop the game
   requestAnimationFrame(frame);
 }
 requestAnimationFrame(frame);
@@ -4067,8 +4562,13 @@ window.__tower = {
   get world() { return WORLD; },
   get edition() { return EDITION; },
   swampFloor,
+  mossFloor,
   startTravel,
   get hut() { return G.hut; },
+  get chest() { return G.chest; },
+  get decor() { return G.decor; },
+  get storm() { return !!G.storm; },
+  get rubies() { return G.rubies; },
   get goo() { return G.goo; },
   get potions() { return G.potions; },
   get flasks() { return G.flasks; },
@@ -4080,9 +4580,17 @@ window.__tower = {
   heroDmg,
   goto(x, y) { G.hero.fx = x; G.hero.fy = y; },
   win() {
-    if (floorNum === 50) {   // fast-forward THROUGH the doorway and the whole boss fight
+    if (MAIN && floorNum === 50) {   // fast-forward THROUGH the doorway and the whole boss fight
       if (!G.inArena) enterArena();
       if (G.boss) { G.boss.fled = true; G.boss.dead = true; }
+      reachStairs();
+      return;
+    }
+    if (MOSS && floorNum === 100) {  // fast-forward the throne-room REMATCH
+      if (G.boss) {
+        G.boss.dead = true; G.boss.deadAt = performance.now();
+        $('#bossbar').classList.remove('show');
+      }
       reachStairs();
       return;
     }

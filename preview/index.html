@@ -813,6 +813,22 @@ footer {
         <span class="lbl">Swamp</span>
       </button>
 
+      <button class="hexbtn" data-name="The Mossy Tower" id="mosshex" hidden>
+        <span class="hexwrap"><span class="hexo"><span class="hexi">
+          <svg viewBox="0 0 60 62" aria-hidden="true">
+            <g fill="none" stroke="#d9e2f5" stroke-width="3" stroke-linejoin="round" stroke-linecap="round">
+              <path d="M24 55 L25 14 L21 14 L21 8 L26 8 L26 11 L29 11 L29 8 L34 8 L34 11 L37 11 L37 8 L42 8 L42 14 L38 14 L39 55 Z"/>
+              <path d="M28 55 L28 48 a3.5 3.5 0 0 1 7 0 L35 55" stroke-width="2.4"/>
+              <rect x="28.5" y="20" width="6" height="7" stroke-width="2.2"/>
+              <path d="M25 33 q4 4 7 0 q3 4 7 0" stroke-width="2.4"/>
+              <path d="M14 20 l5 -7 h-4 l5 -7" stroke-width="2.4"/>
+              <path d="M10 30 l-2 6 M15 34 l-2 5 M48 26 l-2 6 M52 33 l-2 5" stroke-width="2"/>
+            </g>
+          </svg>
+        </span></span></span>
+        <span class="lbl">Mossy Tower</span>
+      </button>
+
       <button class="hexbtn" data-name="The Market">
         <span class="hexwrap"><span class="hexo"><span class="hexi">
           <svg viewBox="0 0 60 62" aria-hidden="true">
@@ -1074,6 +1090,12 @@ footer {
         location.href = 'tower.html?world=swamp';
         return;
       }
+      // "The MOSSY Tower" must be checked before the plain Tower — it
+      // matches /tower/i too!
+      if (/moss/i.test(btn.dataset.name) && !String(location.href).startsWith('about')) {
+        location.href = 'tower.html?world=moss';
+        return;
+      }
       if (/tower/i.test(btn.dataset.name) && !String(location.href).startsWith('about')) {
         location.href = 'tower.html';
         return;
@@ -1169,6 +1191,11 @@ footer {
       (JSON.parse(localStorage.getItem('bbt-floor') || '1') || 1) > 50 ||
       (JSON.parse(localStorage.getItem('bbt-swampfloor') || '0') || 0) >= 1);
     if (swampOpen) { const s = document.getElementById('swamphex'); if (s) s.hidden = false; }
+    // …and the MOSSY TOWER rises once you've crossed the whole swamp
+    const mossOpen = !PREVIEW && (JSON.parse(localStorage.getItem('bbt-moss-open') || 'false') ||
+      (JSON.parse(localStorage.getItem('bbt-mossfloor') || '0') || 0) >= 1 ||
+      (JSON.parse(localStorage.getItem('bbt-swampfloor') || '0') || 0) > 20);
+    if (mossOpen) { const m = document.getElementById('mosshex'); if (m) m.hidden = false; }
   } catch (e) {}
   // the preview edition wears its badge proudly
   if (PREVIEW) {

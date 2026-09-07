@@ -192,10 +192,50 @@ python3 -m http.server
 
   Beating a swamp level pays better than a tower floor (+40 and climbing)
   and leads straight to the next — there's no base to defend out here, so
-  no ambush is owed for swamp victories. Cross level 20 and you stand at
-  the **MOSSY TOWER'S GATES**… sealed shut by the Warlock's magic. For now.
-  (Once the chase has begun, a **Swamp hex** appears on the homepage so you
-  can head back into the bog any time.)
+  no ambush is owed for swamp victories. Cross level 20 and the **MOSSY
+  TOWER'S GATES groan OPEN** — the chase climbs. (Once the chase has begun,
+  a **Swamp hex** appears on the homepage so you can head back into the bog
+  any time; open the gates and a **Mossy Tower hex** rises beside it.)
+
+- **THE MOSSY TOWER** (`tower.html?world=moss`) — *full version only.* The
+  Warlock's **second tower**: taller, older, and green to the bones —
+  **ONE HUNDRED FLOORS** of it. Every floor is grown from its own seed
+  (no two of the hundred share their bones — there's a test that counts)
+  and every floor is a **room of his house**: dusty **kitchens** with
+  tables still set and cauldrons still bubbling, **living areas** with
+  bookshelves and sagging chairs, **bedrooms** with mossy-quilted beds and
+  candles nobody snuffed, crooked halls — and every fourth floor is a
+  **BALCONY**, open to the sky, where you can see outside: it is
+  **STORMING**. Rain slashes across the floor, the sky hangs storm-blue,
+  and every few breaths **lightning whitens everything** and the thunder
+  rolls through the speakers. Inside, the stones wear green moss caps, the
+  torches burn **witch-green**, the carpets are his worn purple, and even
+  the chains grow little gardens.
+
+  **It fights harder.** His servants wear **HIS purple livery** — mutants
+  a cut above the swamp's (+3 health, +6 gems), witches serving from floor
+  5, **poison seeping up through the floors**, spikes, and the same strict
+  bomb-budget puzzle all the way up.
+
+  **New drops and better things.** Beaten monsters up here can shake loose
+  a **RUBY — +15 ◆ on the spot**. The tower's witches carry **GOLDEN
+  FLASKS** that refill **every heart** at a touch. And **every fifth
+  floor** hides **THE OLD MOSSY CHEST** — iron-banded, moss-capped,
+  padlock glowing — stuffed with gems that scale with the floor, slime,
+  and bombs. Floor prizes pay the best rate in the game (+50 and climbing
+  +4 a floor).
+
+  **MOSS 100 — THE WARLOCK'S THRONE ROOM.** No stairs. No doorway. Poison
+  pools in the corners, green flames dancing over them, a purple carpet
+  running to **his throne** — and HIM: **larger than he has ever been**
+  and carrying **THREE TIMES the health** of the arena battle. He
+  teleports to your side like before — and he came home through the swamp,
+  so now he **lobs poison potions** of his own from range. The one rule
+  never changes: **only your weapon hurts him.** Bombs? *His magic DRINKS
+  the blast.* Enchantments? *RESISTED!* There is no cutscene this time and
+  no escape either — at zero health he **DISPERSES**: *THE WARLOCK IS
+  DEFEATED!* The victory card crowns the whole run — one tower, one swamp,
+  one hundred mossy floors — and the towers are free… *for now.*
 
 - **Market** (`market.html`) — based on Asher's market drawing. Two shelves
   (Artifacts and Weapons on hanging signs), a floor row, prices in gems, rarity
@@ -362,9 +402,6 @@ vault — the real paid delivery is the zip.
 Once a homepage is picked, it becomes the real `index.html`. Still to build:
 
 - **More tower floors**
-- **INSIDE THE MOSSY TOWER** — the swamp is crossed, but its gates are
-  sealed by the Warlock's magic. One day they open… and the REMATCH waits
-  at the top.
 - **The Build list** (spotted in the corner of the enchantment sheet):
   a Cursed Axe, Heavy Metal Armor, a Goblin Bow (the empty Bow slot
   waits!), an Iron Amulet, a Gong, and a Mushroom
