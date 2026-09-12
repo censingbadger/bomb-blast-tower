@@ -857,9 +857,11 @@ function startWave(n, practice) {
   n = Math.max(1, Math.min(12, n | 0));
   /* THE HORDE, sized to be BEATEN. You can't walk away from a real ambush any
      more, so the waves grow gently: a few more zombies each floor, a little
-     tougher, and they shamble in one at a time instead of all at once. */
+     tougher, and they shamble in one at a time instead of all at once.
+     Their HEALTH is deliberately low — one bomb drops an early zombie, and
+     even the deep waves never turn spongy. */
   const count = 2 + Math.ceil(n * 1.2);
-  const zhp = 3 + Math.ceil(n * 0.6);
+  const zhp = 2 + Math.ceil(n * 0.4);
   const enemies = [];
   for (let i = 0; i < count; i++) {
     const runner = n >= 3 && i % 3 === 2;   // faster, hungrier zombies join from wave 3
