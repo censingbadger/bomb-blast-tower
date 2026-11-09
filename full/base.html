@@ -163,6 +163,7 @@ canvas { display: block; width: 100%; height: auto; }
 .alarm:active { transform: translateY(2px); box-shadow: 0 3px 0 rgba(0,0,0,.5); }
 .alarm:focus-visible { outline: 3px solid var(--gem); outline-offset: 3px; }
 .alarm[disabled] { opacity: .5; cursor: default; }
+[hidden] { display: none !important; }
 .fighthint {
   margin-top: .55rem;
   text-align: center;
@@ -404,6 +405,7 @@ footer {
     <p class="sub">Your wall is broken &mdash; replace it cheap at the shop, then build back stronger!</p>
     <div class="cardrow">
       <button class="btn" id="fallenok">Rebuild</button>
+      <button class="btn" id="fallenretry" hidden>&#9876;&#65039; Fight them AGAIN!</button>
       <button class="btn" id="fallenhome">&#127968; Home Screen</button>
     </div>
   </div>
@@ -853,28 +855,34 @@ const hooks = { timeScale: 1 };
 
 function startWave(n, practice) {
   n = Math.max(1, Math.min(12, n | 0));
-  const count = 3 + n * 2;
+  /* THE HORDE, sized to be BEATEN. You can't walk away from a real ambush any
+     more, so the waves grow gently: a few more zombies each floor, a little
+     tougher, and they shamble in one at a time instead of all at once.
+     Their HEALTH is deliberately low — one bomb drops an early zombie, and
+     even the deep waves never turn spongy. */
+  const count = 2 + Math.ceil(n * 1.2);
+  const zhp = 2 + Math.ceil(n * 0.4);
   const enemies = [];
   for (let i = 0; i < count; i++) {
-    const runner = n >= 2 && i % 3 === 2;   // faster, hungrier zombies join from wave 2
-    const brute = n >= 3 && i % 7 === 6;
+    const runner = n >= 3 && i % 3 === 2;   // faster, hungrier zombies join from wave 3
+    const brute = n >= 5 && i % 7 === 6;    // the big ones wait until wave 5
     const gateFan = Math.random() < 0.45;
     const a = gateFan ? GATE_A + (Math.random() - 0.5) * 1.6 : Math.random() * TAU;
+    const hp = brute ? Math.round(zhp * 1.7) : runner ? Math.max(2, zhp - 1) : zhp;
     enemies.push({
       kind: brute ? 'brute' : runner ? 'runner' : 'zomb',
       a, t: 2.6 + Math.random() * 0.5,
-      hp: brute ? (3 + n) * 2 : runner ? 2 + n : 3 + n,
-      maxhp: brute ? (3 + n) * 2 : runner ? 2 + n : 3 + n,
+      hp, maxhp: hp,
       dmg: brute ? 2 : 1,
-      speed: brute ? 0.115 : runner ? 0.30 : 0.175,   // t-units per second
-      swingAt: 0, delay: i * 0.8, dead: false, deadAt: 0,
+      speed: brute ? 0.10 : runner ? 0.26 : 0.155,   // t-units per second
+      swingAt: 0, delay: i * 0.95, dead: false, deadAt: 0,
       gate: gateFan, seed: i * 7 + 3, slowUntil: 0, burnAt: 0,
     });
   }
   sim = {
     n, practice: !!practice,
     enemies,
-    wallHp: S.broken ? Math.floor(wallMaxHp() * 0.4) : wallMaxHp(),
+    wallHp: S.broken ? Math.floor(wallMaxHp() * 0.65) : wallMaxHp(),
     gateHp: gateMaxHp(),
     wallMax: wallMaxHp(), gateMax: gateMaxHp(),
     breach: false, over: false, won: false,
@@ -894,7 +902,8 @@ function endWave(won) {
   sim.over = true; sim.won = won;
   const n = sim.n, practice = sim.practice;
   lastResult = { won, n, practice };
-  if (!practice) save('bbt-ambush', 0);   // debt paid — win or lose, you FACED it
+  // the debt is paid by BEATING them. Lose, and the horde is STILL out there
+  if (!practice && won) save('bbt-ambush', 0);
   setTimeout(() => {
     document.body.classList.remove('fighting');
     $('#fighthint').textContent = 'Build up your base — the Warlock sends an ambush every time you beat a floor!';
@@ -921,26 +930,26 @@ function endWave(won) {
         $('#fallenmsg').innerHTML = 'Good thing that was practice! Wave <b>' + n + '</b> smashed through.';
         $('#ov-fallen').querySelector('.sub').textContent = 'Nothing lost this time. Build up before the real one!';
       } else {
-        const gLoss = Math.floor(gems * 0.25);
+        const gLoss = Math.floor(gems * 0.10);   // they're coming back — don't gut him
         gems -= gLoss;
-        mats.metal = Math.floor(mats.metal * 2 / 3);
-        mats.stone = Math.floor(mats.stone * 2 / 3);
-        mats.wood = Math.floor(mats.wood * 2 / 3);
+        mats.metal = Math.floor(mats.metal * 5 / 6);
+        mats.stone = Math.floor(mats.stone * 5 / 6);
+        mats.wood = Math.floor(mats.wood * 5 / 6);
         S.broken = true;
         saveAll();
         $('#fallenmsg').innerHTML = 'The zombies smashed through and raided your base&hellip; you lose <b>' + gLoss + ' &#9670;</b> and a chunk of your materials.';
-        $('#ov-fallen').querySelector('.sub').textContent = 'Your wall is broken — replace it cheap at the shop, then build back stronger!';
+        $('#ov-fallen').querySelector('.sub').textContent = 'Your wall is broken — replace it cheap at the shop, then build back stronger. The ambush is STILL coming!';
       }
       renderShop();
       showResultCard('#ov-fallen');
     }
+    paintOwed();
     sim = null;
   }, won ? 700 : 1100);
 }
 /* the after-ambush card waits a beat before its buttons work, so a finger
    still spam-tapping bombs can't accidentally press "Next Floor" (or wave
-   the card away) the instant it pops up — the Home Screen button always
-   gets its moment */
+   the card away) the instant it pops up — every button gets its moment */
 function showResultCard(sel) {
   const ov = $(sel);
   ov.classList.add('show', 'arming');
@@ -1086,10 +1095,10 @@ function stepSim(dt) {
 cv.addEventListener('pointerdown', e => {
   if (!sim || sim.over) return;
   if (sim.time < sim.playerAt) return;
-  sim.playerAt = sim.time + 1.4;
+  sim.playerAt = sim.time + 0.95;   // your throwing arm is the best weapon here
   const r = cv.getBoundingClientRect();
   const x = (e.clientX - r.left) * (W / r.width), y = (e.clientY - r.top) * (H / r.height);
-  sim.shots.push({ from: { x: CX, y: CY - 60 }, to: { x, y }, at: sim.time, fly: 0.55, r: 52, dmg: 2 });
+  sim.shots.push({ from: { x: CX, y: CY - 60 }, to: { x, y }, at: sim.time, fly: 0.55, r: 62, dmg: 3 });
 });
 
 /* ---------- drawing ---------- */
@@ -1422,9 +1431,31 @@ function frame(now) {
 requestAnimationFrame(frame);
 
 /* ---------- flows ---------- */
+/* THE AMBUSH IS NOT OPTIONAL. Beat a floor and the Warlock's horde comes for
+   your base — and until you BEAT it, there is no way out of the fort: no Home
+   button on the card, none in the corner, none anywhere. Rebuild, and fight
+   them again. Hold the base and the road home opens. */
+function owedAmbush() { return load('bbt-ambush', 0) || 0; }
+function paintOwed() {
+  const owed = owedAmbush() >= 1;
+  $('#back').hidden = owed;
+  $('#heldhome').hidden = owed;
+  $('#fallenhome').hidden = owed;
+  $('#fallenretry').hidden = !owed;
+  $('#alarm').innerHTML = owed
+    ? '&#128276; SOUND THE ALARM &mdash; the ambush is HERE!'
+    : '&#128276; SOUND THE ALARM &mdash; practice ambush';
+  if (!document.body.classList.contains('fighting')) {
+    $('#fighthint').innerHTML = owed
+      ? '&#9876;&#65039; <b>The Warlock&rsquo;s ambush is still coming!</b> Build up, then sound the alarm &mdash; you go nowhere until the base holds.'
+      : 'Build up your base &mdash; the Warlock sends an ambush every time you beat a floor!';
+  }
+}
 $('#alarm').addEventListener('click', () => {
   sfx.init();
   if (sim) return;
+  const owed = owedAmbush();
+  if (owed >= 1) { startWave(owed, false); return; }   // the real one is still out there
   startWave(Math.max(1, floorsBeaten), true);
 });
 const preview = () => String(location.href).startsWith('about');
@@ -1442,13 +1473,23 @@ $('#fallenhome').addEventListener('click', () => {
   if (preview()) { say('This is just the preview &mdash; open the real page to head home!'); return; }
   location.href = 'index.html';
 });
+$('#fallenretry').addEventListener('click', () => {
+  $('#ov-fallen').classList.remove('show');
+  const owed = owedAmbush();
+  if (owed >= 1 && !sim) { sfx.init(); startWave(owed, false); }
+});
 $('#back').addEventListener('click', e => {
   // never history.back() — that lands you on the floor you just finished,
   // stuck behind its VICTORY screen
   e.preventDefault();
-  // and NO strolling out of a real ambush — the zombies don't take breaks
+  // and NO strolling out of a real ambush — the zombies don't take breaks,
+  // and losing one doesn't send them home either
   if (sim && !sim.practice && !sim.over) {
     say('&#9876;&#65039; The zombies are AT THE GATES &mdash; hold them off first!');
+    return;
+  }
+  if (owedAmbush() >= 1) {
+    say('&#9876;&#65039; The ambush is still coming &mdash; BEAT it and the road home opens!');
     return;
   }
   if (preview()) { say('This is just the preview &mdash; open the real page to head home!'); return; }
@@ -1465,6 +1506,9 @@ $('#mute').addEventListener('click', e => {
    one you tried to walk away from (the saved debt: dodging only delays it) */
 const ambushParam = parseInt(new URLSearchParams(location.search).get('ambush'), 10);
 const ambushN = (ambushParam >= 1 ? ambushParam : 0) || (load('bbt-ambush', 0) || 0);
+// a REAL wave is a REAL debt — however you arrived, it stands until you BEAT it
+if (ambushN >= 1) save('bbt-ambush', ambushN);
+paintOwed();
 if (ambushN >= 1) {
   $('#incomingmsg').innerHTML = 'The Warlock is FURIOUS that you beat <b>Floor ' + ambushN + '</b>.';
   $('#ov-incoming').classList.add('show');
@@ -1489,6 +1533,7 @@ window.__base = {
   set timeScale(v) { hooks.timeScale = v; },
   get timeScale() { return hooks.timeScale; },
   get lastResult() { return lastResult; },
+  get owed() { return owedAmbush(); },
 };
 </script>
 </body>

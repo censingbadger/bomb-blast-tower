@@ -192,10 +192,61 @@ python3 -m http.server
 
   Beating a swamp level pays better than a tower floor (+40 and climbing)
   and leads straight to the next — there's no base to defend out here, so
-  no ambush is owed for swamp victories. Cross level 20 and you stand at
-  the **MOSSY TOWER'S GATES**… sealed shut by the Warlock's magic. For now.
-  (Once the chase has begun, a **Swamp hex** appears on the homepage so you
-  can head back into the bog any time.)
+  no ambush is owed for swamp victories. Cross level 20 and the **MOSSY
+  TOWER'S GATES groan OPEN** — the chase climbs. (Once the chase has begun,
+  a **Swamp hex** appears on the homepage so you can head back into the bog
+  any time; open the gates and a **Mossy Tower hex** rises beside it.)
+
+- **THE MOSSY TOWER** (`tower.html?world=moss`) — *full version only.* The
+  Warlock's **second tower**: taller, older, and green to the bones —
+  **ONE HUNDRED FLOORS** of it. Every floor is grown from its own seed
+  (no two of the hundred share their bones — there's a test that counts)
+  and every floor is a **room of his house**: dusty **kitchens** with
+  tables still set and cauldrons still bubbling, **living areas** with
+  bookshelves and sagging chairs, **bedrooms** with mossy-quilted beds and
+  candles nobody snuffed, crooked halls — and every fourth floor is a
+  **BALCONY**, open to the sky, where you can see outside: it is
+  **STORMING**. Rain slashes across the floor, the sky hangs storm-blue,
+  and every few breaths **lightning whitens everything** and the thunder
+  rolls through the speakers. Inside, the stones wear green moss caps, the
+  torches burn **witch-green**, the carpets are his worn purple, and even
+  the chains grow little gardens.
+
+  **It fights harder.** His servants wear **HIS purple livery** — mutants
+  a cut above the swamp's (+3 health, +6 gems), witches serving from floor
+  5, **poison seeping up through the floors**, spikes, and the same strict
+  bomb-budget puzzle all the way up.
+
+  **The lever-doors.** About **half the floors** (every odd one from MOSS 3
+  up) lock the way to the stairs behind an **old ironwood DOOR** — arched,
+  planked, iron-banded, its lock plate glowing with his magic. Bombs are no
+  use: the door tile is a **true cut** on the map (the generator proves it
+  with a flood-fill — no boost, blast or detour sneaks past), and the only
+  thing that opens it is a **LEVER waiting in a different part of the
+  level**, always reachable on foot and always at least a room away. Find
+  the mossy stone stump with the blinking gold knob, step on the pull —
+  *CLUNK!* — and somewhere across the floor the old door **grinds open**.
+  Shoulder the locked door all you like: *"LOCKED — find the LEVER!"*
+
+  **New drops and better things.** Beaten monsters up here can shake loose
+  a **RUBY — +15 ◆ on the spot**. The tower's witches carry **GOLDEN
+  FLASKS** that refill **every heart** at a touch. And **every fifth
+  floor** hides **THE OLD MOSSY CHEST** — iron-banded, moss-capped,
+  padlock glowing — stuffed with gems that scale with the floor, slime,
+  and bombs. Floor prizes pay the best rate in the game (+50 and climbing
+  +4 a floor).
+
+  **MOSS 100 — THE WARLOCK'S THRONE ROOM.** No stairs. No doorway. Poison
+  pools in the corners, green flames dancing over them, a purple carpet
+  running to **his throne** — and HIM: **larger than he has ever been**
+  and carrying **THREE TIMES the health** of the arena battle. He
+  teleports to your side like before — and he came home through the swamp,
+  so now he **lobs poison potions** of his own from range. The one rule
+  never changes: **only your weapon hurts him.** Bombs? *His magic DRINKS
+  the blast.* Enchantments? *RESISTED!* There is no cutscene this time and
+  no escape either — at zero health he **DISPERSES**: *THE WARLOCK IS
+  DEFEATED!* The victory card crowns the whole run — one tower, one swamp,
+  one hundred mossy floors — and the towers are free… *for now.*
 
 - **Market** (`market.html`) — based on Asher's market drawing. Two shelves
   (Artifacts and Weapons on hanging signs), a floor row, prices in gems, rarity
@@ -294,21 +345,32 @@ python3 -m http.server
   Slingshot 140, Spikes on Wall 150, and the 600 💎 **Turret** ("how did that
   get here?"). Every time you beat a Tower floor, the **Warlock sends an
   ambush at your base** — a "WAVE N" flag goes up and monsters march on your
-  wall and gate, stronger with every floor you've beaten. **And the ambush
-  cannot be skipped**: beating a floor writes it down as *owed*. Duck out to
-  the home screen and the Base hex flashes **⚔️ UNDER ATTACK!**, the Tower
-  door bounces you straight to the fight until you've defended, the base's
-  Home button refuses to work mid-battle ("the zombies are AT THE GATES"),
-  and win *or* lose, facing the wave is what pays the debt. Practice alarms
-  stay free — leave those whenever you like. Your defenses fight
+  wall and gate, stronger with every floor you've beaten. **And there is no way out of it**:
+  beating a floor writes the ambush down as *owed*, and from that moment
+  **there is no 🏠 Home Screen button anywhere** — not on the tower's victory
+  card (its only button is *Defend the Base!*), not in the corner of the fort,
+  not on the card when your base falls. The Tower door bounces you back to the
+  fight, the home screen's Base hex flashes **⚔️ UNDER ATTACK!**, and **losing
+  does not pay the debt** — the horde is still out there. The fallen card
+  offers **⚔️ Fight them AGAIN!** instead, and you can hit *Rebuild* first to
+  spend your gems on a better wall. Only **holding the base** clears it — and
+  then every way home comes back at once. Practice alarms stay free — leave
+  those whenever you like. Your defenses fight
   on their own and **you can tap the field to throw bombs**. Hold them off:
   gems and salvage. If they smash through: **the base falls** — you lose a
-  chunk of gems and materials and your wall breaks. There's a practice alarm
+  tenth of your gems and a little salvage, and your wall cracks (it comes back
+  at two-thirds strength for the next go). There's a practice alarm
   too, so you can test your fort any time without risking anything.
+  **The waves are built to be BEATEN**, since you can't walk away from one:
+  they grow gently with the floors, shamble in one at a time, runners don't
+  show up until wave 3 and brutes until wave 5 — and *your* thrown bombs are
+  the best weapon on the field (3 damage, a wide blast, and about one a
+  second).
   **When you hold the base**, the victory card offers **Next Floor →** (straight
   back into the Tower, on the floor you just unlocked), **🏠 Home Screen**, and
   **Back to building** if you'd rather spend your winnings on the fort first.
-  If the base falls you get **Rebuild** and **🏠 Home Screen**. Either card
+  If the base falls you get **Rebuild** and — while the ambush still stands —
+  **⚔️ Fight them AGAIN!** in place of the Home button. Either card
   waits a beat before its buttons switch on — so a finger still spam-tapping
   bombs when the wave ends can't accidentally press anything.
   **Getting there:** the **Base** hex on the homepage, or the green *Base*
@@ -362,9 +424,6 @@ vault — the real paid delivery is the zip.
 Once a homepage is picked, it becomes the real `index.html`. Still to build:
 
 - **More tower floors**
-- **INSIDE THE MOSSY TOWER** — the swamp is crossed, but its gates are
-  sealed by the Warlock's magic. One day they open… and the REMATCH waits
-  at the top.
 - **The Build list** (spotted in the corner of the enchantment sheet):
   a Cursed Axe, Heavy Metal Armor, a Goblin Bow (the empty Bow slot
   waits!), an Iron Amulet, a Gong, and a Mushroom
